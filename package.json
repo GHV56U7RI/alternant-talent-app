@@ -1,5 +1,10 @@
-"scripts": {
-  "lint": "echo \"No lint configured\" && exit 0",
-  "test": "echo \"No tests yet\" && exit 0"
+{
+  "name": "alternant-talent-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "lint": "echo \"No lint configured\" && exit 0",
+    "test": "echo \"No tests yet\" && exit 0"
+  }
 }
 
