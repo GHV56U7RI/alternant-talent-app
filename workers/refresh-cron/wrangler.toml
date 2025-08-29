@@ -1,0 +1,9 @@
+name = "refresh-cron"
+main = "index.js"
+compatibility_date = "2025-08-01"
+
+[vars]
+BASE_URL = "https://www.alternant-talent.com"
+
+[triggers]
+crons = ["0 5 * * *"]  # tous les jours à 05:00 UTC

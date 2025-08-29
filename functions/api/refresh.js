@@ -14,8 +14,11 @@ export async function onRequest(context) {
     });
   }
 
-  const assetReq = new Request(new URL('/data/seed.json', request.url), request);
-  const assetRes = await env.ASSETS.fetch(assetReq);
+  // ⚠️ Pages ASSETS: FORCER GET (sinon 405) + URL absolue
+  const origin = new URL(request.url).origin;
+  const assetUrl = new URL('/data/seed.json', origin);
+  const assetRes = await env.ASSETS.fetch(new Request(assetUrl, { method: 'GET' }));
+
   let payload = [];
   try { if (assetRes.ok) payload = await assetRes.json(); } catch {}
   if (!Array.isArray(payload)) payload = [];
