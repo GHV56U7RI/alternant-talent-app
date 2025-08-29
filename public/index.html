@@ -1,0 +1,28 @@
+<!doctype html><html lang="fr"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Alternant·e & Talent — Offres</title>
+<link rel="manifest" href="/manifest.webmanifest"/>
+<style>/* … styles… (peu importe, garde ta version si tu en as déjà une) */</style>
+</head><body>
+<header>…</header>
+<main class="wrap">
+  <div id="meta" class="meta"></div>
+  <div id="state" class="loading" hidden>Chargement…</div>
+  <div id="list" class="grid"></div>
+</main>
+<script>
+(async function(){
+  const url=new URL('/api/jobs',location.origin);
+  const res=await fetch(url,{headers:{accept:'application/json'}});
+  const data=await res.json();
+  document.getElementById('meta').textContent=`Résultats: ${data.count}`;
+  const wrap=document.getElementById('list');
+  for(const j of data.jobs){
+    const a=document.createElement('article');
+    a.innerHTML=`<h3>${j.title}</h3><div>${j.company??''} • ${j.location??''}</div>
+      <a href="${j.url}" target="_blank" rel="noopener">Voir</a>`;
+    wrap.appendChild(a);
+  }
+})();
+</script>
+</body></html>
