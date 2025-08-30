@@ -26,7 +26,8 @@ export async function onRequest({ request, env }) {
 
   const user_id = res.meta.last_row_id;
   const token = makeToken();
-  await env.DB.prepare(`INSERT INTO sessions (user_id, token) VALUES (?,?)`).bind(user_id, token).run();
+  const expires = Math.floor(Date.now()/1000) + 60*60*24*30;
+  await env.DB.prepare(`INSERT INTO sessions (user_id, token, expires_at) VALUES (?,?,?)`).bind(user_id, token, expires).run();
 
   return new Response(JSON.stringify({ ok:true, user_id }), {
     headers: { 'set-cookie': cookie('sess', token, { maxAge: 60*60*24*30 }), 'content-type':'application/json' }

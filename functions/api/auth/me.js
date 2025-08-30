@@ -9,7 +9,7 @@ export async function onRequest({ request, env }) {
   const row = await env.DB.prepare(
     `SELECT u.id, u.email, u.created_at
      FROM sessions s JOIN users u ON u.id=s.user_id
-     WHERE s.token=?`
+     WHERE s.token=? AND s.expires_at > unixepoch()`
   ).bind(sess).all();
 
   const me = row.results?.[0];
