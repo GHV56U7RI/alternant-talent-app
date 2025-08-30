@@ -147,6 +147,7 @@ app.get('/api/events', (req, res) => {
 
 function broadcast(event, data) {
   const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+  logger.info(`[sse] ${event} -> ${sseClients.size} clients`, data);
   for (const client of sseClients) {
     try { client.write(payload); } catch { /* ignore */ }
   }
@@ -436,6 +437,7 @@ async function persistJobsCache() {
 function updateCache(newJobs) {
   JOBS_CACHE = Array.isArray(newJobs) ? newJobs : [];
   CACHE_UPDATED_AT = new Date();
+  logger.info(`[cache] updated: ${JOBS_CACHE.length} offers @ ${CACHE_UPDATED_AT.toISOString()}`);
   broadcast('cache:update', { updated_at: CACHE_UPDATED_AT.toISOString(), count: JOBS_CACHE.length });
 }
 
