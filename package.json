@@ -2,9 +2,13 @@
   "name": "alternant-talent-app",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "lint": "echo \"No lint configured\" && exit 0",
-    "test": "echo \"No tests yet\" && exit 0"
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^1.0.0"
   }
 }
 
