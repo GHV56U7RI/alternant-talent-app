@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>Politique de sécurité</title>
+<style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica Neue,Arial,sans-serif;line-height:1.5;margin:20px;background:#f6f7f9;color:#0b0b0b;}main{max-width:980px;margin:0 auto;padding:0 16px;}code{background:#f3f4f6;padding:2px 4px;border-radius:4px;}pre{background:#f3f4f6;padding:12px;border-radius:8px;overflow:auto;}ul{padding-left:20px;}blockquote{border-left:4px solid #e5e7eb;padding-left:12px;color:#374151;}</style>
+</head>
+<body>
+<main>
+<h1>Politique de sécurité</h1>
+
+<p>Merci de contribuer à la sécurité d’<strong>Alternant Talent App</strong>.</p>
+<p>Nous appliquons une politique de <strong>divulgation responsable</strong> et encourageons la communauté à nous signaler toute vulnérabilité.</p>
+
+<hr/>
+
+<h2>Signaler une vulnérabilité</h2>
+
+<ul>
+<li><strong>Email dédié</strong> : security@alternant-talent.com  </li>
+<li><strong>Security.txt</strong> : https://www.alternant-talent.com/.well-known/security.txt  </li>
+<li><strong>Option chiffrée (PGP)</strong> : (facultatif) publiez ici l’empreinte &amp; la clé publique, ex. <code>openpgp.asc</code></li>
+</ul>
+
+<p>Merci d’inclure :</p>
+<ul>
+<li>Étapes de reproduction (claires, déterministes)</li>
+<li>Portée affectée (URL, endpoint API, version)</li>
+<li>Impact (lecture/écriture de données, RCE, escalade, etc.)</li>
+<li>Logs / captures / PoC (sans données personnelles si possible)</li>
+<li>Vos coordonnées (pour suivi)</li>
+</ul>
+
+<p><strong>Nous nous engageons</strong> à :</p>
+<ul>
+<li>Accuser réception sous <strong>72h</strong>,</li>
+<li>Qualifier sous <strong>5 jours ouvrés</strong>,</li>
+<li>Proposer un correctif ou une mitigation dans un délai cible de <strong>7–90 jours</strong> selon la sévérité.</li>
+</ul>
+
+<hr/>
+
+<h2>Portée (in scope)</h2>
+
+<ul>
+<li>Production : <code>https://alternant-talent.pages.dev/</code> et tout domaine officiel dérivé  </li>
+<li>API/back-end : endpoints <code>server.js</code> (<code>/api/*</code>, SSE <code>/api/events</code>)  </li>
+<li>Collecteurs : <code>adzuna.js</code>, <code>jooble.js</code> (entrée/sortie, validation)  </li>
+<li>Front statique : <code>public/*</code>, <code>bridge-v12.js</code> (XSS/CSRF/Clickjacking)</li>
+</ul>
+
+<p><strong>Hors portée (out of scope)</strong></p>
+
+<ul>
+<li>Attaques <strong>DoS/DDoS</strong> ou volumétriques, stress test non coordonné</li>
+<li>Ingénierie sociale, phishing, usurpation de personnel/partenaires</li>
+<li>Accès physique aux appareils ou à l’infrastructure d’hébergement</li>
+<li>Découvertes liées à des <strong>composants tiers</strong> sans impact démontré chez nous</li>
+<li>Scans automatiques agressifs sans contrôle du taux de requêtes</li>
+</ul>
+
+<hr/>
+
+<h2>Règles de test</h2>
+
+<ul>
+<li>Utilisez des <strong>comptes de test</strong> et des <strong>données fictives</strong>.</li>
+<li>Ne lisez/modifiez/supprimez <strong>aucune donnée d’un tiers</strong>.</li>
+<li>Respectez un <strong>taux raisonnable</strong> de requêtes (rate-limiting friendly).</li>
+<li>Prévenez-nous avant tout test potentiellement risqué (p. ex. fuzz ciblé).</li>
+</ul>
+
+<p><strong>Safe harbor</strong> : Tant que vous respectez ces règles et la divulgation responsable, nous <strong>n’engagerons pas d’action</strong> contre des recherches de bonne foi.</p>
+
+<hr/>
+
+<h2>Sévérité (guidelines)</h2>
+
+<ul>
+<li><strong>Critique</strong> : RCE, exfiltration massive de données, auth bypass global</li>
+<li><strong>Élevée</strong> : IDOR menant à des données d’un autre utilisateur, XSS stocké, SSRF exploitable</li>
+<li><strong>Moyenne</strong> : XSS réfléchi, fuites partielles, mauvaises permissions non triviales</li>
+<li><strong>Faible</strong> : best practices manquantes, en-têtes de sécurité absents, messages d’erreur verbeux</li>
+</ul>
+
+<p>Nous utilisons un mix <strong>CVSS</strong> + <strong>impact métier</strong> pour prioriser.</p>
+
+<hr/>
+
+<h2>Bonnes pratiques appliquées</h2>
+
+<ul>
+<li><strong>Secrets</strong> : <code>.env</code> local (non versionné), <strong>secrets d’environnement</strong> en hébergement ; rotation si exposition</li>
+<li><strong>Données runtime</strong> : <code>data/*.db</code>, <code>data/*-cache*.json</code> <strong>ignorés par Git</strong></li>
+<li><strong>Cookies</strong> : <code>sid</code> <strong>HttpOnly</strong>, <code>SameSite=Lax</code>, <code>Secure</code> en production</li>
+<li><strong>CSP &amp; headers</strong> : à définir via <code>public/_headers</code> (CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy)</li>
+<li><strong>Dépendances</strong> : <code>npm audit</code>, alertes GitHub, mises à jour régulières</li>
+<li><strong>Entrées utilisateur</strong> : validation côté serveur ; échappement en front</li>
+<li><strong>Logs</strong> : pas de secrets, pas de données sensibles en clair</li>
+<li><strong>SSE</strong> : connexions vérifiées, timeouts/keep-alive configurés</li>
+<li><strong>Endpoints admin</strong> : <code>/api/refresh</code> protégé par <code>Authorization: Bearer &lt;ADMIN_TOKEN&gt;</code></li>
+</ul>
+
+<hr/>
+
+<h2>Gestion d’incident</h2>
+
+<p>1. <strong>Triage</strong> &amp; reproduction</p>
+<p>2. <strong>Mitigation</strong> rapide si nécessaire (désactivation partielle, règles WAF)</p>
+<p>3. <strong>Correctif</strong> + tests</p>
+<p>4. <strong>Déploiement</strong> progressif</p>
+<p>5. <strong>Communication</strong> responsable (merci de ne pas divulguer publiquement avant correctif ou délai convenu)</p>
+
+<hr/>
+
+<h2>Modèle de rapport (copier-coller)</h2>
+
+<p>Titre : &lt;vulnérabilité résumée&gt;</p>
+<p>Portée : &lt;URL/endpoint/version&gt;</p>
+<p>Impact : &lt;impact technique + métier&gt;</p>
+<p>Étapes de reproduction :</p>
+
+<p>…</p>
+
+<p>…</p>
+
+<p>…</p>
+<p>PoC / Captures :</p>
+<p>Correctif suggéré (optionnel) :</p>
+<p>Contact :</p>
+
+<p>yaml</p>
+<p>Copier le code</p>
+
+<hr/>
+
+<h2>Programme de récompenses</h2>
+
+<p>Nous n’avons pas (encore) de bug bounty formel.</p>
+<p>Pour les signalements <strong>critiques/élevés</strong> de bonne foi, nous pouvons proposer un <strong>remerciement public</strong> dans le changelog et/ou une petite gratification symbolique.</p>
+
+<hr/>
+
+<h2>Contact d’urgence</h2>
+
+<ul>
+<li><strong>security@alternant-talent.com</strong> (24/7, meilleure réactivité)</li>
+<li>En cas d’exposition de secrets : <strong>révoquez-les immédiatement</strong></li>
+</ul>
+
+
+</main>
+</body>
+</html>

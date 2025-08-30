@@ -119,4 +119,4 @@ Pour les signalements **critiques/élevés** de bonne foi, nous pouvons proposer
 ## Contact d’urgence
 
 - **security@alternant-talent.com** (24/7, meilleure réactivité)
-- En cas d’exposition de secrets : **révoquez-les immédiatement*
+- En cas d’exposition de secrets : **révoquez-les immédiatement**
