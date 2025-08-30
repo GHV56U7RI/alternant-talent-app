@@ -15,11 +15,10 @@ export function isAlternanceLike(s) {
 
 export function isFranceOrDomTom(loc) {
   if (!loc) return false;
-  const s = String(loc);
-  const t = s.toLowerCase();
-  if (/\bfrance\b|\bfr\b/.test(t)) return true;
-  if (/(paris|lyon|marseille|nantes|lille|toulouse|bordeaux|rennes|nice|strasbourg)/i.test(s)) return true;
-  return DOMTOM.some(n => s.includes(n));
+  const s = String(loc).toLowerCase();
+  if (/\bfrance\b|\bfr\b/.test(s)) return true;
+  if (/(paris|lyon|marseille|nantes|lille|toulouse|bordeaux|rennes|nice|strasbourg)/.test(s)) return true;
+  return DOMTOM.some(n => s.includes(n.toLowerCase()));
 }
 
 export function isoDate(x) {
