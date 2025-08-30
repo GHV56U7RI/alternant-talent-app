@@ -1,7 +1,7 @@
 # Politique de confidentialité
 _Entrée en vigueur : 2025-08-30 • Dernière mise à jour : 2025-08-30_
 
-La présente politique explique comment **Alternant Talent App** (« nous », « notre », « nos ») collecte, utilise et protège vos données lors de l’utilisation du site et de l’API accessibles à l’adresse **https://votre-domaine/**.
+La présente politique explique comment **Alternant Talent App** (« nous », « notre », « nos ») collecte, utilise et protège vos données lors de l’utilisation du site et de l’API accessibles à l’adresse **https://www.alternant-talent.com/**.
 
 > TL;DR : nous collectons le strict nécessaire pour faire fonctionner le service (compte, préférences, journaux techniques) ; les offres d’emploi proviennent de sources tierces (Adzuna, Jooble) et ne visent pas à identifier des personnes ; vous pouvez demander l’accès, la rectification ou la suppression de vos données.
 
@@ -9,8 +9,8 @@ La présente politique explique comment **Alternant Talent App** (« nous », «
 
 ## 1) Responsable du traitement
 - **Responsable** : Alternant Talent App  
-- **Adresse de contact** : privacy@votre-domaine (ou contact@votre-domaine)  
-- **DPO (si applicable)** : dpo@votre-domaine
+- **Adresse de contact** : privacy@alternant-talent.com (ou contact@alternant-talent.com)  
+- **DPO (si applicable)** : dpo@alternant-talent.com
 
 ---
 
@@ -32,7 +32,7 @@ La présente politique explique comment **Alternant Talent App** (« nous », «
 ### 2.4 Contenus tiers (offres d’emploi)
 - **Provenance** : APIs **Adzuna** et **Jooble** (et, le cas échéant, pages carrières publiques d’entreprises).
 - **Nature** : intitulé, entreprise, lieu, description, lien de candidature, méta-données (date, source, tags).  
-- **Remarque** : ces contenus sont **publics** chez nos partenaires/sources ; ils ne visent pas à identifier des personnes physiques. Si une offre expose par erreur une donnée personnelle, contactez-nous : privacy@votre-domaine.
+- **Remarque** : ces contenus sont **publics** chez nos partenaires/sources ; ils ne visent pas à identifier des personnes physiques. Si une offre expose par erreur une donnée personnelle, contactez-nous : privacy@alternant-talent.com.
 
 ---
 
@@ -85,7 +85,7 @@ Vous pouvez exercer à tout moment :
 - **Opposition** (notamment mesure d’audience, si activée),
 - **Portabilité** (le cas échéant).
 
-Contact : **privacy@votre-domaine** (objet « Exercice de droits RGPD »).  
+Contact : **privacy@alternant-talent.com** (objet « Exercice de droits RGPD »).  
 Nous répondrons sous 30 jours (prolongeable en cas de complexité).  
 Vous pouvez également déposer une réclamation auprès de l’autorité compétente (en France : **CNIL**).
 
@@ -109,7 +109,7 @@ Lorsque certains prestataires (ex. CDN, mesure d’audience) opèrent en dehors 
 ---
 
 ## 10) Mineurs
-Le service ne cible pas les mineurs de **moins de 15 ans**. Si vous êtes parent/tuteur et pensez qu’un mineur nous a fourni des données, contactez-nous : privacy@votre-domaine.
+Le service ne cible pas les mineurs de **moins de 15 ans**. Si vous êtes parent/tuteur et pensez qu’un mineur nous a fourni des données, contactez-nous : privacy@alternant-talent.com.
 
 ---
 
@@ -120,9 +120,9 @@ Nous publierons la nouvelle version ici avec une **nouvelle date d’entrée en 
 ---
 
 ## 12) Contact
-- **E-mail** : privacy@votre-domaine  
+- **E-mail** : privacy@alternant-talent.com  
 - **Adresse postale** (si applicable) : …  
-- **DPO** (si nommé) : dpo@votre-domaine
+- **DPO** (si nommé) : dpo@alternant-talent.com
 
 ---
 
@@ -140,4 +140,4 @@ Nous publierons la nouvelle version ici avec une **nouvelle date d’entrée en 
 
 ---
 
-_En utilisant le service, vous acceptez cette politique. Pour toute question, écrivez-nous à **privacy@votre-domaine**._
+_En utilisant le service, vous acceptez cette politique. Pour toute question, écrivez-nous à **privacy@alternant-talent.com**._
