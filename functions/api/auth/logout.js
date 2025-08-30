@@ -3,7 +3,7 @@ import { ensureAuthSchema } from '../../_utils/ensure.js';
 
 export async function onRequest({ request, env }) {
   await ensureAuthSchema(env.DB);
-  const { sess } = parseCookies(request);
+  const { sess } = parseCookies(request.headers.get('cookie'));
   if (sess) await env.DB.prepare(`DELETE FROM sessions WHERE token=?`).bind(sess).run();
 
   return new Response('{"ok":true}', {
