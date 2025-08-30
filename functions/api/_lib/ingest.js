@@ -1,4 +1,5 @@
-import { createHash } from 'node:crypto';
+// Helpers ingestion: FR/DOM-TOM + alternance + normalisation + insertMany
+// ⚠️ Version Worker-friendly: pas de node:crypto
 
 const DOMTOM = [
   "Guadeloupe","Martinique","Guyane","La Réunion","Réunion","Mayotte",
@@ -25,9 +26,19 @@ export function isoDate(x) {
   try { return new Date(x).toISOString(); } catch { return new Date().toISOString(); }
 }
 
+// Petit hash déterministe (FNV-1a 32-bit) compatible Workers
+function fnv1aHex(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(16).padStart(8, '0');
+}
+
 export function stableId(source, urlOrTitle, company = '', extra = '') {
   const raw = [source || '', urlOrTitle || '', company || '', extra || ''].join('|');
-  return `${source}:${createHash('sha1').update(raw).digest('hex').slice(0,24)}`;
+  return `${source}:${fnv1aHex(raw)}`;
 }
 
 export function normalizeJob(j) {
