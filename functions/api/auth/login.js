@@ -17,7 +17,8 @@ export async function onRequest({ request, env }) {
   if (hash !== u.password_hash) return new Response('{"error":"invalid_credentials"}',{status:401});
 
   const token = makeToken();
-  await env.DB.prepare(`INSERT INTO sessions (user_id, token) VALUES (?,?)`).bind(u.id, token).run();
+  const expires = Math.floor(Date.now()/1000) + 60*60*24*30;
+  await env.DB.prepare(`INSERT INTO sessions (user_id, token, expires_at) VALUES (?,?,?)`).bind(u.id, token, expires).run();
 
   return new Response('{"ok":true}', {
     headers: { 'set-cookie': cookie('sess', token, { maxAge:60*60*24*30 }), 'content-type':'application/json' }
