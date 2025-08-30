@@ -20,7 +20,11 @@ const DATA_DIR = path.join(__dirname, 'data');
 ensureDirSync(DATA_DIR);
 
 function ensureDirSync(p) {
-  try { fs.mkdirSync(p, { recursive: true }); } catch (_) {}
+  try {
+    fs.mkdirSync(p, { recursive: true });
+  } catch {
+    // ignore
+  }
 }
 
 async function readJSON(file, fallback = null) {
@@ -56,13 +60,10 @@ const JOOBLE_PAGES = parseInt(process.env.JOOBLE_PAGES || '0', 10);
 
 // Geo (facultatif)
 const GEO_ENABLED = String(process.env.GEO_ENABLED || '1') === '1';
-const NOMINATIM_URL = process.env.NOMINATIM_URL || 'https://nominatim.openstreetmap.org';
 const OSRM_URL = process.env.OSRM_URL || 'https://router.project-osrm.org';
-const OVERPASS_URL = process.env.OVERPASS_URL || 'https://overpass-api.de/api/interpreter';
 
 // Logos (facultatif)
 const LOGODEV_TOKEN = process.env.LOGODEV_TOKEN || '';
-const LOGODEV_SECRET = process.env.LOGODEV_SECRET || '';
 
 // ---------------------- App & state ----------------------
 const app = express();
@@ -383,7 +384,7 @@ app.get('/api/commute', async (req, res) => {
     const route = j?.routes?.[0] || null;
     // IMPORTANT: clé 'osrm' sans point (pas `.osrm`)
     res.json({ ok: true, osrm: route });
-  } catch (e) {
+  } catch {
     res.status(500).json({ ok: false, error: 'osrm_failed' });
   }
 });
