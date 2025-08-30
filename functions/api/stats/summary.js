@@ -1,28 +1,31 @@
+import { getDB } from '../../_utils/db.js';
 const json = (o,s=200)=>new Response(JSON.stringify(o),{status:s,headers:{'content-type':'application/json'}});
 
 export async function onRequest({ request, env }) {
   const url = new URL(request.url);
   const limit = Math.min(parseInt(url.searchParams.get('limit')||'5',10), 20);
 
-  const totalJobs = await env.DB.prepare('SELECT COUNT(*) AS c FROM jobs').all();
-  const lastUp    = await env.DB.prepare('SELECT MAX(created_at) AS u FROM jobs').all();
+  const db = getDB(env);
 
-  const topCompanies = await env.DB.prepare(
+  const totalJobs = await db.prepare('SELECT COUNT(*) AS c FROM jobs').all();
+  const lastUp    = await db.prepare('SELECT MAX(created_at) AS u FROM jobs').all();
+
+  const topCompanies = await db.prepare(
     `SELECT company, COUNT(*) AS offers
        FROM jobs GROUP BY company ORDER BY offers DESC LIMIT ?`
   ).bind(limit).all();
 
-  const topLocations = await env.DB.prepare(
+  const topLocations = await db.prepare(
     `SELECT location, COUNT(*) AS offers
        FROM jobs WHERE IFNULL(location,'')!='' GROUP BY location ORDER BY offers DESC LIMIT ?`
   ).bind(limit).all();
 
-  const clicks7d = await env.DB.prepare(
+  const clicks7d = await db.prepare(
     `SELECT COUNT(*) AS c FROM job_clicks
       WHERE datetime(created_at) >= datetime('now','-7 days')`
   ).all();
 
-  const topClicked30d = await env.DB.prepare(
+  const topClicked30d = await db.prepare(
     `SELECT j.id, j.title, j.company, j.location, COUNT(c.id) AS clicks
        FROM job_clicks c
        JOIN jobs j ON j.id = c.job_id

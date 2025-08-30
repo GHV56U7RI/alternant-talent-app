@@ -1,18 +1,8 @@
-import { getCookie } from '../../../_utils/cookies.js';
+import { extractToken, validateSession } from '../../../_utils/auth_student.js';
 const json = (o,s=200)=>new Response(JSON.stringify(o),{status:s,headers:{'content-type':'application/json'}});
 
 export async function onRequest({ request, env }) {
-  const sid = getCookie(request,'stud_sess');
-  if (!sid) return json({authenticated:false});
-  const now = Math.floor(Date.now()/1000);
-
-  const row = await env.DB.prepare(
-    `SELECT a.id, a.email
-       FROM student_sessions s
-       JOIN student_accounts a ON a.id = s.account_id
-      WHERE s.id=? AND s.expires_at > ?`
-  ).bind(sid, now).first();
-
-  if (!row) return json({authenticated:false});
-  return json({authenticated:true, email: row.email});
+  const student = await validateSession(env, extractToken(request));
+  if (!student) return json({authenticated:false});
+  return json({authenticated:true, email: student.email});
 }
