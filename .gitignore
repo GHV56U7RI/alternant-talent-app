@@ -2,3 +2,5 @@
 data/auth.db
 data/jobs-cache.json
 npm-debug.log*
+
+.dev.vars
