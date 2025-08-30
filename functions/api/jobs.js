@@ -1,3 +1,4 @@
+import { getDB } from '../_utils/db.js';
 const like = (q="") => `%${q}%`;
 const isTrue = v => v === '1' || v === 'true';
 
@@ -33,7 +34,8 @@ export async function onRequest({ request, env }) {
 
   const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
 
-  const rs = await env.DB.prepare(
+  const db = getDB(env);
+  const rs = await db.prepare(
     `SELECT id,title,company,location,tags,url,source,created_at
      FROM jobs
      ${where}
@@ -47,7 +49,7 @@ export async function onRequest({ request, env }) {
   }));
 
   // updated_at cohérent avec le même filtre
-  const last = await env.DB.prepare(`SELECT MAX(created_at) AS u FROM jobs ${where}`)
+  const last = await db.prepare(`SELECT MAX(created_at) AS u FROM jobs ${where}`)
     .bind(...params).all();
   const updated_at = last.results?.[0]?.u || new Date().toISOString();
 

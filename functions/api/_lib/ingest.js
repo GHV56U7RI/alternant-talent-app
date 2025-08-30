@@ -1,6 +1,8 @@
 // Helpers ingestion: FR/DOM-TOM + alternance + normalisation + insertMany
 // ⚠️ Version Worker-friendly: pas de node:crypto
 
+import { getDB } from '../../_utils/db.js';
+
 const DOMTOM = [
   "Guadeloupe","Martinique","Guyane","La Réunion","Réunion","Mayotte",
   "Polynésie française","Nouvelle-Calédonie","Saint-Pierre-et-Miquelon",
@@ -65,8 +67,9 @@ export function filterFranceAlternance(arr) {
 
 export async function insertMany(env, list) {
   if (!list?.length) return 0;
+  const db = getDB(env);
   let n = 0;
-  const stmt = env.DB.prepare(
+  const stmt = db.prepare(
     `INSERT OR REPLACE INTO jobs
       (id,title,company,location,tags,url,source,created_at)
      VALUES (?,?,?,?,?,?,?,?)`
