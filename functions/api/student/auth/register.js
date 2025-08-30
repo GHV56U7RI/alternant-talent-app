@@ -1,8 +1,6 @@
 import { pbkdf2Hash } from '../../../_utils/crypto.js';
 import { setCookie } from '../../../_utils/cookies.js';
-
-const json = (o, s=200) =>
-  new Response(JSON.stringify(o), { status: s, headers: { 'content-type': 'application/json' }});
+import { json } from '../../../_utils/response.js';
 
 export async function onRequest({ request, env }) {
   try {
@@ -32,9 +30,7 @@ export async function onRequest({ request, env }) {
       'INSERT INTO student_sessions (id,account_id,created_at,expires_at) VALUES (?,?,?,?)'
     ).bind(sid, id, now, exp).run();
 
-    return new Response(JSON.stringify({ ok:true, email }), {
-      headers: { 'content-type': 'application/json', 'Set-Cookie': setCookie('stud_sess', sid) }
-    });
+    return json({ ok:true, email }, 200, { 'Set-Cookie': setCookie('stud_sess', sid) });
   } catch (e) {
     return json({ error: 'internal', message: e.message }, 500);
   }

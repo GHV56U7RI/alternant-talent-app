@@ -1,4 +1,4 @@
-import { json } from '../../utils/response.js';
+import { json } from '../../_utils/response.js';
 
 export async function onRequestGet({ env }) {
   const db = env.DB;

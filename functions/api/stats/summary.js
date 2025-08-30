@@ -1,4 +1,4 @@
-const json = (o,s=200)=>new Response(JSON.stringify(o),{status:s,headers:{'content-type':'application/json'}});
+import { json } from '../../_utils/response.js';
 
 export async function onRequest({ request, env }) {
   const url = new URL(request.url);
