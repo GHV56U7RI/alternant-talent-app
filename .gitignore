@@ -1,4 +1,19 @@
-.DS_Store
-data/auth.db
-data/jobs-cache.json
-npm-debug.log*
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/.gitignore b/.gitignore
+index 525b425adfb0b78d54059836d8fa71fab9b0e0a3..2d1952858787d7386b0c1a60b5eb1845138eb552 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,4 +1,10 @@
+ .DS_Store
+ data/auth.db
+ data/jobs-cache.json
+ npm-debug.log*
++
++# Generated files
++/found-slugs.json
++/slugs.json
++/*-found.json
++/*-manual.json
+ 
+EOF
+)
