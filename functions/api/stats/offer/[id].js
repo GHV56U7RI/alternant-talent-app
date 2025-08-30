@@ -1,15 +1,17 @@
 import { ensureEventsSchema } from '../../../_utils/ensure.js';
+import { getDB } from '../../../_utils/db.js';
 
 export async function onRequest({ params, env }) {
-  await ensureEventsSchema(env.DB);
+  const db = getDB(env);
+  await ensureEventsSchema(db);
 
   const id = params.id;
   const q = (t) => `SELECT COUNT(*) AS n FROM events WHERE type='${t}' AND job_id=?`;
 
   const [v,c,a] = await Promise.all([
-    env.DB.prepare(q('view')).bind(id).all(),
-    env.DB.prepare(q('click')).bind(id).all(),
-    env.DB.prepare(q('apply')).bind(id).all(),
+    db.prepare(q('view')).bind(id).all(),
+    db.prepare(q('click')).bind(id).all(),
+    db.prepare(q('apply')).bind(id).all(),
   ]);
 
   return new Response(JSON.stringify({

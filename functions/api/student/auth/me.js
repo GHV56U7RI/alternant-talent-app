@@ -1,4 +1,5 @@
 import { getCookie } from '../../../_utils/cookies.js';
+import { getDB } from '../../../_utils/db.js';
 const json = (o,s=200)=>new Response(JSON.stringify(o),{status:s,headers:{'content-type':'application/json'}});
 
 export async function onRequest({ request, env }) {
@@ -6,7 +7,8 @@ export async function onRequest({ request, env }) {
   if (!sid) return json({authenticated:false});
   const now = Math.floor(Date.now()/1000);
 
-  const row = await env.DB.prepare(
+  const db = getDB(env);
+  const row = await db.prepare(
     `SELECT a.id, a.email
        FROM student_sessions s
        JOIN student_accounts a ON a.id = s.account_id

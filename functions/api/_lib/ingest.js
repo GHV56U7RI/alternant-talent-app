@@ -63,10 +63,13 @@ export function filterFranceAlternance(arr) {
     .filter(j => isFranceOrDomTom(j.location) || isFranceOrDomTom(j.country) || /france/i.test(j.country || ''));
 }
 
+import { getDB } from '../../_utils/db.js';
+
 export async function insertMany(env, list) {
   if (!list?.length) return 0;
   let n = 0;
-  const stmt = env.DB.prepare(
+  const db = getDB(env);
+  const stmt = db.prepare(
     `INSERT OR REPLACE INTO jobs
       (id,title,company,location,tags,url,source,created_at)
      VALUES (?,?,?,?,?,?,?,?)`

@@ -1,8 +1,10 @@
 import { ensureEventsSchema } from '../../_utils/ensure.js';
+import { getDB } from '../../_utils/db.js';
 
 export async function onRequest({ env }) {
-  await ensureEventsSchema(env.DB);
-  const { results } = await env.DB.prepare(
+  const db = getDB(env);
+  await ensureEventsSchema(db);
+  const { results } = await db.prepare(
     `SELECT company, COUNT(*) AS offers
        FROM jobs
       WHERE datetime(created_at) >= datetime('now','-7 days')
