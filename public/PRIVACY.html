@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>Politique de confidentialité</title>
+<style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica Neue,Arial,sans-serif;line-height:1.5;margin:20px;background:#f6f7f9;color:#0b0b0b;}main{max-width:980px;margin:0 auto;padding:0 16px;}code{background:#f3f4f6;padding:2px 4px;border-radius:4px;}pre{background:#f3f4f6;padding:12px;border-radius:8px;overflow:auto;}ul{padding-left:20px;}blockquote{border-left:4px solid #e5e7eb;padding-left:12px;color:#374151;}</style>
+</head>
+<body>
+<main>
+<h1>Politique de confidentialité</h1>
+<p><em>Entrée en vigueur : 2025-08-30 • Dernière mise à jour : 2025-08-30</em></p>
+
+<p>La présente politique explique comment <strong>Alternant Talent App</strong> (« nous », « notre », « nos ») collecte, utilise et protège vos données lors de l’utilisation du site et de l’API accessibles à l’adresse <strong>https://www.alternant-talent.com/</strong>.</p>
+
+<blockquote>TL;DR : nous collectons le strict nécessaire pour faire fonctionner le service (compte, préférences, journaux techniques) ; les offres d’emploi proviennent de sources tierces (Adzuna, Jooble) et ne visent pas à identifier des personnes ; vous pouvez demander l’accès, la rectification ou la suppression de vos données.</blockquote>
+
+<hr/>
+
+<h2>1) Responsable du traitement</h2>
+<ul>
+<li><strong>Responsable</strong> : Alternant Talent App  </li>
+<li><strong>Adresse de contact</strong> : privacy@alternant-talent.com (ou contact@alternant-talent.com)  </li>
+<li><strong>DPO (si applicable)</strong> : dpo@alternant-talent.com</li>
+</ul>
+
+<hr/>
+
+<h2>2) Données que nous traitons</h2>
+
+<h3>2.1 Compte &amp; authentification</h3>
+<ul>
+<li><strong>Données</strong> : e-mail, mot de passe (haché/bcrypt), horodatages de création/mise à jour, préférences de profil (ex. ville, rayon, mots-clés, préférence télétravail).</li>
+<li><strong>Base légale</strong> : exécution du contrat (art. 6-1-b RGPD).</li>
+</ul>
+
+<h3>2.2 Données d’usage (logs)</h3>
+<ul>
+<li><strong>Données</strong> : horodatages, IP tronquée ou complète (selon hébergeur), User-Agent, URL/route, code statut, identifiant de session (cookie <code>sid</code>).</li>
+<li><strong>Base légale</strong> : intérêt légitime (sécurité, lutte contre l’abus) (art. 6-1-f RGPD).</li>
+</ul>
+
+<h3>2.3 Favoris &amp; réglages côté navigateur</h3>
+<ul>
+<li><strong>Données</strong> : favoris d’offres, filtres/recherche, petites préférences UI.</li>
+<li><strong>Lieu de stockage</strong> : <strong>localStorage</strong> sur votre appareil (non transmis au serveur).</li>
+<li><strong>Base légale</strong> : exécution du contrat / intérêt légitime (amélioration de l’UX).</li>
+</ul>
+
+<h3>2.4 Contenus tiers (offres d’emploi)</h3>
+<ul>
+<li><strong>Provenance</strong> : APIs <strong>Adzuna</strong> et <strong>Jooble</strong> (et, le cas échéant, pages carrières publiques d’entreprises).</li>
+<li><strong>Nature</strong> : intitulé, entreprise, lieu, description, lien de candidature, méta-données (date, source, tags).  </li>
+<li><strong>Remarque</strong> : ces contenus sont <strong>publics</strong> chez nos partenaires/sources ; ils ne visent pas à identifier des personnes physiques. Si une offre expose par erreur une donnée personnelle, contactez-nous : privacy@alternant-talent.com.</li>
+</ul>
+
+<hr/>
+
+<h2>3) Finalités</h2>
+<ul>
+<li>Fournir le service (affichage d’offres, recherche, favoris, profil).</li>
+<li>Sécuriser et maintenir l’infrastructure (détection d’abus, diagnostic pannes).</li>
+<li>Mesure d’audience <strong>minimale</strong> (si activée, voir § Cookies &amp; analytics).</li>
+</ul>
+
+<hr/>
+
+<h2>4) Cookies &amp; stockage local</h2>
+
+<h3>4.1 Cookies essentiels</h3>
+<ul>
+<li><strong><code>sid</code> (HttpOnly, SameSite=Lax, Secure en prod)</strong> : session d’authentification.  </li>
+<li><strong>Base légale</strong> : exécution du contrat ; exempté de consentement.</li>
+</ul>
+
+<h3>4.2 Cookies/analytics (optionnels)</h3>
+<ul>
+<li>Par défaut <strong>désactivés</strong>. Si nous activons une mesure d’audience respectueuse (ex. Plausible auto-hébergé, sans cookies), nous l’indiquerons ici et dans la bannière.  </li>
+<li><strong>Base légale</strong> : consentement (art. 6-1-a) ou intérêt légitime si solution sans cookie et agrégée.</li>
+</ul>
+
+<h3>4.3 Stockage local</h3>
+<ul>
+<li><strong>localStorage</strong> : favoris, préférences d’affichage. Vous pouvez vider ces données via les réglages de votre navigateur.</li>
+</ul>
+
+<hr/>
+
+<h2>5) Destinataires et sous-traitants</h2>
+<ul>
+<li><strong>Hébergeur</strong> : précisez (ex. Cloudflare / Vercel / Render / OVH).  </li>
+<li><strong>Fournisseurs de données</strong> : <strong>Adzuna</strong>, <strong>Jooble</strong> (sources d’offres).  </li>
+<li><strong>Géoservices (option)</strong> : <strong>OpenStreetMap / Nominatim</strong>, <strong>OSRM</strong>, <strong>Overpass</strong> pour des calculs d’itinéraires/lieux.  </li>
+<li>Accès interne restreint aux personnes habilitées (maintenance/sécurité).</li>
+</ul>
+
+<p>Nous ne vendons pas vos données. Aucun transfert non nécessaire hors UE n’est effectué, hors cas où l’un de ces prestataires opère hors UE avec des garanties adéquates (clauses contractuelles types, hébergement UE, etc.).</p>
+
+<hr/>
+
+<h2>6) Durées de conservation</h2>
+<ul>
+<li><strong>Compte utilisateur</strong> : tant que le compte est actif, puis suppression à votre demande ou après inactivité prolongée (ex. 24 mois) ; certains journaux sécurité peuvent être conservés plus longtemps si nécessaire.</li>
+<li><strong>Logs techniques</strong> : 3 à 12 mois max (selon contrainte légale/sécurité).</li>
+<li><strong>Cookies de session</strong> : durée de la session ou 30 jours max si « rester connecté ».</li>
+<li><strong>localStorage</strong> : persiste jusqu’à suppression par l’utilisateur.</li>
+</ul>
+
+<hr/>
+
+<h2>7) Vos droits (RGPD)</h2>
+<p>Vous pouvez exercer à tout moment :</p>
+<ul>
+<li><strong>Accès</strong> à vos données,</li>
+<li><strong>Rectification</strong>,</li>
+<li><strong>Effacement</strong> (« droit à l’oubli »),</li>
+<li><strong>Limitation</strong> du traitement,</li>
+<li><strong>Opposition</strong> (notamment mesure d’audience, si activée),</li>
+<li><strong>Portabilité</strong> (le cas échéant).</li>
+</ul>
+
+<p>Contact : <strong>privacy@alternant-talent.com</strong> (objet « Exercice de droits RGPD »).</p>
+<p>Nous répondrons sous 30 jours (prolongeable en cas de complexité).</p>
+<p>Vous pouvez également déposer une réclamation auprès de l’autorité compétente (en France : <strong>CNIL</strong>).</p>
+
+<hr/>
+
+<h2>8) Sécurité</h2>
+<ul>
+<li>Mots de passe <strong>hachés</strong> (bcrypt).  </li>
+<li>Cookies de session <strong>HttpOnly</strong> + <strong>Secure</strong> (en production).  </li>
+<li>Journalisation et surveillance de base contre l’abus.  </li>
+<li>Accès administrateur protégé (<strong>Bearer ADMIN_TOKEN</strong>) et principes de moindre privilège.  </li>
+</ul>
+<p>Aucune mesure n’est infaillible ; en cas d’incident, nous notifierons les personnes concernées et l’autorité compétente lorsque requis.</p>
+
+<hr/>
+
+<h2>9) Transferts hors UE</h2>
+<p>Lorsque certains prestataires (ex. CDN, mesure d’audience) opèrent en dehors de l’UE, nous privilégions :</p>
+<ul>
+<li>un <strong>hébergement UE</strong> ou</li>
+<li>des <strong>Clauses Contractuelles Types</strong> et/ou</li>
+<li>des solutions <strong>sans cookie</strong>, <strong>sans IP complète</strong>, <strong>anonymisées</strong>.</li>
+</ul>
+
+<hr/>
+
+<h2>10) Mineurs</h2>
+<p>Le service ne cible pas les mineurs de <strong>moins de 15 ans</strong>. Si vous êtes parent/tuteur et pensez qu’un mineur nous a fourni des données, contactez-nous : privacy@alternant-talent.com.</p>
+
+<hr/>
+
+<h2>11) Modifications de cette politique</h2>
+<p>Nous pouvons modifier cette politique pour refléter des évolutions légales ou fonctionnelles.</p>
+<p>Nous publierons la nouvelle version ici avec une <strong>nouvelle date d’entrée en vigueur</strong> ; si les changements sont substantiels, une notification pourra apparaître sur le site.</p>
+
+<hr/>
+
+<h2>12) Contact</h2>
+<ul>
+<li><strong>E-mail</strong> : privacy@alternant-talent.com  </li>
+<li><strong>Adresse postale</strong> (si applicable) : …  </li>
+<li><strong>DPO</strong> (si nommé) : dpo@alternant-talent.com</li>
+</ul>
+
+<hr/>
+
+<h2>13) Résumé technique (pour les développeurs)</h2>
+
+<ul>
+<li><strong>Back-end</strong> : Node.js/Express (<code>server.js</code>)  </li>
+<li>Auth : SQLite (<code>data/auth.db</code>) via <code>better-sqlite3</code> ou fallback JSON (<code>data/auth.json</code>)  </li>
+<li>Cookies : <code>sid</code> HttpOnly, SameSite=Lax, Secure en prod  </li>
+<li>API : <code>/api/jobs</code>, <code>/api/refresh</code> (Bearer), <code>/api/direct</code>, <code>/api/auth/*</code>, <code>/api/events</code> (SSE)  </li>
+<li><strong>Front</strong> : <code>bridge-v12.js</code>  </li>
+<li>Favoris/profil léger côté client via localStorage (non transmis par défaut)  </li>
+<li><strong>Données externes</strong> : Adzuna/Jooble (offres publiques), OSM/OSRM (option itinéraires)  </li>
+<li><strong>Logs</strong> : accès agrégé, rotation ; pas de contenus sensibles par défaut  </li>
+<li><strong>Mesure d’audience</strong> : <strong>désactivée par défaut</strong> (si activation : outil privacy-friendly ou consentement requis)</li>
+</ul>
+
+<hr/>
+
+<p><em>En utilisant le service, vous acceptez cette politique. Pour toute question, écrivez-nous à <strong>privacy@alternant-talent.com</strong>.</em></p>
+
+
+</main>
+</body>
+</html>
