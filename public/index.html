@@ -79,7 +79,7 @@ async function loadJobs(){
   const ul = document.querySelector('#list'); ul.innerHTML='';
   (r.json?.jobs||[]).forEach(j=>{
     const li = document.createElement('li');
-    li.innerHTML = `<b>${j.title}</b> — ${j.company} · ${j.location} · <a href="${j.url}" target="_blank" rel="noopener">Postuler</a>`;
+    li.innerHTML = `<b>${j.title}</b> — ${j.company} · ${j.location} · <a href="/r/${encodeURIComponent(j.id)}" target="_blank" rel="noopener">Postuler</a>`;
     ul.appendChild(li);
   });
 }

@@ -14,6 +14,7 @@ export async function onRequest({ request, env }) {
   const limit = Math.min(parseInt(url.searchParams.get('limit')||'20',10), 50);
   const offset = Math.max(parseInt(url.searchParams.get('offset')||'0',10), 0);
   const world = isTrue(url.searchParams.get('world') || '0'); // world=1 -> pas de filtre FR
+  console.log('GET /api/jobs', { q, limit, offset, world });
 
   const clauses = [];
   const params  = [];
