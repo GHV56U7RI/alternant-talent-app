@@ -53,14 +53,19 @@ async function loadJobs(){
   });
 }
 async function loadDetails(id){
-  const r = await api(`/api/stats/offer/${encodeURIComponent(id)}`);
   const d = document.querySelector('#details');
   d.innerHTML='';
-  if(r.json){
-    const o = r.json;
-    d.innerHTML = `<h2>${o.title||''}</h2><p>${o.company||''} - ${o.location||''}</p><p>${o.description||''}</p>`;
-  }else{
+  const job = await api(`/api/jobs/${encodeURIComponent(id)}`);
+  if(!job.json){
     d.textContent = 'Détails indisponibles';
+    return;
+  }
+  const o = job.json;
+  d.innerHTML = `<h2>${o.title||''}</h2><p>${o.company||''} - ${o.location||''}</p><p>${o.description||''}</p>`;
+  const stats = await api(`/api/stats/offer/${encodeURIComponent(id)}`);
+  if(stats.json){
+    const s = stats.json;
+    d.innerHTML += `<p>👁️ ${s.views||0} · 🔗 ${s.clicks||0} · 📝 ${s.applies||0}</p>`;
   }
 }
 document.querySelector('#search').addEventListener('click',loadJobs);
