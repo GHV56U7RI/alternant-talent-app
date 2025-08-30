@@ -1,18 +1,10 @@
-import { getCookie } from '../../_utils/cookies.js';
+import { requireStudentSession } from '../../_utils/auth_student.js';
 const json = (o,s=200)=>new Response(JSON.stringify(o),{status:s,headers:{'content-type':'application/json'}});
 
-async function requireSession(request, env){
-  const sid = getCookie(request,'stud_sess');
-  if(!sid) return null;
-  const now = Math.floor(Date.now()/1000);
-  return await env.DB.prepare('SELECT account_id FROM student_sessions WHERE id=? AND expires_at>?')
-    .bind(sid, now).first();
-}
-
 export async function onRequest({ request, env }) {
-  const sess = await requireSession(request, env);
+  const sess = await requireStudentSession(request, env);
   if(!sess) return json({error:'unauthorized'},401);
-  const account = sess.account_id;
+  const account = sess.id;
 
   if(request.method==='GET'){
     const row = await env.DB.prepare('SELECT full_name, location, bio FROM student_profiles WHERE account_id=?')
