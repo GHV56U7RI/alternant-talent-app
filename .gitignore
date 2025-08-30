@@ -2,3 +2,9 @@
 data/auth.db
 data/jobs-cache.json
 npm-debug.log*
+
+# Generated files
+/found-slugs.json
+/slugs.json
+/*-found.json
+/*-manual.json
