@@ -15,6 +15,8 @@ Front statique + API serverless (Cloudflare Functions + D1).
 
 Prérequis : Node.js (>=18) et npm doivent être installés.
 
+Copiez le fichier `.env.example` en `.env` et adaptez les valeurs si nécessaire.
+
 ```bash
 # installer les dépendances
 npm install
