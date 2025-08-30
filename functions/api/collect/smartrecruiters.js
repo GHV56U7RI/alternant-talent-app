@@ -1,23 +1,21 @@
-import { isAlternanceLike } from '../_lib/ingest.js';
+import { filterFranceAlternance, insertMany } from '../_lib/ingest.js';
 
-export async function collectSmartRecruiters({ company, companyLabel, limit = 100 }) {
-  // https://api.smartrecruiters.com/v1/companies/{company}/postings?limit=100
-  const url = `https://api.smartrecruiters.com/v1/companies/${encodeURIComponent(company)}/postings?limit=${limit}`;
-  const res = await fetch(url, { headers: { accept: 'application/json' }});
-  if (!res.ok) return [];
-  const data = await res.json().catch(()=> ({}));
-  const list = data.content || [];
-  return list
-    .filter(p => isAlternanceLike(p.name) || isAlternanceLike(p.location?.city))
-    .map(p => ({
-      id: `smartrecruiters:${p.id}`,
-      title: p.name || 'Sans titre',
-      company: companyLabel || p.company?.identifier || 'Entreprise',
-      location: [p.location?.city, p.location?.country].filter(Boolean).join(', '),
-      tags: [],
-      url: p.ref ? `https://careers.smartrecruiters.com/${p.ref.replace(/^\/+/, '')}` : '#',
-      source: 'smartrecruiters',
-      created_at: p.releasedDate || new Date().toISOString()
-    }));
+export async function collectSmartRecruiters({ company, companyLabel, limit = 100 }, env) {
+  if (!company) return 0;
+  const url = `https://api.smartrecruiters.com/v1/companies/${company}/postings?limit=${limit}`;
+  const r = await fetch(url, { headers: { accept: 'application/json' }});
+  if (!r.ok) return 0;
+  const data = await r.json().catch(() => ({}));
+  const rows = (data.content || []).map(p => ({
+    id: `smart:${p.id}`,
+    title: p.name,
+    company: companyLabel || 'Entreprise',
+    location: [p.location?.city, p.location?.country].filter(Boolean).join(', '),
+    tags: (p.function ? [p.function] : []),
+    url: p.ref || p.applyUrl || '#',
+    source: 'smartrecruiters',
+    created_at: p.createdOn || p.updatedOn
+  }));
+  const kept = filterFranceAlternance(rows);
+  return insertMany(env, kept);
 }
-

@@ -1,37 +1,10 @@
 [
-  { "company": "Back Market",    "platform": "greenhouse",      "board": "backmarket",   "enabled": true  },
-  { "company": "Qonto",          "platform": "greenhouse",      "board": "qonto",        "enabled": true  },
-  { "company": "Doctolib",       "platform": "greenhouse",      "board": "doctolib",     "enabled": true  },
-
-  { "company": "Decathlon",      "platform": "smartrecruiters", "companySlug": "Decathlon",              "enabled": true },
-  { "company": "Carrefour",      "platform": "smartrecruiters", "companySlug": "Carrefour",              "enabled": true },
-  { "company": "Monoprix",       "platform": "smartrecruiters", "companySlug": "Monoprix",               "enabled": true },
-  { "company": "Picard",         "platform": "smartrecruiters", "companySlug": "Picard",                 "enabled": false },
-  { "company": "Maisons du Monde","platform": "smartrecruiters","companySlug": "MaisonsDuMonde",         "enabled": true },
-  { "company": "Beaumanoir",     "platform": "smartrecruiters", "companySlug": "GroupeBeaumanoir",       "enabled": true },
-  { "company": "Transdev",       "platform": "smartrecruiters", "companySlug": "Transdev",               "enabled": true },
-  { "company": "MACIF",          "platform": "smartrecruiters", "companySlug": "MACIF",                  "enabled": true },
-  { "company": "Malakoff Humanis","platform":"smartrecruiters", "companySlug": "MalakoffHumanis",        "enabled": true },
-  { "company": "Matmut",         "platform": "smartrecruiters", "companySlug": "Matmut",                 "enabled": true },
-  { "company": "Volvo Group",    "platform": "smartrecruiters", "companySlug": "VolvoGroup",             "enabled": true },
-
-  { "company": "BNP Paribas",        "platform": "smartrecruiters", "companySlug": "BNPParibas",     "enabled": false },
-  { "company": "Société Générale",   "platform": "smartrecruiters", "companySlug": "SocieteGenerale","enabled": false },
-  { "company": "Crédit Agricole",    "platform": "smartrecruiters", "companySlug": "CreditAgricole", "enabled": false },
-  { "company": "Caisse d'Épargne",   "platform": "smartrecruiters", "companySlug": "GroupeBPCE",     "enabled": false },
-  { "company": "Auchan",             "platform": "smartrecruiters", "companySlug": "AuchanRetail",   "enabled": false },
-  { "company": "Leclerc",            "platform": "smartrecruiters", "companySlug": "ELeclerc",       "enabled": false },
-  { "company": "Castorama",          "platform": "smartrecruiters", "companySlug": "Castorama",      "enabled": false },
-  { "company": "Brico Dépôt",        "platform": "smartrecruiters", "companySlug": "BricoDepot",     "enabled": false },
-  { "company": "Ferrero",            "platform": "smartrecruiters", "companySlug": "Ferrero",        "enabled": false },
-
-  { "company": "LVMH",           "platform": "workday", "host": "lvmh.wd3.myworkdayjobs.com",     "tenant": "lvmh",          "site": "LVMH",                    "search":"alternance", "enabled": false },
-  { "company": "TotalEnergies",  "platform": "workday", "host": "totalenergies.wd3.myworkdayjobs.com","tenant":"totalenergies","site":"TotalEnergiesCareerSite","search":"alternance","enabled": false },
-  { "company": "Thales",         "platform": "workday", "host": "thales.wd3.myworkdayjobs.com",   "tenant": "thales",        "site": "Careers",                 "search":"alternance", "enabled": false },
-  { "company": "Orange",         "platform": "workday", "host": "orange.wd3.myworkdayjobs.com",   "tenant": "orange",        "site": "global",                  "search":"alternance", "enabled": false },
-  { "company": "Renault Group",  "platform": "workday", "host": "renaultgroup.wd3.myworkdayjobs.com","tenant":"renaultgroup","site":"careers","search":"alternance","enabled": false },
-  { "company": "EDF",            "platform": "workday", "host": "edf.wd3.myworkdayjobs.com",      "tenant": "edf",           "site": "Careers",                 "search":"alternance", "enabled": false },
-  { "company": "ENGIE",          "platform": "workday", "host": "engie.wd3.myworkdayjobs.com",    "tenant": "engie",         "site": "ENGIECareers",            "search":"alternance", "enabled": false },
-
-  { "company": "Free (Iliad)",   "platform": "lever",   "companySlug": "iliad", "enabled": false }
+  { "name": "BNP Paribas",     "smart": { "company": "bnp-paribas" } },
+  { "name": "Société Générale","smart": { "company": "societe-generale" } },
+  { "name": "Crédit Agricole", "workday": { "host": "creditagricole.wd3.myworkdayjobs.com", "tenant": "creditagricole", "site": "GroupCareers" } },
+  { "name": "Carrefour",       "smart": { "company": "carrefour" } },
+  { "name": "Decathlon",       "smart": { "company": "decathlon" } },
+  { "name": "EDF",             "smart": { "company": "edf" } },
+  { "name": "SNCF",            "smart": { "company": "sncf" } },
+  { "name": "Orange",          "workday": { "host": "orange.wd3.myworkdayjobs.com", "tenant": "orange", "site": "External" } }
 ]

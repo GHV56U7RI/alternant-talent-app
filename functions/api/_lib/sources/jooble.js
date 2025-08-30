@@ -1,41 +1,26 @@
-import { stableId } from "../id.js";
+import { filterFranceAlternance, insertMany } from '../ingest.js';
 
-export async function fetchJooble({ env, pages = 1, limit = 50 }) {
+export async function collectFromJooble(env, { keywords = "alternance", location = "France", limit = 50 }) {
   const key = env.JOOBLE_KEY;
-  if (!key) return { source: 'jooble', jobs: [], ok: false, reason: 'missing_key' };
+  if (!key) return { from_jooble: 0 };
+  const url = `https://jooble.org/api/${encodeURIComponent(key)}`;
+  const body = { keywords, location, page: 1, radius: 100, searchMode: 1 };
+  const r = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  if (!r.ok) return { from_jooble: 0 };
+  const data = await r.json().catch(() => ({}));
 
-  const all = [];
-  for (let page = 1; page <= pages; page++) {
-    const res = await fetch(`https://jooble.org/api/${key}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        keywords: 'alternance OR apprenticeship',
-        location: 'France',
-        page, // 1..n
-        searchMode: 1,
-        radius: 0,
-        limit
-      })
-    });
-    if (!res.ok) break;
-    const json = await res.json();
-    const jobs = Array.isArray(json.jobs) ? json.jobs : [];
-    for (const r of jobs) {
-      const id = await stableId('jooble', r.link || r.id || r.title);
-      all.push({
-        id,
-        title: r.title || 'Sans titre',
-        company: r.company || 'Entreprise',
-        location: r.location || '',
-        tags: (r.tags || r.category ? [r.category] : []).filter(Boolean),
-        url: r.link || '#',
-        source: 'jooble',
-        created_at: r.updated || r.pubDate || new Date().toISOString(),
-      });
-    }
-    if (jobs.length < limit) break;
-  }
-  return { source: 'jooble', jobs: all, ok: true };
+  const rows = (data.jobs || []).slice(0, limit).map(x => ({
+    id: `jooble:${x.id || x.link}`,
+    title: x.title,
+    company: x.company,
+    location: x.location,
+    tags: [],
+    url: x.link,
+    source: 'jooble',
+    created_at: x.updated || x.posted || x.date
+  }));
+
+  const kept = filterFranceAlternance(rows);
+  const n = await insertMany(env, kept);
+  return { from_jooble: n };
 }
-

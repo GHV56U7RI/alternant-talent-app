@@ -1,24 +1,21 @@
-import { isAlternanceLike } from '../_lib/ingest.js';
+import { filterFranceAlternance, insertMany } from '../_lib/ingest.js';
 
-export async function collectGreenhouse({ board, companyLabel }) {
-  // https://boards-api.greenhouse.io/v1/boards/{board}/jobs?content=true
-  const url = `https://boards-api.greenhouse.io/v1/boards/${encodeURIComponent(board)}/jobs?content=true`;
-  const res = await fetch(url, { headers: { accept: 'application/json' }});
-  if (!res.ok) return [];
-  const data = await res.json().catch(()=> ({}));
-  const list = data.jobs || [];
-
-  return list
-    .filter(j => isAlternanceLike(j.title) || isAlternanceLike(j.location?.name) || isAlternanceLike(j.content))
-    .map(j => ({
-      id: `greenhouse:${j.id}`,
-      title: j.title || 'Sans titre',
-      company: companyLabel || (j.departments?.[0]?.name || 'Entreprise'),
-      location: j.location?.name || '',
-      tags: (j.metadata || []).map(m => m.value).filter(Boolean),
-      url: j.absolute_url || j.updated_at || '#',
-      source: 'greenhouse',
-      created_at: j.updated_at || new Date().toISOString()
-    }));
+export async function collectGreenhouse({ board, companyLabel }, env) {
+  if (!board) return 0;
+  const url = `https://${board}.greenhouse.io/api/v1/boards/${board}/jobs?content=true`;
+  const r = await fetch(url, { headers: { accept: 'application/json' }});
+  if (!r.ok) return 0;
+  const data = await r.json().catch(() => ({}));
+  const rows = (data.jobs || []).map(j => ({
+    id: `greenhouse:${j.id}`,
+    title: j.title,
+    company: companyLabel || 'Entreprise',
+    location: j.location?.name || '',
+    tags: (j.metadata || []).map(m => `${m.name}:${m.value}`),
+    url: j.absolute_url,
+    source: 'greenhouse',
+    created_at: j.updated_at || j.internal_job_id
+  }));
+  const kept = filterFranceAlternance(rows);
+  return insertMany(env, kept);
 }
-

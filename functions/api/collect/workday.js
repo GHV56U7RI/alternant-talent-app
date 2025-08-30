@@ -1,33 +1,22 @@
-import { isAlternanceLike } from '../_lib/ingest.js';
+import { filterFranceAlternance, insertMany } from '../_lib/ingest.js';
 
-/**
- * ATTENTION: Workday varie selon le tenant.
- * Exemple d'endpoint courant:
- *   POST https://{host}/wday/cxs/{tenant}/{site}/jobs
- * avec body JSON {limit, offset, searchText}
- */
-export async function collectWorkday({ host, tenant, site, search = "alternance", companyLabel, limit = 50 }) {
-  const url = `https://${host}/wday/cxs/${tenant}/${site}/jobs`;
-  const body = { limit, offset: 0, searchText: search };
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'accept': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) return [];
-  const data = await res.json().catch(()=> ({}));
-  const list = data.jobPostings || [];
-  return list
-    .filter(p => isAlternanceLike(p.title) || isAlternanceLike(p.locations?.join(' ')))
-    .map(p => ({
-      id: `workday:${p.jobPostingId || p.externalPath || crypto.randomUUID()}`,
-      title: p.title || 'Sans titre',
-      company: companyLabel || (p.company || 'Entreprise'),
-      location: (p.locations || []).join(' · '),
-      tags: [],
-      url: p.externalPath ? `https://${host}${p.externalPath}` : '#',
-      source: 'workday',
-      created_at: p.postedOn || new Date().toISOString()
-    }));
+export async function collectWorkday({ host, tenant, site, search = "alternance", companyLabel, limit = 50 }, env) {
+  if (!host || !tenant) return 0;
+  const base = `https://${host}/wday/cxs/${tenant}/${site || 'careers'}/jobs`;
+  const query = { appliedFacets: { locationCountry: ["FR"] }, limit, offset: 0, searchText: search };
+  const r = await fetch(base, { method: 'POST', headers: { 'content-type':'application/json' }, body: JSON.stringify(query) });
+  if (!r.ok) return 0;
+  const data = await r.json().catch(() => ({}));
+  const rows = (data.jobPostings || []).map(p => ({
+    id: `workday:${p.jobPostingId}`,
+    title: p.title,
+    company: companyLabel || 'Entreprise',
+    location: p.locations?.[0]?.shortName || p.locations?.[0]?.name || '',
+    tags: p.categories || [],
+    url: `https://${host}${p.externalPath || p.externalUrl || ''}`,
+    source: 'workday',
+    created_at: p.postedOn || p.postedDateTime
+  }));
+  const kept = filterFranceAlternance(rows);
+  return insertMany(env, kept);
 }
-
