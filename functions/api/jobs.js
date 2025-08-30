@@ -11,10 +11,11 @@ const FR_TERMS = [
 export async function onRequest({ request, env }) {
   const url = new URL(request.url);
   const q = url.searchParams.get('q') || '';
+  const location = url.searchParams.get('location') || '';
   const limit = Math.min(parseInt(url.searchParams.get('limit')||'20',10), 50);
   const offset = Math.max(parseInt(url.searchParams.get('offset')||'0',10), 0);
   const world = isTrue(url.searchParams.get('world') || '0'); // world=1 -> pas de filtre FR
-  console.log('GET /api/jobs', { q, limit, offset, world });
+  console.log('GET /api/jobs', { q, location, limit, offset, world });
 
   const clauses = [];
   const params  = [];
@@ -22,6 +23,11 @@ export async function onRequest({ request, env }) {
   if (q) {
     clauses.push(`(title LIKE ? OR company LIKE ? OR location LIKE ? OR tags LIKE ?)`);
     params.push(like(q), like(q), like(q), like(q));
+  }
+
+  if (location) {
+    clauses.push(`location LIKE ?`);
+    params.push(like(location));
   }
 
   if (!world) {

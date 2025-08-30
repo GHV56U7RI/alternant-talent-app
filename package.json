@@ -3,49 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Plateforme d’agrégation d’offres d’alternance (Node.js + HTML/CSS/JS).",
   "scripts": {
-    "dev": "nodemon --watch server.js --watch adzuna.js --watch jooble.js --ext js,json server.js",
-    "start": "node server.js",
-    "build": "echo \"no build\"",
-    "test": "node -e \"console.log('OK')\""
-  },
-  "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "better-sqlite3": "^9.6.0",
-    "cookie-parser": "^1.4.6",
-    "express": "^4.19.2",
-    "p-limit": "^5.0.0"
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
-  },
-  "engines": {
-    "node": ">=18.17"
-  },
-  "license": "MIT",
-  "keywords": [
-    "alternance",
-    "jobs",
-    "aggregator",
-    "node",
-    "express",
-    "sqlite"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/<ton-org>/<ton-repo>.git"
-  },
-  "bugs": {
-    "url": "https://github.com/<ton-org>/<ton-repo>/issues"
-  },
-  "homepage": "https://alternant-talent.pages.dev/",
-  "nodemonConfig": {
-    "delay": "200ms",
-    "ignore": [
-      "data/*",
-      "public/*",
-      "node_modules/*"
-    ]
+    "@eslint/js": "^9.34.0",
+    "eslint": "^9.34.0",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^16.3.0",
+    "vitest": "^1.6.1"
   }
 }

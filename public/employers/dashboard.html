@@ -10,9 +10,26 @@
     ul{padding-left:16px}
     pre{background:#f6f7f9;padding:12px;border-radius:8px;overflow:auto}
   </style>
+  <link rel="stylesheet" href="/assets/nav.css">
 </head>
 <body>
+<nav>
+  <a href="/index.html">Accueil</a>
+  <a href="/students/index.html">Étudiants</a>
+  <a href="/employers/index.html">Employeurs</a>
+</nav>
+
 <h1>Tableau de bord</h1>
+<section>
+  <h2>Nouvelle offre</h2>
+  <form id="new-offer">
+    <input name="title" placeholder="titre" required>
+    <input name="location" placeholder="localisation" required>
+    <input name="url" placeholder="URL" type="url" required>
+    <textarea name="description" placeholder="description" required></textarea>
+    <button>Créer</button>
+  </form>
+</section>
 <section>
   <h2>Mes offres</h2>
   <ul id="offers"></ul>
@@ -34,16 +51,47 @@ async function loadOffers(){
   ul.innerHTML='';
   (r.json?.offers||[]).forEach(async o=>{
     const li=document.createElement('li');
-    li.textContent=`${o.title} – ${o.location}`;
-    const s = await api(`/api/stats/offer/${encodeURIComponent(o.id)}`);
-    li.textContent += ` — vues: ${s.json?.views||0}, clics: ${s.json?.clicks||0}, candidatures: ${s.json?.applies||0}`;
+    const info=document.createElement('span');
+    info.textContent=`${o.title} – ${o.location}`;
+    li.appendChild(info);
+
+    const edit=document.createElement('button');
+    edit.textContent='Éditer';
+    edit.addEventListener('click',async()=>{
+      const title=prompt('Titre',o.title); if(title===null)return;
+      const location=prompt('Localisation',o.location); if(location===null)return;
+      const url=prompt('URL',o.url||''); if(url===null)return;
+      const description=prompt('Description',o.description||''); if(description===null)return;
+      await api(`/api/employer/offers/${encodeURIComponent(o.id)}`,{method:'PUT',headers:{'content-type':'application/json'},body:JSON.stringify({title,location,url,description})});
+      loadOffers();
+    });
+
+    const del=document.createElement('button');
+    del.textContent='Supprimer';
+    del.addEventListener('click',async()=>{
+      if(!confirm('Supprimer cette offre ?')) return;
+      await api(`/api/employer/offers/${encodeURIComponent(o.id)}`,{method:'DELETE'});
+      loadOffers();
+    });
+
+    li.append(' ',edit,' ',del);
     ul.appendChild(li);
+
+    const s = await api(`/api/stats/offer/${encodeURIComponent(o.id)}`);
+    info.textContent += ` — vues: ${s.json?.views||0}, clics: ${s.json?.clicks||0}, candidatures: ${s.json?.applies||0}`;
   });
 }
 async function loadOverview(){
   const r = await api('/api/stats/overview');
   document.querySelector('#overview').textContent = JSON.stringify(r.json||r.text||r, null, 2);
 }
+document.querySelector('#new-offer').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const f=new FormData(e.target);
+  await api('/api/employer/offers',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({title:f.get('title'),location:f.get('location'),description:f.get('description'),url:f.get('url')})});
+  e.target.reset();
+  loadOffers();
+});
 loadOffers();
 loadOverview();
 </script>

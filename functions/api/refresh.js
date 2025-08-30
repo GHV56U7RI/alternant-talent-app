@@ -13,7 +13,7 @@ export async function onRequest(context) {
   // 1) seed JSON
   const origin = new URL(request.url).origin;
   const seedRes = await env.ASSETS.fetch(new Request(new URL('/data/seed.json', origin), { method: 'GET' }));
-  let seed = []; try { if (seedRes.ok) seed = await seedRes.json(); } catch {}
+  let seed = []; try { if (seedRes.ok) seed = await seedRes.json(); } catch { /* ignore */ }
   const from_seed = await insertMany(env, Array.isArray(seed) ? seed : []);
 
   // 2) agrégateurs + careers FR

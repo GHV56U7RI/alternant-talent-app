@@ -1,62 +1,49 @@
 # Alternant Talent App
 
-Plateforme **open-source** d’agrégation d’offres d’alternance pour la France.  
-Front **HTML/CSS/JS** statique + **API Node.js (ESM)**, cache local, collecte depuis **Adzuna** et **Jooble**, redirection “**direct apply**”, auth simple (SQLite ou JSON), et rafraîchissement en **temps réel (SSE)**.
+Plateforme d’agrégation et de gestion d’offres d’alternance.  
+Front statique + API serverless (Cloudflare Functions + D1).
 
----
+## 🚀 Structure du projet
 
-## Sommaire
+- `public/` → Front statique (HTML, assets, SEO)
+- `functions/` → API et backend serverless (auth, jobs, stats…)
+- `migrations/` → Schéma SQL D1
+- `scripts/` → Scripts utilitaires
+- `.github/` → Workflows CI/CD, sécurité, templates PR/issues
 
-- [Fonctionnalités](#fonctionnalités)
-- [Architecture](#architecture)
-- [Prérequis](#prérequis)
-- [Installation rapide (local)](#installation-rapide-local)
-- [Configuration (.env)](#configuration-env)
-- [Démarrage & données](#démarrage--données)
-- [Collecte d’offres (Adzuna/Jooble)](#collecte-doffres-adzunajooble)
-- [Découverte d’ATS (discover-slugsjs)](#découverte-dats-discover-slugsjs)
-- [Endpoints API](#endpoints-api)
-- [Intégration front (bridge-v12js)](#intégration-front-bridge-v12js)
-- [Production & SEO](#production--seo)
-- [Sécurité & données](#sécurité--données)
-- [Dépannage](#dépannage)
-- [Licence](#licence)
+## 🔧 Dev local
 
----
+Prérequis : Node.js (>=18) et npm doivent être installés.
 
-## Fonctionnalités
+```bash
+# installer les dépendances
+npm install
 
-- ✅ **Agrégation** d’offres (Adzuna, Jooble) avec normalisation + déduplication
-- ✅ **Cache** disque (`data/jobs-cache.json`) pour un chargement instantané
-- ✅ **Rafraîchissement** manuel (`POST /api/refresh`) et auto (cron)
-- ✅ **SSE** (`/api/events`) pour signaler les nouvelles annonces au front
-- ✅ **Direct apply** (`/api/direct`) : suit les redirections des agrégateurs vers le site employeur
-- ✅ **Auth** basique (SQLite via `better-sqlite3` ou fallback JSON)
-- ✅ **Profil** candidat (ville, rayon, télétravail, mots-clés…)
-- ✅ **Front bridge** (favoris, recherche, “Ils recrutent cette semaine”, compteurs)
-- ✅ **SEO-ready** (robots+sitemap+manifest) quand activé
-- ✅ **Script** de découverte d’ATS (Greenhouse, Lever, Ashby, Workable, Personio, Recruitee, Teamtailor, SmartRecruiters)
+# analyser le code
+npm run lint
 
----
+# exécuter la suite de tests
+npm test
+```
 
-## Architecture
+## 🌱 Seed de données
 
-.
-├─ public/ # Front statique (index.html, assets, manifest, robots, sitemap…)
-├─ data/ # Données runtime (cache, base auth SQLite/JSON) — ignoré par Git
-├─ server.js # API Node.js (ESM)
-├─ bridge-v12.js # Bridge front → API (à inclure côté public/index.html)
-├─ adzuna.js # Collecteur Adzuna
-├─ jooble.js # Collecteur Jooble
-├─ discover-slugs.js # Découverte d'ATS par entreprise
-├─ 2025-08-found.json # Seeds d’offres (existant)
-├─ 2025-08-manual.json # Seeds manuelles (existant)
-├─ slugs.json # (optionnel) Liste d’entreprises/slugs
-├─ found-slugs.json # (généré) Résultats discover-slugs
-├─ package.json
-├─ .env.example
-├─ .gitignore
-└─ LICENSE
+Un petit jeu de données de test se trouve dans `public/data/seed.json`. Pour l'insérer dans la base D1 locale :
 
-yaml
-Copier le code
+```bash
+node scripts/local-seed.mjs
+```
+
+Le script utilise l'API D1 pour ajouter les entrées dans la table `jobs`.
+
+## 🧠 API
+
+### GET `/api/jobs`
+
+Retourne des offres d'alternance. Paramètres de requête :
+
+- `q` : filtre sur le titre, l'entreprise, le lieu ou les tags.
+- `location` : filtre spécifique sur le champ `location` (`LIKE`).
+- `limit` : nombre maximum de résultats (≤50).
+- `offset` : décalage de pagination.
+- `world` : si `1`, désactive le filtre France/DOM-TOM.
