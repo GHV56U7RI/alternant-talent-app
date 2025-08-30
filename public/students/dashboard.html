@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tableau de bord Étudiant</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:20px}
+    h1{margin-top:0}
+    section{margin:24px 0}
+    input,button{font-size:16px;margin:4px 0}
+    ul{padding-left:16px}
+  </style>
+</head>
+<body>
+<h1>Tableau de bord</h1>
+<section>
+  <h2>Favoris</h2>
+  <ul id="favorites"></ul>
+</section>
+<section>
+  <h2>Alertes</h2>
+  <ul id="alerts"></ul>
+  <form id="add-alert">
+    <input name="q" placeholder="Mot clé" required>
+    <button>Ajouter</button>
+  </form>
+</section>
+<script>
+async function api(path, opts={}){
+  const res = await fetch(path, {credentials:'include', ...opts});
+  const txt = await res.text();
+  try{ return {ok:res.ok, json:JSON.parse(txt)}; }
+  catch{ return {ok:res.ok, text:txt}; }
+}
+async function loadFavorites(){
+  const r = await api('/api/student/favorites');
+  const ul = document.querySelector('#favorites');
+  ul.innerHTML='';
+  (r.json?.favorites||[]).forEach(f=>{
+    const li=document.createElement('li');
+    li.textContent=f.title||f.id;
+    ul.appendChild(li);
+  });
+}
+async function loadAlerts(){
+  const r = await api('/api/student/alerts');
+  const ul = document.querySelector('#alerts');
+  ul.innerHTML='';
+  (r.json?.alerts||[]).forEach(a=>{
+    const li=document.createElement('li');
+    li.textContent=a.q||JSON.stringify(a);
+    ul.appendChild(li);
+  });
+}
+document.querySelector('#add-alert').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const f = new FormData(e.target);
+  await api('/api/student/alerts', {
+    method:'POST', headers:{'content-type':'application/json'},
+    body: JSON.stringify({q:f.get('q')})
+  });
+  e.target.reset();
+  loadAlerts();
+});
+loadFavorites();
+loadAlerts();
+</script>
+</body>
+</html>

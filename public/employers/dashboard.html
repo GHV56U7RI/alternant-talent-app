@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tableau de bord Employeur</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:20px}
+    h1{margin-top:0}
+    ul{padding-left:16px}
+    pre{background:#f6f7f9;padding:12px;border-radius:8px;overflow:auto}
+  </style>
+</head>
+<body>
+<h1>Tableau de bord</h1>
+<section>
+  <h2>Mes offres</h2>
+  <ul id="offers"></ul>
+</section>
+<section>
+  <h2>Stats globales (30 derniers jours)</h2>
+  <pre id="overview">{}</pre>
+</section>
+<script>
+async function api(path, opts={}){
+  const res = await fetch(path, {credentials:'include', ...opts});
+  const txt = await res.text();
+  try{ return {ok:res.ok, json:JSON.parse(txt)}; }
+  catch{ return {ok:res.ok, text:txt}; }
+}
+async function loadOffers(){
+  const r = await api('/api/employer/offers');
+  const ul = document.querySelector('#offers');
+  ul.innerHTML='';
+  (r.json?.offers||[]).forEach(async o=>{
+    const li=document.createElement('li');
+    li.textContent=`${o.title} – ${o.location}`;
+    const s = await api(`/api/stats/offer/${encodeURIComponent(o.id)}`);
+    li.textContent += ` — vues: ${s.json?.views||0}, clics: ${s.json?.clicks||0}, candidatures: ${s.json?.applies||0}`;
+    ul.appendChild(li);
+  });
+}
+async function loadOverview(){
+  const r = await api('/api/stats/overview');
+  document.querySelector('#overview').textContent = JSON.stringify(r.json||r.text||r, null, 2);
+}
+loadOffers();
+loadOverview();
+</script>
+</body>
+</html>
