@@ -1,5 +1,5 @@
 import { ensureAuthSchema } from '../../_utils/ensure.js';
-import { makeSalt, sha256Hex, makeToken } from '../../_utils/crypto.js';
+import { pbkdf2Hash, makeToken } from '../../_utils/crypto.js';
 import { cookie } from '../../_utils/cookies.js';
 
 export async function onRequest({ request, env }) {
@@ -17,13 +17,12 @@ export async function onRequest({ request, env }) {
   const exists = await env.DB.prepare(`SELECT id FROM users WHERE email=?`).bind(email).all();
   if (exists.results?.length) return new Response('{"error":"email_in_use"}',{status:409});
 
-  const salt = makeSalt();
-  const password_hash = await sha256Hex(salt + password);
+  const password_hash = await pbkdf2Hash(password, email);
   const now = new Date().toISOString();
 
   const res = await env.DB.prepare(
-    `INSERT INTO users (email, password_hash, password_salt, created_at) VALUES (?,?,?,?)`
-  ).bind(email, password_hash, salt, now).run();
+    `INSERT INTO users (email, password_hash, created_at) VALUES (?,?,?)`
+  ).bind(email, password_hash, now).run();
 
   const user_id = res.meta.last_row_id;
   const token = makeToken();
