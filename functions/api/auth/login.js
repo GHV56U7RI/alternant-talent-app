@@ -1,5 +1,5 @@
 import { ensureAuthSchema } from '../../_utils/ensure.js';
-import { sha256Hex, makeToken } from '../../_utils/crypto.js';
+import { pbkdf2Hash, makeToken } from '../../_utils/crypto.js';
 import { cookie } from '../../_utils/cookies.js';
 
 export async function onRequest({ request, env }) {
@@ -8,12 +8,12 @@ export async function onRequest({ request, env }) {
 
   await ensureAuthSchema(env.DB);
 
-  const row = await env.DB.prepare(`SELECT id,password_hash,password_salt FROM users WHERE email=?`)
+  const row = await env.DB.prepare(`SELECT id,password_hash FROM users WHERE email=?`)
     .bind(email.toLowerCase()).all();
   const u = row.results?.[0];
   if (!u) return new Response('{"error":"invalid_credentials"}',{status:401});
 
-  const hash = await sha256Hex((u.password_salt||'') + password);
+  const hash = await pbkdf2Hash(password, email.toLowerCase());
   if (hash !== u.password_hash) return new Response('{"error":"invalid_credentials"}',{status:401});
 
   const token = makeToken();
