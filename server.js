@@ -10,6 +10,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import bcrypt from 'bcryptjs';
 import { fileURLToPath } from 'url';
+import logger from './src/logger.js';
 
 // ---------------------- Paths & helpers ----------------------
 const __filename = fileURLToPath(import.meta.url);
@@ -396,7 +397,7 @@ async function bootJobsCache() {
   if (cached && Array.isArray(cached.jobs) && cached.updated_at) {
     JOBS_CACHE = cached.jobs;
     CACHE_UPDATED_AT = new Date(cached.updated_at);
-    console.log(`[boot] Loaded cache: ${JOBS_CACHE.length} offers @ ${CACHE_UPDATED_AT.toISOString()}`);
+    logger.info(`[boot] Loaded cache: ${JOBS_CACHE.length} offers @ ${CACHE_UPDATED_AT.toISOString()}`);
     return;
   }
 
@@ -416,12 +417,12 @@ async function bootJobsCache() {
     const norm = normalizeJobs(seed);
     updateCache(norm);
     await persistJobsCache();
-    console.log(`[boot] Seeded ${norm.length} offers from ${seedFiles.map(p => path.basename(p)).join(', ')}`);
+    logger.info(`[boot] Seeded ${norm.length} offers from ${seedFiles.map(p => path.basename(p)).join(', ')}`);
   } else {
     // vide mais valide
     updateCache([]);
     await persistJobsCache();
-    console.log('[boot] No cache, no seed → empty cache initialized.');
+    logger.info('[boot] No cache, no seed → empty cache initialized.');
   }
 }
 
@@ -557,7 +558,7 @@ async function refreshAll() {
     const normalized = normalizeJobs(jobs);
     updateCache(normalized);
     await persistJobsCache();
-    console.log(`[refresh] ${normalized.length} offers from [${sources.join(', ')}]`);
+    logger.info(`[refresh] ${normalized.length} offers from [${sources.join(', ')}]`);
     return { updated: sources, count: normalized.length };
   } finally {
     running = false;
@@ -608,7 +609,7 @@ async function initAuthStore() {
         )
       `).run();
       useSQLite = true;
-      console.log('[auth] using SQLite');
+      logger.info('[auth] using SQLite');
       return;
     }
   } catch (e) {
@@ -616,7 +617,7 @@ async function initAuthStore() {
   }
   // Fallback JSON
   usersJson = await readJSON(AUTH_JSON_PATH, { users: [] });
-  console.log('[auth] using JSON fallback');
+  logger.info('[auth] using JSON fallback');
 }
 
 async function authGetUserByEmail(email) {
@@ -667,5 +668,5 @@ async function authUpdateProfile(id, profileObj) {
 
 // ---------------------- Start server ----------------------
 app.listen(PORT, () => {
-  console.log(`✅ Server listening on http://localhost:${PORT}`);
+  logger.info(`✅ Server listening on http://localhost:${PORT}`);
 });

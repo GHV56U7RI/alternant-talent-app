@@ -1,3 +1,5 @@
+import logger from '../../src/logger.js';
+
 const like = (q="") => `%${q}%`;
 const isTrue = v => v === '1' || v === 'true';
 
@@ -15,7 +17,7 @@ export async function onRequest({ request, env }) {
   const limit = Math.min(parseInt(url.searchParams.get('limit')||'20',10), 50);
   const offset = Math.max(parseInt(url.searchParams.get('offset')||'0',10), 0);
   const world = isTrue(url.searchParams.get('world') || '0'); // world=1 -> pas de filtre FR
-  console.log('GET /api/jobs', { q, location, limit, offset, world });
+  if (env.DEBUG) logger.debug('GET /api/jobs', { q, location, limit, offset, world });
 
   const clauses = [];
   const params  = [];

@@ -16,6 +16,7 @@ import fs from 'fs';
 import fsp from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import logger from './src/logger.js';
 
 // ------------------------------- Paths & setup -------------------------------
 const __filename = fileURLToPath(import.meta.url);
@@ -56,7 +57,7 @@ async function main() {
     return;
   }
 
-  console.log(`[discover-slugs] Entreprises à sonder: ${companies.length}`);
+  logger.info(`[discover-slugs] Entreprises à sonder: ${companies.length}`);
   const results = await pMap(companies, async (c) => {
     const candidates = buildSlugCandidates(c.name, c.domain, MAX_CANDIDATES);
     const detected = [];
@@ -83,10 +84,10 @@ async function main() {
   };
 
   if (DRY) {
-    console.log(JSON.stringify(out, null, 2));
+    logger.info(JSON.stringify(out, null, 2));
   } else {
     await writeJSONSafe(OUTFILE, out);
-    console.log(`[discover-slugs] Écrit: ${OUTFILE} (${out.count} endpoints détectés)`);
+    logger.info(`[discover-slugs] Écrit: ${OUTFILE} (${out.count} endpoints détectés)`);
   }
 }
 

@@ -1,6 +1,7 @@
 /* eslint-env node */
 import { readFile } from "node:fs/promises";
 import { getPlatformProxy } from "wrangler";
+import logger from "../src/logger.js";
 
 async function main() {
   const { env } = await getPlatformProxy();
@@ -29,7 +30,7 @@ async function main() {
       .run();
   }
 
-  console.log(`Inserted ${jobs.length} job(s)`);
+  logger.info(`Inserted ${jobs.length} job(s)`);
 }
 
 main().catch((err) => {
