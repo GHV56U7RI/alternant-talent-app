@@ -1,5 +1,5 @@
 import { requireAuth } from '../../../../_utils/auth.js';
-const json=(o,s=200)=>new Response(JSON.stringify(o),{status:s,headers:{'content-type':'application/json'}});
+import { json } from '../../../../_utils/response.js';
 export async function onRequest({request,env,params}){
   const acc=await requireAuth(request,env,'employer');
   if(!acc) return json({error:'unauthorized'},401);

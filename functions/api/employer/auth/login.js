@@ -1,6 +1,6 @@
 import { pbkdf2Hash } from '../../../_utils/crypto.js';
 import { setCookie } from '../../../_utils/cookies.js';
-const json=(o,s=200)=>new Response(JSON.stringify(o),{status:s,headers:{'content-type':'application/json'}});
+import { json } from '../../../_utils/response.js';
 
 export async function onRequest({ request, env }) {
   if (request.method!=='POST') return json({error:'method_not_allowed'},405);
@@ -20,7 +20,5 @@ export async function onRequest({ request, env }) {
   await env.DB.prepare('INSERT INTO employer_sessions (id,account_id,created_at,expires_at) VALUES (?,?,?,?)')
     .bind(sid,acc.id,now,exp).run();
 
-  return new Response(JSON.stringify({ok:true,email}),{
-    headers:{'content-type':'application/json','Set-Cookie':setCookie('emp_sess',sid)}
-  });
+  return json({ok:true,email},200,{ 'Set-Cookie': setCookie('emp_sess',sid) });
 }

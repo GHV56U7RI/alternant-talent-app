@@ -1,5 +1,5 @@
 import { requireStudentSession } from '../../../_utils/auth_student.js';
-const json = (o,s=200)=>new Response(JSON.stringify(o),{status:s,headers:{'content-type':'application/json'}});
+import { json } from '../../../_utils/response.js';
 
 export async function onRequest({ request, env }) {
   const sess = await requireStudentSession(request, env);
