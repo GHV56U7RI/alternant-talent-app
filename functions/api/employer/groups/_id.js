@@ -1,7 +1,7 @@
-import { authEmp } from '../../_utils/auth.js';
+import { requireAuth } from '../../_utils/auth.js';
 const json=(o,s=200)=>new Response(JSON.stringify(o),{status:s,headers:{'content-type':'application/json'}});
 export async function onRequest({request,env,params}){
-  const acc=await authEmp(request,env);
+  const acc=await requireAuth(request,env,'employer');
   if(!acc) return json({error:'unauthorized'},401);
   const id=params.id;
   const grp=await env.DB.prepare('SELECT id,name FROM employer_groups WHERE id=? AND account_id=?').bind(id,acc.id).first();
