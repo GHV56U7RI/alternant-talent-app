@@ -1,20 +1,18 @@
-import { parseCookies } from '../../../_utils/cookies.js';
-import { ensureAuthSchema } from '../../../_utils/ensure.js';
+import { getCookie } from '../../../_utils/cookies.js';
+const json = (o,s=200)=>new Response(JSON.stringify(o),{status:s,headers:{'content-type':'application/json'}});
 
 export async function onRequest({ request, env }) {
-  await ensureAuthSchema(env.DB);
-  const { stud_sess } = parseCookies(request);
-  if (!stud_sess) return new Response('{"auth":false}', { headers:{'content-type':'application/json'} });
+  const sid = getCookie(request,'stud_sess');
+  if (!sid) return json({authenticated:false});
+  const now = Math.floor(Date.now()/1000);
 
   const row = await env.DB.prepare(
-    `SELECT u.id, u.email, u.created_at
-     FROM sessions s JOIN users u ON u.id=s.user_id
-     WHERE s.token=?`
-  ).bind(stud_sess).all();
+    `SELECT a.id, a.email
+       FROM student_sessions s
+       JOIN student_accounts a ON a.id = s.account_id
+      WHERE s.id=? AND s.expires_at > ?`
+  ).bind(sid, now).first();
 
-  const me = row.results?.[0];
-  return new Response(JSON.stringify({ auth: !!me, user: me||null }), {
-    headers: {'content-type':'application/json'}
-  });
+  if (!row) return json({authenticated:false});
+  return json({authenticated:true, email: row.email});
 }
-

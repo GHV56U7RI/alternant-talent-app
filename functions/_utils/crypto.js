@@ -1,16 +1,7 @@
-const te = new TextEncoder();
-const hex = (buf) => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
-
-export function makeSalt(len = 16) {
-  const a = new Uint8Array(len);
-  crypto.getRandomValues(a);
-  return hex(a.buffer);
+const TE = new TextEncoder();
+export async function pbkdf2Hash(password, salt){
+  const key = await crypto.subtle.importKey('raw', TE.encode(password), {name:'PBKDF2'}, false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({name:'PBKDF2', hash:'SHA-256', salt: TE.encode(String(salt||'')), iterations: 120000}, key, 256);
+  const b = new Uint8Array(bits);
+  return Array.from(b).map(x=>x.toString(16).padStart(2,'0')).join('');
 }
-
-export async function sha256Hex(input) {
-  const buf = await crypto.subtle.digest('SHA-256', te.encode(input));
-  return hex(buf);
-}
-
-export const makeToken = () => crypto.randomUUID().replace(/-/g, '') + makeSalt();
-

@@ -1,13 +1,11 @@
-import { parseCookies, cookie } from '../../../_utils/cookies.js';
-import { ensureAuthSchema } from '../../../_utils/ensure.js';
+import { getCookie, clearCookie } from '../../../_utils/cookies.js';
+const json = (o,s=200)=>new Response(JSON.stringify(o),{status:s,headers:{'content-type':'application/json'}});
 
 export async function onRequest({ request, env }) {
-  await ensureAuthSchema(env.DB);
-  const { stud_sess } = parseCookies(request);
-  if (stud_sess) await env.DB.prepare(`DELETE FROM sessions WHERE token=?`).bind(stud_sess).run();
-
-  return new Response('{"ok":true}', {
-    headers: { 'set-cookie': cookie('stud_sess','',{ maxAge:0 }), 'content-type': 'application/json' }
+  if (request.method!=='POST') return json({error:'method_not_allowed'},405);
+  const sid = getCookie(request,'stud_sess');
+  if (sid) await env.DB.prepare('DELETE FROM student_sessions WHERE id=?').bind(sid).run();
+  return new Response(JSON.stringify({ok:true}), {
+    headers: { 'content-type':'application/json', 'Set-Cookie': clearCookie('stud_sess') }
   });
 }
-
