@@ -60,9 +60,7 @@
     return n;
   }
   function empty(n) { while (n && n.firstChild) n.removeChild(n.firstChild); }
-  function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
   function fmtInt(n) { return new Intl.NumberFormat('fr-FR').format(n|0); }
-  function todayYMD(d=new Date()){ const z=o=>String(o).padStart(2,'0'); return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`; }
   function isSameDay(a, b) {
     const da = new Date(a), db = new Date(b);
     return da.getFullYear()===db.getFullYear() && da.getMonth()===db.getMonth() && da.getDate()===db.getDate();
@@ -263,7 +261,6 @@
   function jobCard(job) {
     const dateLabel = labelForDate(job.posted_at);
     const isFav = state.favorites.has(job.id);
-    const chipRemote = job.remote ? chip('Télétravail partiel') : null;
 
     const card = el('article', { class: 'job-card', 'data-id': job.id });
     card.append(
@@ -410,10 +407,10 @@
   function bindSSE() {
     try {
       const es = new EventSource('/api/events');
-      es.addEventListener('hello', (ev) => {
+      es.addEventListener('hello', () => {
         // On peut afficher la dernière mise à jour si besoin
       });
-      es.addEventListener('cache:update', async (ev) => {
+      es.addEventListener('cache:update', async () => {
         // Simple stratégie: si on est sur la première page, on la recharge
         if (state.offset === 0) {
           toast('Nouvelles annonces disponibles');
