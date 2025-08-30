@@ -10,6 +10,8 @@ describe('isFranceOrDomTom', () => {
   it('detects DOM-TOM locations regardless of case', () => {
     expect(isFranceOrDomTom('GUADELOUPE')).toBe(true);
     expect(isFranceOrDomTom('guadeloupe')).toBe(true);
+    expect(isFranceOrDomTom('LA RÉUNION')).toBe(true);
+    expect(isFranceOrDomTom('la réunion')).toBe(true);
   });
 
   it('returns false for non-French locations', () => {
