@@ -44,11 +44,27 @@ async function loadJobs(){
   const url = `/api/jobs?q=${encodeURIComponent(profession)}&location=${encodeURIComponent(location)}`;
   const r = await api(url);
   const ul = document.querySelector('#list');
-  ul.innerHTML='';
-  (r.json?.jobs||[]).forEach(j=>{
+  ul.innerHTML = '';
+
+  if (!r.ok) {
+    const li = document.createElement('li');
+    li.textContent = 'Erreur lors du chargement des offres';
+    ul.appendChild(li);
+    return;
+  }
+
+  const jobs = r.json?.jobs;
+  if (!Array.isArray(jobs) || jobs.length === 0) {
+    const li = document.createElement('li');
+    li.textContent = 'Aucune offre trouvée';
+    ul.appendChild(li);
+    return;
+  }
+
+  jobs.forEach(j => {
     const li = document.createElement('li');
     li.innerHTML = `<b>${j.title}</b> — ${j.company} · ${j.location}`;
-    li.addEventListener('click',()=>loadDetails(j.id));
+    li.addEventListener('click', () => loadDetails(j.id));
     ul.appendChild(li);
   });
 }
