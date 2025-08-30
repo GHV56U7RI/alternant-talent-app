@@ -1,40 +1,28 @@
 <!doctype html>
-<html lang="fr"><head>
+<html lang="fr">
+<head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Alternant Talent – Offres</title>
 <style>
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:20px}
-  h1{margin:0 0 8px} section{margin:24px 0} input,button{font-size:16px}
-  ul{padding-left:16px} li{margin:8px 0}
-  pre{background:#f6f7f9;padding:12px;border-radius:8px;overflow:auto}
+  #search-bar{display:flex;gap:8px;margin-bottom:16px}
+  #main{display:flex;gap:16px}
+  #list{list-style:none;padding:0;margin:0;width:40%;max-height:80vh;overflow:auto}
+  #list li{padding:8px;border-bottom:1px solid #ccc;cursor:pointer}
+  #details{flex:1;border:1px solid #ccc;padding:16px;border-radius:4px;overflow:auto}
 </style>
-</head><body>
+</head>
+<body>
 <h1>Alternant Talent</h1>
-
-<section>
-  <h2>👩‍🎓 Espace étudiant – demo rapide</h2>
-  <form id="signup">
-    <input type="email" name="email" placeholder="email" required>
-    <input type="password" name="password" placeholder="mot de passe" required>
-    <button>S'inscrire</button> <span id="signup-msg"></span>
-  </form>
-  <form id="login" style="margin-top:8px">
-    <input type="email" name="email" placeholder="email">
-    <input type="password" name="password" placeholder="mot de passe">
-    <button>Se connecter</button> <span id="login-msg"></span>
-  </form>
-  <button id="logout" style="margin-top:8px">Se déconnecter</button>
-  <pre id="me">{}</pre>
-</section>
-
-<section>
-  <h2>🔥 Offres récentes (France par défaut)</h2>
-  <input id="q" placeholder="Recherche (ex: data, lyon…)" style="width:100%;padding:10px;margin:8px 0">
+<div id="search-bar">
+  <input id="profession" placeholder="profession">
+  <input id="localisation" placeholder="localisation">
   <button id="search">Rechercher</button>
-  <label style="margin-left:8px"><input type="checkbox" id="world"> Monde entier</label>
+</div>
+<div id="main">
   <ul id="list"></ul>
-</section>
-
+  <div id="details">Sélectionnez une offre pour voir les détails.</div>
+</div>
 <script>
 async function api(path, opts={}) {
   const res = await fetch(path, { credentials:'include', ...opts });
@@ -42,48 +30,33 @@ async function api(path, opts={}) {
   try { return { ok: res.ok, status: res.status, json: JSON.parse(txt) }; }
   catch { return { ok: res.ok, status: res.status, text: txt }; }
 }
-async function refreshMe(){
-  const r = await api('/api/student/auth/me');
-  document.querySelector('#me').textContent = JSON.stringify(r.json || r.text || r, null, 2);
-}
-document.querySelector('#signup').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const f = new FormData(e.target);
-  const r = await api('/api/student/auth/register', {
-    method:'POST', headers:{'content-type':'application/json'},
-    body: JSON.stringify({ email:f.get('email'), password:f.get('password') })
-  });
-  document.querySelector('#signup-msg').textContent = r.ok ? 'Inscription OK ✅' : 'Erreur ❌';
-  refreshMe();
-});
-document.querySelector('#login').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const f = new FormData(e.target);
-  const r = await api('/api/student/auth/login', {
-    method:'POST', headers:{'content-type':'application/json'},
-    body: JSON.stringify({ email:f.get('email'), password:f.get('password') })
-  });
-  document.querySelector('#login-msg').textContent = r.ok ? 'Connecté 🔓' : 'Identifiants invalides ❌';
-  refreshMe();
-});
-document.querySelector('#logout').addEventListener('click', async ()=>{
-  await api('/api/student/auth/logout', { method:'POST' });
-  refreshMe();
-});
 async function loadJobs(){
-  const q = document.querySelector('#q').value.trim();
-  const world = document.querySelector('#world').checked ? '&world=1' : '';
-  const base = '/api/jobs?limit=20';
-  const url = q ? `${base}&q=${encodeURIComponent(q)}${world}` : `${base}${world}`;
+  const profession = document.querySelector('#profession').value.trim();
+  const location = document.querySelector('#localisation').value.trim();
+  const url = `/api/jobs?q=${encodeURIComponent(profession)}&location=${encodeURIComponent(location)}`;
   const r = await api(url);
-  const ul = document.querySelector('#list'); ul.innerHTML='';
+  const ul = document.querySelector('#list');
+  ul.innerHTML='';
   (r.json?.jobs||[]).forEach(j=>{
     const li = document.createElement('li');
-    li.innerHTML = `<b>${j.title}</b> — ${j.company} · ${j.location} · <a href="/r/${encodeURIComponent(j.id)}" target="_blank" rel="noopener">Postuler</a>`;
+    li.innerHTML = `<b>${j.title}</b> — ${j.company} · ${j.location}`;
+    li.addEventListener('click',()=>loadDetails(j.id));
     ul.appendChild(li);
   });
 }
-document.querySelector('#search').addEventListener('click', loadJobs);
-refreshMe(); loadJobs();
+async function loadDetails(id){
+  const r = await api(`/api/stats/offer/${encodeURIComponent(id)}`);
+  const d = document.querySelector('#details');
+  d.innerHTML='';
+  if(r.json){
+    const o = r.json;
+    d.innerHTML = `<h2>${o.title||''}</h2><p>${o.company||''} - ${o.location||''}</p><p>${o.description||''}</p>`;
+  }else{
+    d.textContent = 'Détails indisponibles';
+  }
+}
+document.querySelector('#search').addEventListener('click',loadJobs);
+loadJobs();
 </script>
-</body></html>
+</body>
+</html>
