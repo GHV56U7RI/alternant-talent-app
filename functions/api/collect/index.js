@@ -4,7 +4,6 @@ import { collectGreenhouse } from './greenhouse.js';
 import { collectLever } from './lever.js';
 import { collectSmartRecruiters } from './smartrecruiters.js';
 import { collectWorkday } from './workday.js';
-import { insertMany } from '../_lib/ingest.js';
 
 export async function collectFromSources(env, request) {
   // 1) agrégateurs FR
