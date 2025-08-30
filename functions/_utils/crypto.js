@@ -28,7 +28,7 @@ export function makeSalt(lenBytes = 16) {
 export async function pbkdf2Hash(password, salt) {
   const key = await crypto.subtle.importKey('raw', TE.encode(String(password ?? '')), { name: 'PBKDF2' }, false, ['deriveBits']);
   const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', hash: 'SHA-256', salt: TE.encode(String(salt ?? '')), iterations: 120000 },
+    { name: 'PBKDF2', hash: 'SHA-256', salt: TE.encode(String(salt ?? '')), iterations: 100000 },
     key,
     256
   );
