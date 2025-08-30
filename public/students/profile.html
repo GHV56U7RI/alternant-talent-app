@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Profil Étudiant</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:20px}
+    h1{margin-top:0}
+    input,button{font-size:16px;margin:4px 0}
+    pre{background:#f6f7f9;padding:12px;border-radius:8px;overflow:auto}
+  </style>
+</head>
+<body>
+<h1>Profil</h1>
+<pre id="profile">{}</pre>
+<form id="update">
+  <input name="name" placeholder="Nom">
+  <button>Mettre à jour</button>
+</form>
+<div id="msg"></div>
+<script>
+async function api(path, opts={}){
+  const res = await fetch(path, {credentials:'include', ...opts});
+  const txt = await res.text();
+  try{ return {ok:res.ok, json:JSON.parse(txt)}; }
+  catch{ return {ok:res.ok, text:txt}; }
+}
+async function load(){
+  const r = await api('/api/student/profile');
+  document.querySelector('#profile').textContent = JSON.stringify(r.json||r.text||r, null, 2);
+  if(r.json?.name) document.querySelector('[name=name]').value = r.json.name;
+}
+document.querySelector('#update').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const r = await api('/api/student/profile', {
+    method:'POST', headers:{'content-type':'application/json'},
+    body: JSON.stringify({name:f.get('name')})
+  });
+  document.querySelector('#msg').textContent = r.ok ? 'Profil mis à jour ✅' : 'Erreur ❌';
+  load();
+});
+load();
+</script>
+</body>
+</html>
