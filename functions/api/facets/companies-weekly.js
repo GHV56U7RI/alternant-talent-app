@@ -1,12 +1,13 @@
-export async function onRequest({ env }) {
-  const { results } = await env.DB.prepare(
+import { json } from '../../utils/response.js';
+
+export async function onRequestGet({ env }) {
+  const db = env.DB;
+  const { results } = await db.prepare(
     `SELECT company, COUNT(*) AS offers
        FROM jobs
-      WHERE datetime(created_at) >= datetime('now','-7 days')
+      WHERE created >= datetime('now', '-7 days')
       GROUP BY company
       ORDER BY offers DESC`
   ).all();
-  return new Response(JSON.stringify(results || []), {
-    headers: { 'content-type': 'application/json' }
-  });
+  return json(results);
 }
