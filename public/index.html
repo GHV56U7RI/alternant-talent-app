@@ -6,26 +6,15 @@
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:20px}
   h1{margin:0 0 8px} section{margin:24px 0} input,button{font-size:16px}
   ul{padding-left:16px} li{margin:8px 0}
-  pre{background:#f6f7f9;padding:12px;border-radius:8px;overflow:auto}
 </style>
-</head><body>
-<h1>Alternant Talent</h1>
 
-<section>
-  <h2>👩‍🎓 Espace étudiant – demo rapide</h2>
-  <form id="signup">
-    <input type="email" name="email" placeholder="email" required>
-    <input type="password" name="password" placeholder="mot de passe" required>
-    <button>S'inscrire</button> <span id="signup-msg"></span>
-  </form>
-  <form id="login" style="margin-top:8px">
-    <input type="email" name="email" placeholder="email">
-    <input type="password" name="password" placeholder="mot de passe">
-    <button>Se connecter</button> <span id="login-msg"></span>
-  </form>
-  <button id="logout" style="margin-top:8px">Se déconnecter</button>
-  <pre id="me">{}</pre>
-</section>
+</head><body>
+<nav>
+  <a href="/students/login.html">Connexion</a>
+  <a href="/students/signup.html">Inscription</a>
+  <a href="/employers/index.html">Espace entreprise</a>
+</nav>
+<h1>Alternant Talent</h1>
 
 <section>
   <h2>🔥 Offres récentes (France par défaut)</h2>
@@ -42,34 +31,6 @@ async function api(path, opts={}) {
   try { return { ok: res.ok, status: res.status, json: JSON.parse(txt) }; }
   catch { return { ok: res.ok, status: res.status, text: txt }; }
 }
-async function refreshMe(){
-  const r = await api('/api/student/auth/me');
-  document.querySelector('#me').textContent = JSON.stringify(r.json || r.text || r, null, 2);
-}
-document.querySelector('#signup').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const f = new FormData(e.target);
-  const r = await api('/api/student/auth/register', {
-    method:'POST', headers:{'content-type':'application/json'},
-    body: JSON.stringify({ email:f.get('email'), password:f.get('password') })
-  });
-  document.querySelector('#signup-msg').textContent = r.ok ? 'Inscription OK ✅' : 'Erreur ❌';
-  refreshMe();
-});
-document.querySelector('#login').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const f = new FormData(e.target);
-  const r = await api('/api/student/auth/login', {
-    method:'POST', headers:{'content-type':'application/json'},
-    body: JSON.stringify({ email:f.get('email'), password:f.get('password') })
-  });
-  document.querySelector('#login-msg').textContent = r.ok ? 'Connecté 🔓' : 'Identifiants invalides ❌';
-  refreshMe();
-});
-document.querySelector('#logout').addEventListener('click', async ()=>{
-  await api('/api/student/auth/logout', { method:'POST' });
-  refreshMe();
-});
 async function loadJobs(){
   const q = document.querySelector('#q').value.trim();
   const world = document.querySelector('#world').checked ? '&world=1' : '';
@@ -84,6 +45,6 @@ async function loadJobs(){
   });
 }
 document.querySelector('#search').addEventListener('click', loadJobs);
-refreshMe(); loadJobs();
+loadJobs();
 </script>
 </body></html>
