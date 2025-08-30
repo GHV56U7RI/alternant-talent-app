@@ -1,16 +1,18 @@
+import logger from '../../src/logger.js';
+
 async function run(env) {
   const res = await fetch(`${env.BASE_URL}/api/refresh`, {
     method: "POST",
     headers: { Authorization: `Bearer ${env.ADMIN_TOKEN}` }
   });
   const text = await res.text().catch(()=> '');
-  console.log("refresh-cron: called", env.BASE_URL, res.status, text.slice(0,200));
+  if (env.DEBUG) logger.info("refresh-cron: called", env.BASE_URL, res.status, text.slice(0,200));
   return { ok: res.ok, status: res.status, body: text };
 }
 
 export default {
   async scheduled(event, env, ctx) {
-    console.log("refresh-cron: tick", new Date().toISOString(), env.BASE_URL);
+    if (env.DEBUG) logger.info("refresh-cron: tick", new Date().toISOString(), env.BASE_URL);
     ctx.waitUntil(run(env));
   },
   async fetch(request, env) {

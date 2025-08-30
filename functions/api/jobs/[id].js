@@ -1,6 +1,8 @@
+import logger from '../../../src/logger.js';
+
 export async function onRequest({ params, env }) {
   const id = params.id;
-  console.log('GET /api/jobs/:id', { id });
+  if (env.DEBUG) logger.debug('GET /api/jobs/:id', { id });
   const job = await env.DB.prepare('SELECT * FROM jobs WHERE id=?').bind(id).first();
   if (!job) {
     return new Response(JSON.stringify({ error: 'not_found' }), {
