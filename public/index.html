@@ -1,91 +1,258 @@
 <!doctype html>
 <html lang="fr">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Liste des offres d'alternance">
-<title>Alternant Talent – Offres</title>
-<style>
-  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:20px}
-  #search-bar{display:flex;gap:8px;margin-bottom:16px}
-  #main{display:flex;gap:16px}
-  #list{list-style:none;padding:0;margin:0;width:40%;max-height:80vh;overflow:auto}
-  #list li{padding:8px;border-bottom:1px solid #ccc;cursor:pointer}
-  #details{flex:1;border:1px solid #ccc;padding:16px;border-radius:4px;overflow:auto}
-</style>
-  <link rel="stylesheet" href="/assets/nav.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Alternant Talent · Offres d’alternance</title>
+  <meta name="description" content="Agrégateur d’offres d’alternance en France : recherchez, triez et postulez en direct." />
+  <link rel="canonical" href="https://votre-domaine/" />
+  <meta name="theme-color" content="#111827" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Alternant Talent · Offres d’alternance" />
+  <meta property="og:description" content="Agrégateur d’offres d’alternance en France : recherchez, triez et postulez en direct." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://votre-domaine/" />
+  <meta property="og:image" content="https://votre-domaine/og-image.png" />
+
+  <!-- PWA (optionnel si vous avez ces fichiers) -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/favicon.ico" />
+
+  <style>
+    :root{
+      --bg:#f6f7f9; --card:#ffffff; --ink:#0b0b0b; --muted:#6b7280; --line:#e5e7eb;
+      --brand:#111827; --brand-ink:#ffffff; --radius:16px; --radius-sm:12px; --shadow:0 6px 24px rgba(0,0,0,.06);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:var(--bg); color:var(--ink);
+      font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji";
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+    a{color:inherit}
+    .container{max-width:980px;margin:0 auto;padding:24px 16px}
+    header{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter:saturate(180%) blur(8px);
+      background:rgba(246,247,249,.85); border-bottom:1px solid var(--line);
+    }
+    .bar{display:flex; align-items:center; gap:12px; padding:12px 16px}
+    .brand{
+      display:flex; align-items:center; gap:10px; text-decoration:none;
+      font-weight:700; letter-spacing:.2px;
+    }
+    .logo{
+      width:28px;height:28px;border-radius:8px;background:var(--brand); color:#fff;
+      display:grid; place-items:center; font-weight:800; font-size:14px;
+    }
+    .spacer{flex:1}
+    .btn{
+      border:1px solid var(--line); background:#fff; color:#111; border-radius:10px;
+      padding:8px 12px; font-weight:600; cursor:pointer;
+    }
+    .btn.primary{background:var(--brand); color:var(--brand-ink); border-color:var(--brand)}
+    .btn.ghost{background:transparent}
+    .pill{border:1px solid var(--line); background:#fff; border-radius:999px; padding:6px 10px; color:#374151}
+    main{padding:12px 0 28px}
+
+    /* Search */
+    .search{
+      display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+      background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; box-shadow:var(--shadow);
+    }
+    .search input{
+      flex:1; min-width:200px; border:1px solid var(--line); background:#fff;
+      border-radius:10px; padding:10px 12px; outline:none;
+    }
+
+    /* Counters */
+    .stats{display:flex; gap:8px; align-items:center; color:#374151; margin:12px 0}
+    .dot{color:#c2c6cc}
+
+    /* Weekly section mount */
+    [data-ui="weekly-hiring"]{margin:14px 0}
+
+    /* Jobs list */
+    [data-ui="jobs-list"] .job-card{
+      background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+      padding:14px; margin:10px 0; box-shadow:var(--shadow);
+    }
+    .job-head{display:flex; align-items:center; gap:12px}
+    .job-logo{width:44px;height:44px;border-radius:10px;object-fit:cover;background:#f3f4f6;border:1px solid var(--line)}
+    .job-company{font:600 13px/1.1 system-ui; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .job-title{font:600 16px/1.25 system-ui; margin:.15rem 0 0; color:var(--ink)}
+    .btn-fav{border:1px solid var(--line); background:#fff; border-radius:10px; width:36px;height:36px; display:grid; place-items:center; cursor:pointer}
+
+    .job-meta{display:flex; flex-wrap:wrap; gap:8px; align-items:center; color:#6B7280; margin:8px 0 2px; font:13px/1.2 system-ui}
+    .meta-dot{color:#c2c6cc}
+    .chip{background:#f3f4f6; border:1px solid var(--line); border-radius:999px; padding:3px 8px; font:12px/1 system-ui; color:#374151}
+    .job-actions{margin-top:10px}
+    .btn-apply{display:inline-block; background:var(--brand); color:#fff; border-radius:10px; padding:10px 14px; font:600 14px/1 system-ui; text-decoration:none}
+
+    /* Weekly block (injection) */
+    .weekly-hiring{background:#fff; border:1px dashed var(--line); border-radius:var(--radius); padding:14px; margin:16px 0}
+    .weekly-title{font:700 14px/1.2 system-ui; margin:0 0 10px; color:var(--ink)}
+    .weekly-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px}
+    .weekly-item{display:flex; align-items:center; gap:10px; border:1px solid #f1f2f4; border-radius:12px; padding:8px 10px; background:#fafafa}
+    .wk-logo{width:28px;height:28px;border-radius:8px;border:1px solid var(--line); background:#fff; object-fit:cover}
+    .wk-name{flex:1; min-width:0; font:600 13px/1.1 system-ui; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .wk-count{font:12px/1 system-ui; color:#6B7280}
+
+    /* Load more */
+    .load-more{display:flex; justify-content:center; margin:18px 0}
+    .load-more .btn{padding:10px 16px}
+
+    /* Dialogs (login/signup/profile) */
+    dialog{
+      border:1px solid var(--line); border-radius:20px; padding:0; width:min(520px, 92vw); box-shadow:0 20px 60px rgba(0,0,0,.2);
+    }
+    dialog::backdrop{background:rgba(0,0,0,.25)}
+    .dlg-head{padding:14px 16px; border-bottom:1px solid var(--line); font-weight:700}
+    .dlg-body{padding:14px 16px}
+    .dlg-actions{display:flex; gap:8px; justify-content:flex-end; padding:12px 16px; border-top:1px solid var(--line)}
+    .field{display:flex; flex-direction:column; gap:6px; margin:10px 0}
+    .field label{font:600 13px/1 system-ui; color:#374151}
+    .field input, .field select, .field textarea{
+      border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:#fff; outline:none;
+    }
+
+    footer{color:#6b7280; padding:28px 16px; border-top:1px solid var(--line); text-align:center}
+    .kpis{display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
+
+    /* Progressive enhancement (au cas où <dialog> n’est pas supporté) */
+    dialog:not([open]){display:none}
+  </style>
 </head>
 <body>
-<nav>
-  <a href="/index.html">Accueil</a>
-  <a href="/students/index.html">Étudiants</a>
-  <a href="/employers/index.html">Employeurs</a>
-</nav>
 
-<h1>Alternant Talent</h1>
-<div id="search-bar">
-  <input id="profession" placeholder="profession">
-  <input id="localisation" placeholder="localisation">
-  <button id="search">Rechercher</button>
-</div>
-<div id="main">
-  <ul id="list"></ul>
-  <div id="details">Sélectionnez une offre pour voir les détails.</div>
-</div>
-<script>
-async function api(path, opts={}) {
-  const res = await fetch(path, { credentials:'include', ...opts });
-  const txt = await res.text();
-  try { return { ok: res.ok, status: res.status, json: JSON.parse(txt) }; }
-  catch { return { ok: res.ok, status: res.status, text: txt }; }
-}
-async function loadJobs(){
-  const profession = document.querySelector('#profession').value.trim();
-  const location = document.querySelector('#localisation').value.trim();
-  const url = `/api/jobs?q=${encodeURIComponent(profession)}&location=${encodeURIComponent(location)}`;
-  const r = await api(url);
-  const ul = document.querySelector('#list');
-  ul.innerHTML = '';
+  <header>
+    <div class="bar container">
+      <a class="brand" href="/">
+        <span class="logo" aria-hidden="true">AT</span>
+        <span>Alternant Talent</span>
+      </a>
+      <span class="spacer"></span>
 
-  if (!r.ok) {
-    const li = document.createElement('li');
-    li.textContent = 'Erreur lors du chargement des offres';
-    ul.appendChild(li);
-    return;
-  }
+      <button class="btn ghost" data-action="open-profile">Profil</button>
+      <button class="btn" data-action="open-login">Se connecter</button>
+      <button class="btn" data-action="open-signup">Créer un compte</button>
+      <button class="btn" data-action="logout" style="display:none">Se déconnecter</button>
+    </div>
+  </header>
 
-  const jobs = r.json?.jobs;
-  if (!Array.isArray(jobs) || jobs.length === 0) {
-    const li = document.createElement('li');
-    li.textContent = 'Aucune offre trouvée';
-    ul.appendChild(li);
-    return;
-  }
+  <main>
+    <div class="container">
 
-  jobs.forEach(j => {
-    const li = document.createElement('li');
-    li.innerHTML = `<b>${j.title}</b> — ${j.company} · ${j.location}`;
-    li.addEventListener('click', () => loadDetails(j.id));
-    ul.appendChild(li);
-  });
-}
-async function loadDetails(id){
-  const d = document.querySelector('#details');
-  d.innerHTML='';
-  const job = await api(`/api/jobs/${encodeURIComponent(id)}`);
-  if(!job.json){
-    d.textContent = 'Détails indisponibles';
-    return;
-  }
-  const o = job.json;
-  d.innerHTML = `<h2>${o.title||''}</h2><p>${o.company||''} - ${o.location||''}</p><p>${o.description||''}</p>`;
-  const stats = await api(`/api/stats/offer/${encodeURIComponent(id)}`);
-  if(stats.json){
-    const s = stats.json;
-    d.innerHTML += `<p>👁️ ${s.views||0} · 🔗 ${s.clicks||0} · 📝 ${s.applies||0}</p>`;
-  }
-}
-document.querySelector('#search').addEventListener('click',loadJobs);
-loadJobs();
-</script>
+      <!-- Barre de recherche -->
+      <form class="search" data-ui="search-form" role="search" aria-label="Recherche d’offres">
+        <input type="search" name="q" placeholder="Rechercher (ex. développeur, Lille, Java)..." autocomplete="off" data-ui="search-input" />
+        <button class="btn primary" type="submit">Rechercher</button>
+        <span class="pill">Récents ≤ 30 jours</span>
+      </form>
+
+      <!-- Compteurs -->
+      <div class="stats" aria-live="polite">
+        <span><strong><span data-ui="visible-count">0</span></strong> offres visibles</span>
+        <span class="dot">•</span>
+        <span>Favoris : <strong><span data-ui="fav-count">0</span></strong></span>
+      </div>
+
+      <!-- Zone d’insertion “Ils recrutent cette semaine” (optionnelle) -->
+      <section data-ui="weekly-hiring" aria-label="Ils recrutent cette semaine"></section>
+
+      <!-- Liste d’offres (remplie par bridge-v12.js) -->
+      <section data-ui="jobs-list" aria-live="polite" aria-busy="false"></section>
+
+      <!-- Voir plus -->
+      <div class="load-more">
+        <button class="btn" data-action="load-more">Voir plus</button>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    <div class="kpis">
+      <span>© <script>document.write(new Date().getFullYear())</script> Alternant Talent</span>
+      <span class="dot">•</span>
+      <a href="/PRIVACY.html" rel="nofollow">Confidentialité</a>
+      <span class="dot">•</span>
+      <a href="/SECURITY.html" rel="nofollow">Sécurité</a>
+      <span class="dot">•</span>
+      <a href="https://github.com/votre-org/votre-repo" rel="noopener">GitHub</a>
+    </div>
+  </footer>
+
+  <!-- Modale : Connexion -->
+  <dialog id="dlg-login" aria-labelledby="dlg-login-title">
+    <div class="dlg-head" id="dlg-login-title">Se connecter</div>
+    <form class="dlg-body" data-form="login" method="dialog">
+      <div class="field">
+        <label for="login-email">E-mail</label>
+        <input id="login-email" name="email" type="email" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="login-password">Mot de passe</label>
+        <input id="login-password" name="password" type="password" required autocomplete="current-password" />
+      </div>
+      <div class="dlg-actions">
+        <button type="button" class="btn" onclick="document.getElementById('dlg-login').close()">Annuler</button>
+        <button class="btn primary" type="submit">Connexion</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modale : Création de compte -->
+  <dialog id="dlg-signup" aria-labelledby="dlg-signup-title">
+    <div class="dlg-head" id="dlg-signup-title">Créer un compte</div>
+    <form class="dlg-body" data-form="signup" method="dialog">
+      <div class="field">
+        <label for="signup-email">E-mail</label>
+        <input id="signup-email" name="email" type="email" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="signup-password">Mot de passe</label>
+        <input id="signup-password" name="password" type="password" minlength="6" required autocomplete="new-password" />
+      </div>
+      <div class="dlg-actions">
+        <button type="button" class="btn" onclick="document.getElementById('dlg-signup').close()">Annuler</button>
+        <button class="btn primary" type="submit">Créer</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modale : Profil -->
+  <dialog id="dlg-profile" aria-labelledby="dlg-profile-title">
+    <div class="dlg-head" id="dlg-profile-title">Votre profil</div>
+    <form class="dlg-body" data-form="profile" method="dialog">
+      <div class="field">
+        <label for="p-city">Ville (préférence)</label>
+        <input id="p-city" name="city" type="text" placeholder="ex. Lille" />
+      </div>
+      <div class="field">
+        <label for="p-radius">Rayon (km)</label>
+        <input id="p-radius" name="radius" type="number" min="0" step="1" placeholder="20" />
+      </div>
+      <div class="field">
+        <label><input type="checkbox" name="accept_remote" /> J’accepte le télétravail</label>
+      </div>
+      <div class="field">
+        <label for="p-keywords">Mots-clés (virgules)</label>
+        <input id="p-keywords" name="keywords" type="text" placeholder="javascript, UX, data" />
+      </div>
+      <div class="dlg-actions">
+        <button type="button" class="btn" onclick="document.getElementById('dlg-profile').close()">Fermer</button>
+        <button class="btn primary" type="submit">Enregistrer</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Zone toast (le bridge la remplira si absente) -->
+  <div data-ui="toast" style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 14px;border-radius:12px;font:14px/1.3 system-ui;box-shadow:0 6px 24px rgba(0,0,0,.18);transition:opacity .25s;z-index:9999;opacity:0;"></div>
+
+  <!-- Bridge front → API (mettez ce fichier dans /public ou ajustez le chemin) -->
+  <script src="/bridge-v12.js" defer></script>
 </body>
 </html>

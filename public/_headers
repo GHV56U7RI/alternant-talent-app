@@ -1,7 +1,36 @@
 /*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: geolocation=(), camera=(), microphone=()
-  Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https:;
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=()
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data: https:; font-src 'self' data:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://router.project-osrm.org https://nominatim.openstreetmap.org https://overpass-api.de https://img.logo.dev https://www.google.com; form-action 'self'; upgrade-insecure-requests
 
+/index.html
+  Cache-Control: no-cache, must-revalidate
+
+/bridge-v12.js
+  Cache-Control: public, max-age=600
+
+/icons/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/manifest.webmanifest
+  Cache-Control: public, max-age=3600
+
+/robots.txt
+  Cache-Control: public, max-age=86400
+
+/sitemap.xml
+  Cache-Control: public, max-age=3600
+
+/og-image.png
+  Cache-Control: public, max-age=86400
+
+/api/*
+  Cache-Control: no-store
+
+/api/events
+  Cache-Control: no-cache
