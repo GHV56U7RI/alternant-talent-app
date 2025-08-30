@@ -35,3 +35,15 @@ node scripts/local-seed.mjs
 ```
 
 Le script utilise l'API D1 pour ajouter les entrées dans la table `jobs`.
+
+## 🧠 API
+
+### GET `/api/jobs`
+
+Retourne des offres d'alternance. Paramètres de requête :
+
+- `q` : filtre sur le titre, l'entreprise, le lieu ou les tags.
+- `location` : filtre spécifique sur le champ `location` (`LIKE`).
+- `limit` : nombre maximum de résultats (≤50).
+- `offset` : décalage de pagination.
+- `world` : si `1`, désactive le filtre France/DOM-TOM.
