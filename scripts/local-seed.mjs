@@ -1,5 +1,4 @@
 /* eslint-env node */
-/* global process */
 import { readFile } from "node:fs/promises";
 import { getPlatformProxy } from "wrangler";
 

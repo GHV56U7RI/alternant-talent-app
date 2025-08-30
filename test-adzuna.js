@@ -1,5 +1,4 @@
 /* eslint-env node */
-/* global process */
 import { searchAdzuna } from "./adzuna.js";
 
 const run = async () => {

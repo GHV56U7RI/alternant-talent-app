@@ -405,7 +405,7 @@ async function pMap(list, mapper, { concurrency = 6, delayBetween = 0 } = {}) {
       if (i >= list.length) break;
       try {
         results[i] = await mapper(list[i], i);
-      } catch (e) {
+      } catch {
         results[i] = null;
       }
       if (delayBetween) await sleep(delayBetween);
@@ -434,7 +434,7 @@ function parseArgv(args) {
 function extractDomain(s) {
   if (!s) return null;
   const str = String(s).toLowerCase();
-  const m = str.match(/([a-z0-9.-]+\.[a-z]{2,})(?:[\/\s]|$)/i);
+  const m = str.match(/([a-z0-9.-]+\.[a-z]{2,})(?:[/\s]|$)/i);
   return m ? m[1] : null;
 }
 
