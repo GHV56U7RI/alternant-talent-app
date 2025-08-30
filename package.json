@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint": "echo \"No lint configured\" && exit 0",
+    "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest"
   },
