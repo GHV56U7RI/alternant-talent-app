@@ -25,3 +25,13 @@ npm run lint
 # exécuter la suite de tests
 npm test
 ```
+
+## 🌱 Seed de données
+
+Un petit jeu de données de test se trouve dans `public/data/seed.json`. Pour l'insérer dans la base D1 locale :
+
+```bash
+node scripts/local-seed.mjs
+```
+
+Le script utilise l'API D1 pour ajouter les entrées dans la table `jobs`.
