@@ -13,8 +13,15 @@ Front statique + API serverless (Cloudflare Functions + D1).
 
 ## 🔧 Dev local
 
-```bash
-npm install
-npm run lint
-npm test
+Prérequis : Node.js (>=18) et npm doivent être installés.
 
+```bash
+# installer les dépendances
+npm install
+
+# analyser le code
+npm run lint
+
+# exécuter la suite de tests
+npm test
+```
