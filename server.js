@@ -130,6 +130,7 @@ app.get('/api/events', (req, res) => {
 
   const client = res;
   sseClients.add(client);
+  logger.info(`[sse] client connected (${sseClients.size} total)`);
 
   // ping
   const iv = setInterval(() => {
@@ -142,6 +143,7 @@ app.get('/api/events', (req, res) => {
   req.on('close', () => {
     clearInterval(iv);
     sseClients.delete(client);
+    logger.info(`[sse] client disconnected (${sseClients.size} remaining)`);
   });
 });
 
@@ -150,6 +152,7 @@ function broadcast(event, data) {
   for (const client of sseClients) {
     try { client.write(payload); } catch { /* ignore */ }
   }
+  logger.info(`[sse] broadcast ${event} to ${sseClients.size} clients`);
 }
 
 // ---------------------- Jobs API ----------------------
@@ -436,6 +439,7 @@ async function persistJobsCache() {
 function updateCache(newJobs) {
   JOBS_CACHE = Array.isArray(newJobs) ? newJobs : [];
   CACHE_UPDATED_AT = new Date();
+  logger.info(`[cache] updated ${JOBS_CACHE.length} offers @ ${CACHE_UPDATED_AT.toISOString()}`);
   broadcast('cache:update', { updated_at: CACHE_UPDATED_AT.toISOString(), count: JOBS_CACHE.length });
 }
 
