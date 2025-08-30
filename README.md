@@ -17,4 +17,7 @@ Front statique + API serverless (Cloudflare Functions + D1).
 npm install
 npm run lint
 npm test
+node scripts/local-seed.mjs
+```
 
+`node scripts/local-seed.mjs` charge `public/data/seed.json` dans la base D1 locale via l'environnement Cloudflare.
