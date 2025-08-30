@@ -2,21 +2,21 @@
 <!-- Sitemap pour Alternant Talent App — généré le 2025-08-30 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://votre-domaine/</loc>
+    <loc>https://www.alternant-talent.com/</loc>
     <lastmod>2025-08-30</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
 
   <url>
-    <loc>https://votre-domaine/PRIVACY.html</loc>
+    <loc>https://www.alternant-talent.com/PRIVACY.html</loc>
     <lastmod>2025-08-30</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
 
   <url>
-    <loc>https://votre-domaine/SECURITY.html</loc>
+    <loc>https://www.alternant-talent.com/SECURITY.html</loc>
     <lastmod>2025-08-30</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>

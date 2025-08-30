@@ -7,8 +7,8 @@ Nous appliquons une politique de **divulgation responsable** et encourageons la 
 
 ## Signaler une vulnérabilité
 
-- **Email dédié** : security@votre-domaine.tld  
-- **Security.txt** : https://votre-domaine/.well-known/security.txt  
+- **Email dédié** : security@alternant-talent.com  
+- **Security.txt** : https://www.alternant-talent.com/.well-known/security.txt  
 - **Option chiffrée (PGP)** : (facultatif) publiez ici l’empreinte & la clé publique, ex. `openpgp.asc`
 
 Merci d’inclure :
@@ -118,5 +118,5 @@ Pour les signalements **critiques/élevés** de bonne foi, nous pouvons proposer
 
 ## Contact d’urgence
 
-- **security@votre-domaine.tld** (24/7, meilleure réactivité)
+- **security@alternant-talent.com** (24/7, meilleure réactivité)
 - En cas d’exposition de secrets : **révoquez-les immédiatement*
