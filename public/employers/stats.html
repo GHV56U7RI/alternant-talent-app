@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stats Employeur</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:20px}
+    pre{background:#f6f7f9;padding:12px;border-radius:8px;overflow:auto}
+    table{border-collapse:collapse}
+    td,th{border:1px solid #ddd;padding:4px}
+  </style>
+  <link rel="stylesheet" href="/assets/nav.css">
+</head>
+<body>
+<nav>
+  <a href="/index.html">Accueil</a>
+  <a href="/students/index.html">Étudiants</a>
+  <a href="/employers/index.html">Employeurs</a>
+</nav>
+
+<h1>Statistiques</h1>
+<section>
+  <h2>Vue d'ensemble</h2>
+  <pre id="overview">Chargement…</pre>
+</section>
+<section>
+  <h2>Entreprises cette semaine</h2>
+  <table id="companies"><thead><tr><th>Entreprise</th><th>Offres</th></tr></thead><tbody></tbody></table>
+</section>
+<script>
+async function api(p){const r=await fetch(p);const t=await r.text();try{return JSON.parse(t)}catch{return t}}
+async function load(){
+  const ov=await api('/api/stats/overview');
+  document.querySelector('#overview').textContent=JSON.stringify(ov,null,2);
+  const cw=await api('/api/facets/companies-weekly');
+  const tb=document.querySelector('#companies tbody');tb.innerHTML='';
+  (cw.companies||cw).forEach(c=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${c.company||c.name||'-'}</td><td>${c.offers||c.count||c.value||0}</td>`;
+    tb.appendChild(tr);
+  });
+}
+load();
+</script>
+</body>
+</html>

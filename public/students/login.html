@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connexion Étudiant</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:20px}
+    h1{margin-top:0}
+    input,button{font-size:16px;margin:4px 0}
+  </style>
+  <link rel="stylesheet" href="/assets/nav.css">
+</head>
+<body>
+<nav>
+  <a href="/index.html">Accueil</a>
+  <a href="/students/index.html">Étudiants</a>
+  <a href="/employers/index.html">Employeurs</a>
+</nav>
+
+<h1>Connexion</h1>
+<form id="login">
+  <input type="email" name="email" placeholder="email" required>
+  <input type="password" name="password" placeholder="mot de passe" required>
+  <button>Se connecter</button>
+</form>
+<div id="msg"></div>
+<script>
+async function api(path, opts={}){
+  const res = await fetch(path, {credentials:'include', ...opts});
+  const txt = await res.text();
+  try{ return {ok:res.ok, json:JSON.parse(txt)}; }
+  catch{ return {ok:res.ok, text:txt}; }
+}
+document.querySelector('#login').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const r = await api('/api/student/auth/login', {
+    method:'POST', headers:{'content-type':'application/json'},
+    body: JSON.stringify({email:f.get('email'), password:f.get('password')})
+  });
+  document.querySelector('#msg').textContent = r.ok ? 'Connecté 🔓' : 'Erreur ❌';
+  if(r.ok) location.href = '/students/dashboard.html';
+});
+</script>
+</body>
+</html>

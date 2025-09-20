@@ -1,0 +1,10 @@
+[
+  { "name": "BNP Paribas",     "smart": { "company": "bnp-paribas" } },
+  { "name": "Société Générale","smart": { "company": "societe-generale" } },
+  { "name": "Crédit Agricole", "workday": { "host": "creditagricole.wd3.myworkdayjobs.com", "tenant": "creditagricole", "site": "GroupCareers" } },
+  { "name": "Carrefour",       "smart": { "company": "carrefour" } },
+  { "name": "Decathlon",       "smart": { "company": "decathlon" } },
+  { "name": "EDF",             "smart": { "company": "edf" } },
+  { "name": "SNCF",            "smart": { "company": "sncf" } },
+  { "name": "Orange",          "workday": { "host": "orange.wd3.myworkdayjobs.com", "tenant": "orange", "site": "External" } }
+]

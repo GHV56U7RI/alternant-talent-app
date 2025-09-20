@@ -1,0 +1,15 @@
+# robots.txt — Alternant Talent App
+
+User-agent: *
+Allow: /
+
+# Éviter l’indexation des endpoints API et des données runtime
+Disallow: /api/
+Disallow: /data/
+Disallow: /_tmp/
+
+# (Optionnel) Si vous avez des pages avec beaucoup de paramètres de recherche,
+# vous pouvez limiter leur exploration :
+# Disallow: /*?*
+
+Sitemap: https://votre-domaine/sitemap.xml

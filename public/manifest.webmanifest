@@ -1,0 +1,55 @@
+{
+  "id": "alternant-talent-app",
+  "name": "Alternant Talent",
+  "short_name": "Alternant",
+  "description": "Agrégateur d’offres d’alternance en France : recherchez, suivez vos favoris et postulez en direct.",
+  "lang": "fr-FR",
+  "dir": "ltr",
+  "start_url": "/?utm_source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "background_color": "#f6f7f9",
+  "theme_color": "#111827",
+  "orientation": "portrait-primary",
+  "categories": ["business", "productivity", "education"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Rechercher",
+      "short_name": "Recherche",
+      "url": "/?focus=search",
+      "description": "Ouvrir la recherche d’offres"
+    },
+    {
+      "name": "Favoris",
+      "short_name": "Favoris",
+      "url": "/?view=favorites",
+      "description": "Accéder rapidement à vos offres favorites"
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "web+alternant",
+      "url": "/?q=%s"
+    }
+  ],
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "handle_links": "preferred",
+  "prefer_related_applications": false
+}

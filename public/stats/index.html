@@ -1,0 +1,48 @@
+<!doctype html><meta charset="utf-8">
+<title>Stats – Alternant Talent</title>
+<link rel="stylesheet" href="/assets/nav.css">
+<style>body{font-family:system-ui;margin:20px} table{border-collapse:collapse} td,th{border:1px solid #ddd;padding:6px}</style>
+<nav>
+  <a href="/index.html">Accueil</a>
+  <a href="/students/index.html">Étudiants</a>
+  <a href="/employers/index.html">Employeurs</a>
+</nav>
+<h1>Stats</h1>
+<pre id="summary">Loading…</pre>
+
+<h2>Top entreprises</h2>
+<table id="tc"><thead><tr><th>Entreprise</th><th>Offres</th></tr></thead><tbody></tbody></table>
+
+<h2>Top lieux</h2>
+<table id="tl"><thead><tr><th>Lieu</th><th>Offres</th></tr></thead><tbody></tbody></table>
+
+<h2>Top cliquées (30j)</h2>
+<table id="tclk"><thead><tr><th>Titre</th><th>Entreprise</th><th>Ville</th><th>Clics</th></tr></thead><tbody></tbody></table>
+
+<script>
+async function load(){
+  const r = await fetch('/api/stats/summary'); const s = await r.json();
+  document.querySelector('#summary').textContent = JSON.stringify({
+    total_jobs: s.total_jobs, last_update: s.last_update, clicks_last_7d: s.clicks_last_7d
+  }, null, 2);
+
+  const tc = document.querySelector('#tc tbody'); tc.innerHTML='';
+  (s.top_companies||[]).forEach(x=>{
+    const tr=document.createElement('tr'); tr.innerHTML=`<td>${x.company||'-'}</td><td>${x.offers}</td>`; tc.appendChild(tr);
+  });
+
+  const tl = document.querySelector('#tl tbody'); tl.innerHTML='';
+  (s.top_locations||[]).forEach(x=>{
+    const tr=document.createElement('tr'); tr.innerHTML=`<td>${x.location||'-'}</td><td>${x.offers}</td>`; tl.appendChild(tr);
+  });
+
+  const tclk = document.querySelector('#tclk tbody'); tclk.innerHTML='';
+  (s.top_clicked_30d||[]).forEach(x=>{
+    const tr=document.createElement('tr'); tr.innerHTML=
+      `<td><a href="/r/${encodeURIComponent(x.id)}" target="_blank" rel="noopener">${x.title}</a></td>`+
+      `<td>${x.company||'-'}</td><td>${x.location||'-'}</td><td>${x.clicks}</td>`;
+    tclk.appendChild(tr);
+  });
+}
+load();
+</script>

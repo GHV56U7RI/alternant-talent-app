@@ -1,0 +1,10 @@
+name = "refresh-cron"
+main = "index.js"
+compatibility_date = "2024-12-01"
+
+[triggers]
+# run every night at 02:00 UTC
+crons = ["0 2 * * *"]
+
+[vars]
+BASE_URL = "https://www.alternant-talent.com"
