@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Production
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.dev.vars
+.dev.vars.bak
+
+# Wrangler
+.wrangler/
+wrangler.toml
+.wrangler.pid
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+.d1_err.log
+console.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.bak.*
+
+# Database
+*.db
+*.sqlite
+
+# Credentials
+credentials.json

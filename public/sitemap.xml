@@ -1,24 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Sitemap pour Alternant Talent App — généré le 2025-08-30 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://votre-domaine/</loc>
-    <lastmod>2025-08-30</lastmod>
+    <loc>https://votre-domaine.com/</loc>
+    <lastmod>2025-01-23</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
-
   <url>
-    <loc>https://votre-domaine/PRIVACY.html</loc>
-    <lastmod>2025-08-30</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
-  </url>
-
-  <url>
-    <loc>https://votre-domaine/SECURITY.html</loc>
-    <lastmod>2025-08-30</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <loc>https://votre-domaine.com/comment-ca-marche.html</loc>
+    <lastmod>2025-01-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
   </url>
 </urlset>

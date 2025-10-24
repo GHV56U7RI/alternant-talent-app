@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon Profil - Alternance & Talent</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --surface: #ffffff;
+      --border: #e8e8e8;
+      --text: #37352f;
+      --muted: #787774;
+      --hover: #f7f6f3;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, 'Apple Color Emoji', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* Header */
+    .header {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .back-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.15s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .back-btn:hover {
+      background: var(--hover);
+    }
+
+    .logo-text {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* Profile Banner */
+    .profile-banner {
+      background: #ffffff;
+      padding: 48px 24px 80px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* Profile Header Card */
+    .profile-header-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 32px;
+      margin-top: -60px;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .avatar {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: #f7f6f3;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      font-weight: 600;
+      color: var(--text);
+      flex-shrink: 0;
+    }
+
+    .profile-info {
+      flex: 1;
+    }
+
+    .profile-name {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .profile-email {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .profile-meta {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .edit-profile-btn {
+      background: var(--text);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 3px;
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .edit-profile-btn:hover {
+      background: #1f1f1f;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 12px;
+      padding: 32px 24px;
+    }
+
+    .stat-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 20px;
+      transition: all 0.15s;
+    }
+
+    .stat-card:hover {
+      background: var(--hover);
+    }
+
+    .stat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      background: #f7f6f3;
+      border: 1px solid var(--border);
+    }
+
+    .stat-number {
+      font-size: 32px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 400;
+    }
+
+    /* Content Grid */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      padding: 0 24px 48px;
+    }
+
+    .section-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 24px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      background: white;
+      font-size: 14px;
+      transition: all 0.15s;
+      color: var(--text);
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--text);
+      background: white;
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .chips-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .chip {
+      padding: 6px 12px;
+      border-radius: 3px;
+      border: 1px solid var(--border);
+      background: white;
+      font-size: 13px;
+      font-weight: 400;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--text);
+    }
+
+    .chip:hover {
+      background: var(--hover);
+    }
+
+    .chip.active {
+      background: var(--text);
+      color: white;
+      border-color: var(--text);
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      cursor: pointer;
+      margin-bottom: 8px;
+      transition: all 0.15s;
+    }
+
+    .checkbox-group:hover {
+      background: var(--hover);
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .save-btn {
+      background: var(--text);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 3px;
+      font-weight: 500;
+      font-size: 14px;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.15s;
+    }
+
+    .save-btn:hover {
+      background: #1f1f1f;
+    }
+
+    /* Activity List */
+    .activity-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 3px;
+      margin-bottom: 8px;
+      background: white;
+      border: 1px solid var(--border);
+      transition: all 0.15s;
+    }
+
+    .activity-item:hover {
+      background: var(--hover);
+    }
+
+    .activity-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 3px;
+      background: #f7f6f3;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .activity-content {
+      flex: 1;
+    }
+
+    .activity-title {
+      font-weight: 500;
+      margin-bottom: 2px;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .activity-time {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--text);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 3px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: none;
+      animation: slideIn 0.3s ease;
+      z-index: 1000;
+      font-size: 14px;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(100px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-header-card {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <div class="header-left">
+        <a href="index.html" class="back-btn">← Retour</a>
+        <div class="logo-text">Alternance & Talent</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Banner -->
+  <div class="profile-banner">
+    <div class="container">
+      <div class="profile-header-card">
+        <div class="avatar" id="profileAvatar">?</div>
+        <div class="profile-info">
+          <h1 class="profile-name" id="profileName">Mon Profil</h1>
+          <div class="profile-email" id="profileEmailDisplay">—</div>
+          <div class="profile-meta">
+            <div class="meta-item">
+              <span>📅</span>
+              <span>Membre depuis <span id="memberSince">—</span></span>
+            </div>
+            <div class="meta-item">
+              <span>📍</span>
+              <span id="profileLocation">Non renseigné</span>
+            </div>
+          </div>
+        </div>
+        <button class="edit-profile-btn" id="editModeBtn">Modifier</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-header">
+          <div>
+            <div class="stat-number" id="statFavorites">0</div>
+            <div class="stat-label">Favoris</div>
+          </div>
+          <div class="stat-icon favorites">♥</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <div>
+            <div class="stat-number" id="statApplications">0</div>
+            <div class="stat-label">Candidatures</div>
+          </div>
+          <div class="stat-icon applications">✓</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <div>
+            <div class="stat-number" id="statViews">0</div>
+            <div class="stat-label">Annonces vues</div>
+          </div>
+          <div class="stat-icon views">◉</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <div>
+            <div class="stat-number" id="statSaved">0</div>
+            <div class="stat-label">Recherches sauvegardées</div>
+          </div>
+          <div class="stat-icon saved">☆</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="content-grid">
+      <!-- Left Column -->
+      <div>
+        <!-- Personal Info -->
+        <div class="section-card">
+          <h2 class="section-title">Informations personnelles</h2>
+          <div class="form-group">
+            <label class="form-label">Nom complet</label>
+            <input type="text" class="form-input" id="inputName" placeholder="Jean Dupont">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" id="inputEmail" disabled>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Téléphone</label>
+            <input type="tel" class="form-input" id="inputPhone" placeholder="+33 6 12 34 56 78">
+          </div>
+        </div>
+
+        <!-- Search Preferences -->
+        <div class="section-card" style="margin-top: 24px;">
+          <h2 class="section-title">Préférences de recherche</h2>
+          <div class="form-group">
+            <label class="form-label">Ville</label>
+            <input type="text" class="form-input" id="inputCity" placeholder="Paris, Lyon, Marseille...">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rayon de recherche</label>
+            <select class="form-select" id="inputRadius">
+              <option value="10">10 km</option>
+              <option value="20" selected>20 km</option>
+              <option value="30">30 km</option>
+              <option value="50">50 km</option>
+              <option value="100">100 km</option>
+              <option value="0">France entière</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Type de contrat</label>
+            <select class="form-select" id="inputContract">
+              <option value="">Tous</option>
+              <option>Alternance</option>
+              <option>Apprentissage</option>
+              <option>Professionnalisation</option>
+              <option>Stage</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rythme souhaité</label>
+            <select class="form-select" id="inputRhythm">
+              <option value="">Indifférent</option>
+              <option>3j/2j</option>
+              <option>1 sem / 1 sem</option>
+              <option>2 sem / 2 sem</option>
+              <option>Autre</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Skills & Interests -->
+        <div class="section-card" style="margin-top: 24px;">
+          <h2 class="section-title">Compétences & Intérêts</h2>
+          <div class="form-group">
+            <label class="form-label">Métiers & Technologies</label>
+            <textarea class="form-textarea" id="inputKeywords" placeholder="Développeur web, React, Node.js, Marketing digital..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Secteurs d'activité</label>
+            <div class="chips-container" id="sectorsContainer">
+              <span class="chip" data-sector="tech">Tech</span>
+              <span class="chip" data-sector="finance">Finance</span>
+              <span class="chip" data-sector="ecommerce">E-commerce</span>
+              <span class="chip" data-sector="health">Santé</span>
+              <span class="chip" data-sector="marketing">Marketing</span>
+              <span class="chip" data-sector="design">Design</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Options -->
+        <div class="section-card" style="margin-top: 24px;">
+          <h2 class="section-title">Options</h2>
+          <label class="checkbox-group">
+            <input type="checkbox" id="inputRemote">
+            <span>Accepter le télétravail partiel</span>
+          </label>
+          <label class="checkbox-group">
+            <input type="checkbox" id="inputAlerts">
+            <span>Recevoir des alertes par email</span>
+          </label>
+          <label class="checkbox-group">
+            <input type="checkbox" id="inputNewsletter">
+            <span>Recevoir la newsletter hebdomadaire</span>
+          </label>
+        </div>
+
+        <button class="save-btn" id="saveBtn" style="margin-top: 24px;">Enregistrer</button>
+      </div>
+
+      <!-- Right Column -->
+      <div>
+        <!-- Recent Activity -->
+        <div class="section-card">
+          <h2 class="section-title">Activité récente</h2>
+          <div class="activity-item">
+            <div class="activity-icon">♥</div>
+            <div class="activity-content">
+              <div class="activity-title">Favori ajouté</div>
+              <div class="activity-time">Développeur Full Stack - Il y a 2h</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon">✓</div>
+            <div class="activity-content">
+              <div class="activity-title">Candidature envoyée</div>
+              <div class="activity-time">Product Manager - Hier</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon">◉</div>
+            <div class="activity-content">
+              <div class="activity-title">Recherche effectuée</div>
+              <div class="activity-time">"développeur react" - Il y a 3j</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Account Settings -->
+        <div class="section-card" style="margin-top: 24px;">
+          <h2 class="section-title">Compte</h2>
+          <button class="save-btn" style="background: white; color: var(--text); border: 1px solid var(--border); margin-bottom: 12px;" id="logoutBtn">
+            Déconnexion
+          </button>
+          <button class="save-btn" style="background: white; color: var(--muted); border: 1px solid var(--border);">
+            Supprimer mon compte
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // Helpers
+    const showToast = (msg) => {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    };
+
+    const getCurrent = () => localStorage.getItem('af_current_user');
+    const getAccounts = () => JSON.parse(localStorage.getItem('af_accounts') || '{}');
+    const getProfile = (email) => JSON.parse(localStorage.getItem(`af_profile__${email}`) || '{}');
+    const getFavs = () => new Set(JSON.parse(localStorage.getItem('af_favs') || '[]'));
+
+    // Load profile data
+    const loadProfileData = () => {
+      const email = getCurrent();
+      if (!email) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      const accounts = getAccounts();
+      const account = accounts[email];
+      const profile = getProfile(email);
+
+      // Header
+      document.getElementById('profileEmailDisplay').textContent = email;
+      document.getElementById('inputEmail').value = email;
+
+      if (account) {
+        const name = account.name || email.split('@')[0];
+        document.getElementById('profileName').textContent = name;
+        document.getElementById('inputName').value = name;
+
+        // Avatar initials
+        const initials = name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+        document.getElementById('profileAvatar').textContent = initials;
+
+        // Member since
+        if (account.createdAt) {
+          const date = new Date(account.createdAt);
+          document.getElementById('memberSince').textContent = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+        }
+      }
+
+      // Profile data
+      if (profile.name) document.getElementById('inputName').value = profile.name;
+      if (profile.phone) document.getElementById('inputPhone').value = profile.phone;
+      if (profile.city) {
+        document.getElementById('inputCity').value = profile.city;
+        document.getElementById('profileLocation').textContent = profile.city;
+      }
+      if (profile.radius) document.getElementById('inputRadius').value = profile.radius;
+      if (profile.contract) document.getElementById('inputContract').value = profile.contract;
+      if (profile.rhythm) document.getElementById('inputRhythm').value = profile.rhythm;
+      if (profile.keywords) document.getElementById('inputKeywords').value = profile.keywords;
+      if (profile.remote) document.getElementById('inputRemote').checked = true;
+      if (profile.alerts) document.getElementById('inputAlerts').checked = true;
+
+      // Stats
+      const favs = getFavs();
+      document.getElementById('statFavorites').textContent = favs.size;
+    };
+
+    // Save profile
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      const email = getCurrent();
+      if (!email) return;
+
+      const selectedSectors = Array.from(document.querySelectorAll('.chip.active')).map(c => c.dataset.sector);
+
+      const data = {
+        name: document.getElementById('inputName').value.trim(),
+        phone: document.getElementById('inputPhone').value.trim(),
+        city: document.getElementById('inputCity').value.trim(),
+        radius: parseInt(document.getElementById('inputRadius').value),
+        contract: document.getElementById('inputContract').value,
+        rhythm: document.getElementById('inputRhythm').value,
+        keywords: document.getElementById('inputKeywords').value.trim(),
+        sectors: selectedSectors,
+        remote: document.getElementById('inputRemote').checked,
+        alerts: document.getElementById('inputAlerts').checked,
+        newsletter: document.getElementById('inputNewsletter').checked
+      };
+
+      localStorage.setItem(`af_profile__${email}`, JSON.stringify(data));
+      showToast('✅ Profil enregistré avec succès !');
+
+      // Update name in account
+      const accounts = getAccounts();
+      if (accounts[email]) {
+        accounts[email].name = data.name;
+        localStorage.setItem('af_accounts', JSON.stringify(accounts));
+      }
+
+      // Reload to update display
+      setTimeout(() => loadProfileData(), 500);
+    });
+
+    // Sectors chips
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        chip.classList.toggle('active');
+      });
+    });
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+        localStorage.removeItem('af_current_user');
+        window.location.href = 'index.html';
+      }
+    });
+
+    // Load on start
+    loadProfileData();
+  </script>
+</body>
+</html>

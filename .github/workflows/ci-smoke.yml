@@ -1,0 +1,50 @@
+name: CI Smoke
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node (for wrangler)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install wrangler & jq
+        run: |
+          npm i -g wrangler@4
+          sudo apt-get update -y
+          sudo apt-get install -y jq
+
+      - name: Create .dev.vars from secrets
+        run: |
+          cat > .dev.vars <<EOF
+ADZUNA_APP_ID="${{ secrets.ADZUNA_APP_ID }}"
+ADZUNA_APP_KEY="${{ secrets.ADZUNA_APP_KEY }}"
+JOOBLE_KEY="${{ secrets.JOOBLE_KEY }}"
+REMOTE_API_BASE="${{ secrets.REMOTE_API_BASE }}"
+REMOTE_API_CALLER="${{ secrets.REMOTE_API_CALLER }}"
+REMOTE_API_TOKEN="${{ secrets.REMOTE_API_TOKEN }}"
+EOF
+
+      - name: Run smoke
+        run: |
+          chmod +x tools/smoke.sh
+          ./tools/smoke.sh
+
+      - name: Smoke JSON (strict remote)
+        run: |
+          chmod +x tools/smoke-json.sh
+          JSON_OUT=$(./tools/smoke-json.sh --only remote --strict --timeout 8)
+          echo "$JSON_OUT" > smoke.json
+          echo '### Smoke JSON' >> $GITHUB_STEP_SUMMARY
+          echo '```json' >> $GITHUB_STEP_SUMMARY
+          cat smoke.json >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY

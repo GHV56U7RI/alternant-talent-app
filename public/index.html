@@ -3,256 +3,810 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Alternant Talent · Offres d’alternance</title>
-  <meta name="description" content="Agrégateur d’offres d’alternance en France : recherchez, triez et postulez en direct." />
-  <link rel="canonical" href="https://votre-domaine/" />
-  <meta name="theme-color" content="#111827" />
+  <title>Alternant Talent - Trouve ton alternance idéale</title>
+  <meta name="description" content="Plateforme d'offres d'alternance en France. Des milliers d'opportunités en développement, marketing, commerce et plus. Trouve l'alternance qui te fait grandir." />
+  <meta name="keywords" content="alternance, apprentissage, offres alternance, job étudiant, stage alterné, contrat pro, France" />
 
-  <!-- Open Graph -->
-  <meta property="og:title" content="Alternant Talent · Offres d’alternance" />
-  <meta property="og:description" content="Agrégateur d’offres d’alternance en France : recherchez, triez et postulez en direct." />
+  <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://votre-domaine/" />
-  <meta property="og:image" content="https://votre-domaine/og-image.png" />
+  <meta property="og:url" content="https://votre-domaine.com/" />
+  <meta property="og:title" content="Alternant Talent - Trouve ton alternance idéale" />
+  <meta property="og:description" content="Des milliers d'offres d'alternance vérifiées chaque semaine. Trouve ton métier et ta ville en un clic." />
 
-  <!-- PWA (optionnel si vous avez ces fichiers) -->
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/favicon.ico" />
-
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://votre-domaine.com/" />
+  <meta property="twitter:title" content="Alternant Talent - Trouve ton alternance idéale" />
+  <meta property="twitter:description" content="Des milliers d'offres d'alternance vérifiées chaque semaine." />
   <style>
-    :root{
-      --bg:#f6f7f9; --card:#ffffff; --ink:#0b0b0b; --muted:#6b7280; --line:#e5e7eb;
-      --brand:#111827; --brand-ink:#ffffff; --radius:16px; --radius-sm:12px; --shadow:0 6px 24px rgba(0,0,0,.06);
-    }
+    :root{ --bg:#fafafa; --surface:#ffffff; --fg:#0b0b0b; --muted:#6B7280; --border:#e5e7eb; --chip:#f3f4f6; --soft:#f7f7f7; --danger:#ef4444; --brand:#111827; --topbar-h:56px; }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{
-      margin:0; background:var(--bg); color:var(--ink);
-      font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji";
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-    }
-    a{color:inherit}
-    .container{max-width:980px;margin:0 auto;padding:24px 16px}
-    header{
-      position:sticky; top:0; z-index:10;
-      backdrop-filter:saturate(180%) blur(8px);
-      background:rgba(246,247,249,.85); border-bottom:1px solid var(--line);
-    }
-    .bar{display:flex; align-items:center; gap:12px; padding:12px 16px}
-    .brand{
-      display:flex; align-items:center; gap:10px; text-decoration:none;
-      font-weight:700; letter-spacing:.2px;
-    }
-    .logo{
-      width:28px;height:28px;border-radius:8px;background:var(--brand); color:#fff;
-      display:grid; place-items:center; font-weight:800; font-size:14px;
-    }
-    .spacer{flex:1}
-    .btn{
-      border:1px solid var(--line); background:#fff; color:#111; border-radius:10px;
-      padding:8px 12px; font-weight:600; cursor:pointer;
-    }
-    .btn.primary{background:var(--brand); color:var(--brand-ink); border-color:var(--brand)}
-    .btn.ghost{background:transparent}
-    .pill{border:1px solid var(--line); background:#fff; border-radius:999px; padding:6px 10px; color:#374151}
-    main{padding:12px 0 28px}
+    body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:1220px;margin:0 auto;padding:56px 16px 16px}
 
-    /* Search */
-    .search{
-      display:flex; flex-wrap:wrap; gap:10px; align-items:center;
-      background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; box-shadow:var(--shadow);
-    }
-    .search input{
-      flex:1; min-width:200px; border:1px solid var(--line); background:#fff;
-      border-radius:10px; padding:10px 12px; outline:none;
-    }
+    /* --- Topbar --- */
+    .topbar{position:sticky;top:0;z-index:40;background:var(--bg);border-bottom:1px solid var(--border)}
+    .topbar .inner{max-width:1220px;margin:0 auto;padding:8px 16px;display:flex;gap:8px;align-items:center;justify-content:space-between}
+    .topbar .brand-left{display:flex;align-items:center;gap:10px}
+    .topbar .brand-left img{height:40px;width:auto;display:block}
+    .topbar .actions{display:flex;gap:8px;align-items:center}
+    .topbar .act{font-size:14px;line-height:1;border:1px solid var(--border);background:var(--surface);padding:8px 12px;border-radius:999px;white-space:nowrap;cursor:pointer}
+    .topbar .act.primary{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+    .topbar .hello{color:var(--muted);font-size:12px}
 
-    /* Counters */
-    .stats{display:flex; gap:8px; align-items:center; color:#374151; margin:12px 0}
-    .dot{color:#c2c6cc}
+    /* --- Bannière --- */
+    .promo{position:relative;display:grid;grid-template-columns:1.15fr .85fr;grid-template-areas:"copy art";gap:12px;align-items:center;background:#FEF3C7;border:1px solid #FDE68A;border-radius:18px;padding:24px 22px;margin-top:2px}
+    .promo h2{margin:0 0 8px;font-size:28px;line-height:1.2}
+    .promo p{margin:0 0 14px;color:#374151}
+    .promo .copy{grid-area:copy}
+    .promo .cta{display:inline-flex;align-items:center;gap:10px;border:2px solid var(--brand);color:var(--brand);background:transparent;border-radius:12px;padding:10px 14px;font-weight:600}
+    .promo .art{grid-area:art;position:relative;min-height:120px;overflow:hidden;border-top-right-radius:18px;border-bottom-right-radius:18px;justify-self:end}
+    .promo .art::before{content:"";position:absolute;inset:0;background:radial-gradient(50% 50% at 70% 30%, rgba(253,224,71,.5) 0%, rgba(253,224,71,0) 60%), linear-gradient(135deg,#fde68a 20%, #bfdbfe 20% 55%, #93c5fd 55%);opacity:.55}
+    .promo .art img{position:absolute;right:0;bottom:0;max-width:520px;width:100%;height:auto;object-fit:contain;filter:drop-shadow(0 10px 16px rgba(17,24,39,.18))}
+    .promo .close{position:absolute;right:12px;top:12px;width:30px;height:30px;border-radius:999px;border:1px solid rgba(0,0,0,.15);background:#fff;display:grid;place-items:center;cursor:pointer}
+    @media (max-width:820px){.promo{grid-template-columns:1fr;border-radius:12px;padding:16px}.promo .art,.promo .art::before{display:none}.promo .cta{width:100%;justify-content:center}}
 
-    /* Weekly section mount */
-    [data-ui="weekly-hiring"]{margin:14px 0}
+    /* --- Recherche --- */
+    .searchbar{position:sticky;top:var(--topbar-h);z-index:20;background:var(--bg);display:flex;justify-content:center;padding:8px 0;border-bottom:1px solid var(--border)}
+    .search{display:flex;gap:8px;align-items:center;width:min(780px,100%);background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px}
+    .searchwrap{display:flex;flex-direction:column;align-items:center;width:100%}
+    .search-sub{width:min(780px,100%);display:flex;justify-content:space-between;align-items:center;padding:6px 4px 2px}
+    .linkbtn{border:none;background:transparent;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer;padding:2px 4px}
+    .field{display:flex;align-items:center;gap:8px;background:var(--soft);border:1px solid var(--border);border-radius:10px;padding:6px 10px}
+    .field input{border:0;outline:0;background:transparent;width:100%;font-size:16px;padding:6px 0}
+    .field.title{flex:1 1 360px;min-width:260px}
+    .field.city{flex:0 0 200px}
+    .search .btn{display:inline-flex;align-items:center;gap:8px;border:none;background:transparent;padding:6px 8px;border-radius:8px;cursor:pointer;color:var(--muted)}
+    .btn.search{background:var(--brand);color:#fff;border:1px solid var(--brand);border-radius:10px;padding:8px 12px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+    .btn.search svg{width:16px;height:16px}
+    .btn.search span{font-weight:600}
+    @media (max-width:640px){ .search{flex-direction:column;gap:10px} .field{width:100%;min-height:52px} .field.title,.field.city{flex:1 1 auto;width:100%} .btn.search{width:100%;height:46px;justify-content:center} }
 
-    /* Jobs list */
-    [data-ui="jobs-list"] .job-card{
-      background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
-      padding:14px; margin:10px 0; box-shadow:var(--shadow);
-    }
-    .job-head{display:flex; align-items:center; gap:12px}
-    .job-logo{width:44px;height:44px;border-radius:10px;object-fit:cover;background:#f3f4f6;border:1px solid var(--line)}
-    .job-company{font:600 13px/1.1 system-ui; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-    .job-title{font:600 16px/1.25 system-ui; margin:.15rem 0 0; color:var(--ink)}
-    .btn-fav{border:1px solid var(--line); background:#fff; border-radius:10px; width:36px;height:36px; display:grid; place-items:center; cursor:pointer}
+    /* --- Toolbar --- */
+    .toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:10px 0 12px}
+    .tabs{display:inline-flex;gap:4px;border:1px solid var(--border);border-radius:10px;padding:4px;background:var(--surface)}
+    .tab{border:none;background:transparent;padding:6px 10px;border-radius:8px;cursor:pointer}
+    .tab.active{background:var(--brand);color:#fff}
 
-    .job-meta{display:flex; flex-wrap:wrap; gap:8px; align-items:center; color:#6B7280; margin:8px 0 2px; font:13px/1.2 system-ui}
-    .meta-dot{color:#c2c6cc}
-    .chip{background:#f3f4f6; border:1px solid var(--line); border-radius:999px; padding:3px 8px; font:12px/1 system-ui; color:#374151}
-    .job-actions{margin-top:10px}
-    .btn-apply{display:inline-block; background:var(--brand); color:#fff; border-radius:10px; padding:10px 14px; font:600 14px/1 system-ui; text-decoration:none}
+    /* --- Groupes & cartes --- */
+    .groups{display:flex;flex-direction:column}
+    .group{margin-top:22px}
+    .group:first-child{margin-top:12px}
+    .g-title{color:var(--muted);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.04em;margin:12px 4px 8px}
+    .g-title::after{content:"";display:block;height:1px;background:var(--border);margin-top:8px}
+    .list{display:flex;flex-direction:column}
+    .card{display:grid;grid-template-columns:52px 1fr auto;grid-template-areas:"logo meta cta";gap:16px;align-items:start;padding:16px 8px;border-bottom:1px solid var(--border);cursor:pointer}
+    .card:hover{background:rgba(17,24,39,.02)}
+    .card.active{background:rgba(17,24,39,.04)}
+    .logo2{grid-area:logo;width:52px;height:52px;border-radius:12px;background:#fff;display:grid;place-items:center;border:1px solid var(--border)}
+    .logo2 .logo-img{width:80%;height:80%;object-fit:contain}
+    .meta{grid-area:meta}
+    .meta h3{margin:0 0 4px;font-size:16px}
+    .meta .sub{display:flex;flex-wrap:wrap;gap:8px;color:var(--muted);font-size:13px}
+    .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+    .tags .chip{padding:4px 8px;border-radius:999px;font-size:12px;font-weight:600;background:#ECE7DF;color:#5F5147;white-space:nowrap}
+    .cta{grid-area:cta;display:flex;align-items:center;gap:10px;justify-self:end}
+    .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--surface);padding:9px 12px;border-radius:12px;cursor:pointer}
+    .btn.primary{background:var(--brand);color:#fff;border-color:var(--brand);border-radius:10px}
+    .btn.heart{border-color:var(--danger);color:var(--danger);border-radius:12px;padding:8px 10px;width:44px;height:40px;display:grid;place-items:center}
+    .btn.heart svg{width:20px;height:20px}
+    .btn.heart.saved{background:rgba(239,68,68,.08)}
 
-    /* Weekly block (injection) */
-    .weekly-hiring{background:#fff; border:1px dashed var(--line); border-radius:var(--radius); padding:14px; margin:16px 0}
-    .weekly-title{font:700 14px/1.2 system-ui; margin:0 0 10px; color:var(--ink)}
-    .weekly-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px}
-    .weekly-item{display:flex; align-items:center; gap:10px; border:1px solid #f1f2f4; border-radius:12px; padding:8px 10px; background:#fafafa}
-    .wk-logo{width:28px;height:28px;border-radius:8px;border:1px solid var(--line); background:#fff; object-fit:cover}
-    .wk-name{flex:1; min-width:0; font:600 13px/1.1 system-ui; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-    .wk-count{font:12px/1 system-ui; color:#6B7280}
+    /* --- Vitrine --- */
+    .showcase{margin:12px 2px 2px;width:100%}
+    .showcase h5{margin:0 0 10px;font-size:13px;letter-spacing:.02em;text-transform:uppercase;color:var(--muted)}
+    .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    @media (max-width:1060px){.tiles{grid-template-columns:repeat(3,1fr)}}
+    @media (max-width:640px){.tiles{display:flex;overflow-x:auto;gap:10px;padding:2px 2px 8px;-webkit-overflow-scrolling:touch}}
+    .tile-wrap{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.04);padding:8px}
+    .tile{position:relative;border:1px solid #eef2f7;border-radius:12px;display:grid;place-items:center;gap:8px;padding:12px;aspect-ratio:1/1;overflow:hidden}
+    .tile .sector{position:absolute;inset:8px;border-radius:10px;z-index:0;box-shadow:inset 0 -18px 28px rgba(0,0,0,.05), inset 0 1px 0 rgba(255,255,255,.6)}
+    .tile .sector::before{content:"";position:absolute;inset:0;background:var(--base,#f3f4f6)}
+    .tile .sector::after{content:"";position:absolute;inset:0;opacity:.45;background-image:repeating-linear-gradient(0deg, var(--grid,rgba(0,0,0,.08)) 0 1px, transparent 1px 22px),repeating-linear-gradient(90deg, var(--grid,rgba(0,0,0,.08)) 0 1px, transparent 1px 22px)}
+    .tile > *{position:relative;z-index:1}
+    .logo-box{width:56px;height:56px;border-radius:10px;background:#fff;border:1px solid #e5e7eb;display:grid;place-items:center;overflow:hidden}
+    .logo-box img{width:82%;height:82%;object-fit:contain}
+    .co-name{font-weight:800;text-align:center;font-size:14px}
+    .co-sub{font-size:12px;color:var(--muted)}
 
-    /* Load more */
-    .load-more{display:flex; justify-content:center; margin:18px 0}
-    .load-more .btn{padding:10px 16px}
+    /* --- Panneau détails --- */
+    .layout{display:grid;grid-template-columns:minmax(0,1fr) 620px;gap:16px;align-items:start}
+    @media (max-width:1060px){.layout{grid-template-columns:1fr}}
+    .details{position:sticky;top:calc(var(--topbar-h) + 8px);height:calc(100vh - var(--topbar-h) - 24px);border:1px solid var(--border);border-radius:14px;background:var(--surface);padding:14px;overflow:auto;box-shadow:none}
+    .details .placeholder{height:100%;display:grid;place-items:center;color:var(--muted);text-align:center;padding:18px}
+    .close-drawer{display:none;border:1px solid var(--border);background:var(--surface);padding:6px 10px;border-radius:10px}
+    @media (max-width:1060px){ .details{position:fixed;left:0;right:0;bottom:0;top:calc(var(--topbar-h) + 56px);transform:translateY(100%);transition:transform .26s ease, box-shadow .26s ease;border-left:none;border-right:none;border-bottom:none;border-top-left-radius:16px;border-top-right-radius:16px;z-index:60} .details.open{transform:translateY(0)} .details .close-drawer{display:inline-flex} }
+    .details .d-card{background:#fff;border:none;border-radius:18px;box-shadow:none;overflow:hidden}
+    .details .d-header{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;padding:20px 20px 16px;border-bottom:1px solid var(--border)}
+    .details .d-brand{display:flex;gap:14px;align-items:center}
+    .details .d-brand-logo{width:48px;height:48px;border-radius:14px;background:#1f7cff;display:grid;place-items:center;color:#fff;overflow:hidden;border:1px solid var(--border)}
+    .details .d-brand-logo img{width:100%;height:100%;object-fit:contain;border-radius:14px;background:#fff}
+    .details h1{font-size:20px;line-height:1.25;margin:0 0 2px}
+    .details .d-meta{margin:0;color:var(--muted);font-size:14px}
+    .details .d-actions{display:flex;gap:10px;align-items:center}
+    .details .d-btn{appearance:none;border:1px solid #e4e7ee;background:#fff;color:var(--fg);padding:10px 16px;border-radius:14px;font-weight:700;cursor:pointer}
+    .details .d-btn.primary{background:#0f172a;border-color:#0f172a;color:#fff}
+    .details .d-btn-icon{width:44px;height:44px;border-radius:12px;border:1.5px solid #f3c9cf;background:#fff;display:grid;place-items:center}
+    .details .d-chips{display:flex;flex-wrap:wrap;gap:8px;padding:12px 20px;border-bottom:1px solid var(--border)}
+    .details .d-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:#f3f4f6;color:#374151;font-weight:700;font-size:13px;border:1px solid #eceff3}
+    .details .d-chip.salary{background:#d7ff59;color:#0d1b0f;border-color:#c7f24d}
+    .details .d-about{padding:16px 20px;border-bottom:1px solid var(--border)}
+    .details .d-cta-row{display:flex;gap:12px;padding:10px 20px 16px;border-bottom:1px solid var(--border)}
+    .details .d-grid{display:grid;grid-template-columns:1fr;gap:16px;padding:16px 20px;border-bottom:1px solid var(--border)}
+    .details .d-panel{background:#fff;border:1px solid var(--border);border-radius:18px;padding:16px}
 
-    /* Dialogs (login/signup/profile) */
-    dialog{
-      border:1px solid var(--line); border-radius:20px; padding:0; width:min(520px, 92vw); box-shadow:0 20px 60px rgba(0,0,0,.2);
-    }
-    dialog::backdrop{background:rgba(0,0,0,.25)}
-    .dlg-head{padding:14px 16px; border-bottom:1px solid var(--line); font-weight:700}
-    .dlg-body{padding:14px 16px}
-    .dlg-actions{display:flex; gap:8px; justify-content:flex-end; padding:12px 16px; border-top:1px solid var(--line)}
-    .field{display:flex; flex-direction:column; gap:6px; margin:10px 0}
-    .field label{font:600 13px/1 system-ui; color:#374151}
-    .field input, .field select, .field textarea{
-      border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:#fff; outline:none;
-    }
+    /* --- Cookie bar & footer --- */
+    .cookiebar{position:fixed;right:16px;bottom:16px;display:none;align-items:center;gap:10px;max-width:560px;background:#1f2937;color:#f9fafb;border:1px solid #374151;border-radius:12px;padding:10px 12px;z-index:70}
+    .cookiebar .cbt{border:1px solid #4b5563;background:transparent;color:#e5e7eb;border-radius:999px;padding:6px 10px;font-size:12px;cursor:pointer}
+    .cookiebar .cbt.primary{background:#111827;border-color:#111827;color:#fff;font-weight:600}
+    .site-footer{background:#111827;color:#d1d5db;margin-top:24px}
+    .site-footer .inner{max-width:1220px;margin:0 auto;padding:16px;display:flex;justify-content:flex-end;align-items:center;font-size:13px}
+    .toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#111827;color:#fff;border:1px solid #374151;border-radius:10px;padding:8px 12px;font-size:12px;z-index:80;display:none}
 
-    footer{color:#6b7280; padding:28px 16px; border-top:1px solid var(--line); text-align:center}
-    .kpis{display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
+    /* ===== Timer & autres ===== */
+    .drop-card{position:relative;display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;background:linear-gradient(180deg,#ffffff,#fafafa);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin:12px 0;box-shadow:0 6px 20px rgba(0,0,0,.05);overflow:hidden}
+    .drop-card::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,0) 0, rgba(255,255,255,.65) 50%, rgba(255,255,255,0) 100%);transform:translateX(-100%);animation:shimmer 2.8s ease-in-out infinite}
+    @keyframes shimmer{0%{transform:translateX(-100%)}60%{transform:translateX(100%)}100%{transform:translateX(100%)}}
+    .drop-left{display:grid;place-items:center}
+    .ring{position:relative;width:68px;height:68px;display:grid;place-items:center}
+    .clock{width:68px;height:68px;transform:rotate(-90deg)}
+    .clock .track{fill:none;stroke:#e5e7eb;stroke-width:4}
+    .clock .prog{fill:none;stroke:#111827;stroke-width:4;stroke-linecap:round;stroke-dasharray:0 999;transition:stroke-dasharray .4s ease}
+    .digit{position:absolute;inset:0;display:grid;place-items:center;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.4px}
+    .drop-mid .title{display:flex;align-items:center;gap:8px;font-size:16px}
+    .drop-mid .pill{border:1px solid var(--border);background:#fff;border-radius:999px;padding:4px 8px;font-size:11px;color:#6B7280}
+    .drop-mid .sub{color:#4B5563;font-size:13px;margin-top:2px}
+    .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .chips .chip{font-size:12px;font-weight:700;border:1px solid var(--border);background:#fff;border-radius:999px;padding:4px 8px}
+    .drop-cta .drop-btn{appearance:none;border:1px solid var(--border);background:#101827;color:#fff;border-radius:12px;padding:10px 12px;font-weight:800;cursor:pointer}
+    .drop-card.good{border-color:#BBF7D0;background:linear-gradient(180deg,#ffffff,#F0FDF4)}
+    .drop-card.late{border-color:#FECACA;background:linear-gradient(180deg,#ffffff,#FEF2F2)}
 
-    /* Progressive enhancement (au cas où <dialog> n’est pas supporté) */
-    dialog:not([open]){display:none}
-  </style>
+    .s-chips{display:flex;gap:8px;align-items:center}
+    .stat{font-size:12px;color:var(--muted);background:var(--chip);border:1px solid var(--border);padding:4px 8px;border-radius:999px}
+
+    /* Auth/Profile */
+    .auth-modal{ position:fixed; inset:0; display:none; place-items:center; background:rgba(17,24,39,.45); backdrop-filter:saturate(120%) blur(2px); z-index:90; padding:16px; }
+    .auth-card{ width:min(520px,100%); background:#fff; border:1px solid var(--border); border-radius:16px; padding:16px 16px 14px; box-shadow:0 12px 32px rgba(0,0,0,.12); }
+    .auth-grid{ display:grid; gap:10px; }
+    .auth-field{ display:grid; gap:6px; }
+    .auth-field label{ font-weight:600; font-size:13px; color:#374151; }
+    .auth-field input, .auth-field textarea, .auth-field select{ border:1px solid var(--border); background:#fff; border-radius:10px; padding:10px 12px; font-size:15px; outline:none; }
+    .auth-row{ display:flex; gap:8px; justify-content:flex-end; margin-top:6px; }
+    .btn-soft{ border:1px solid var(--border); background:#fff; border-radius:10px; padding:10px 14px; cursor:pointer; }
+    .btn-dark{ border:1px solid #111827; background:#111827; color:#fff; border-radius:10px; padding:10px 14px; cursor:pointer; font-weight:700; }
+
+    .profile-drawer{ position:fixed; inset:0; display:none; z-index:85; background:rgba(17,24,39,.35); }
+    .profile-panel{ position:absolute; right:0; top:0; bottom:0; width:min(520px,100%); background:#fff; border-left:1px solid var(--border); border-top-left-radius:14px; border-bottom-left-radius:14px; padding:16px; overflow:auto; box-shadow:-8px 0 24px rgba(0,0,0,.12); }
+    .profile-chips{ display:flex; gap:8px; flex-wrap:wrap; }
+    .profile-chip{ border:1px solid var(--border); background:#fff; border-radius:999px; padding:6px 10px; font-size:12px; cursor:pointer; }
+
+    .details{ box-shadow:none; }
+    .details .d-card{ border:none; box-shadow:none; }
+  
+  .btn.more{display:inline-block;width:100%;margin:12px 0} 
+</style>
+  <link rel="stylesheet" href="/fix.css">
+  <link rel="stylesheet" href="/override.css">
 </head>
 <body>
-
-  <header>
-    <div class="bar container">
-      <a class="brand" href="/">
-        <span class="logo" aria-hidden="true">AT</span>
-        <span>Alternant Talent</span>
-      </a>
-      <span class="spacer"></span>
-
-      <button class="btn ghost" data-action="open-profile">Profil</button>
-      <button class="btn" data-action="open-login">Se connecter</button>
-      <button class="btn" data-action="open-signup">Créer un compte</button>
-      <button class="btn" data-action="logout" style="display:none">Se déconnecter</button>
+  <!-- Top navigation -->
+  <header class="topbar" role="navigation" aria-label="Actions">
+    <div class="inner">
+      <a class="brand-left" href="/"><img id="brandLogoTop" alt="logo" src="/icons/logo2.png" /></a>
+      <nav class="nav-links" style="display:flex;gap:24px;flex:1;padding-left:40px;">
+        <a href="/" style="font-size:14px;font-weight:500;color:var(--fg);text-decoration:none;">Page d'offres</a>
+        <a href="/comment-ca-marche.html" style="font-size:14px;font-weight:500;color:var(--fg);text-decoration:none;">Comment ça marche</a>
+      </nav>
+      <div class="actions">
+        <button id="btnLogin" class="act">Connexion</button>
+        <button id="btnSignup" class="act">Créer un compte</button>
+        <button id="btnProfile" class="act" style="display:none">Mon profil</button>
+        <button id="btnLogout" class="act" style="display:none">Déconnexion</button>
+        <span id="helloUser" class="act" style="display:none;border:none">—</span>
+      </div>
     </div>
   </header>
 
-  <main>
-    <div class="container">
-
-      <!-- Barre de recherche -->
-      <form class="search" data-ui="search-form" role="search" aria-label="Recherche d’offres">
-        <input type="search" name="q" placeholder="Rechercher (ex. développeur, Lille, Java)..." autocomplete="off" data-ui="search-input" />
-        <button class="btn primary" type="submit">Rechercher</button>
-        <span class="pill">Récents ≤ 30 jours</span>
-      </form>
-
-      <!-- Compteurs -->
-      <div class="stats" aria-live="polite">
-        <span><strong><span data-ui="visible-count">0</span></strong> offres visibles</span>
-        <span class="dot">•</span>
-        <span>Favoris : <strong><span data-ui="fav-count">0</span></strong></span>
+  <div class="wrap">
+    <!-- Bannière -->
+    <section class="promo" id="promo">
+      <div class="copy">
+        <h2>Trouve l’alternance qui te fait grandir</h2>
+        <p>Des offres vérifiées chaque semaine. Choisis ton <strong>métier</strong> et ta <strong>ville</strong>, puis candidate en un clic.</p>
+        <a class="cta" href="#groups">Voir les offres</a>
       </div>
+      <div class="art"><img id="heroIllo" alt="illustration" /></div>
+      <button class="close" id="promoClose" aria-label="Fermer">✕</button>
+    </section>
 
-      <!-- Zone d’insertion “Ils recrutent cette semaine” (optionnelle) -->
-      <section data-ui="weekly-hiring" aria-label="Ils recrutent cette semaine"></section>
-
-      <!-- Liste d’offres (remplie par bridge-v12.js) -->
-      <section data-ui="jobs-list" aria-live="polite" aria-busy="false"></section>
-
-      <!-- Voir plus -->
-      <div class="load-more">
-        <button class="btn" data-action="load-more">Voir plus</button>
+    <!-- Recherche -->
+    <div class="searchbar">
+      <div class="searchwrap">
+        <div class="search" role="search">
+          <div class="field title">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="m21 20.3-4.6-4.6a7.5 7.5 0 1 0-1.3 1.3L19.7 21zM5.5 10a4.5 4.5 0 1 1 9 0a4.5 4.5 0 0 1-9 0"/></svg>
+            <input id="qTitle" placeholder="Poste, entreprise, mot-clé" autocomplete="off" />
+          </div>
+          <div class="field city">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a1 1 0 0 1 1 1v1.1A7 7 0 0 1 19 11c0 5-7 11-7 11s-7-6-7-11a7 7 0 0 1 6-6.9V3a1 1 0 0 1 1-1z"/></svg>
+            <input id="qCity" placeholder="Ville" autocomplete="off" />
+          </div>
+          <button class="btn search" id="doSearch" aria-label="Rechercher">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="m21 20.3-4.6-4.6a7.5 7.5 0 1 0-1.3 1.3L19.7 21zM5.5 10a4.5 4.5 0 1 1 9 0a4.5 4.5 0 0 1-9 0"/></svg>
+            <span>Rechercher</span>
+          </button>
+        </div>
+        <div class="search-sub">
+          <div class="s-chips">
+            <span class="stat" id="statOffers">—</span>
+            <span class="stat" id="statFav">—</span>
+          </div>
+          <div>
+            <button class="linkbtn" id="pickLogo">Changer le logo</button>
+            <input id="logoInput" type="file" accept="image/*" hidden />
+            <button class="linkbtn" id="pickIllo">Changer l’illustration</button>
+            <input id="illoInput" type="file" accept="image/*" hidden />
+          </div>
+        </div>
       </div>
-
     </div>
-  </main>
 
-  <footer>
-    <div class="kpis">
-      <span>© <script>document.write(new Date().getFullYear())</script> Alternant Talent</span>
-      <span class="dot">•</span>
-      <a href="/PRIVACY.html" rel="nofollow">Confidentialité</a>
-      <span class="dot">•</span>
-      <a href="/SECURITY.html" rel="nofollow">Sécurité</a>
-      <span class="dot">•</span>
-      <a href="https://github.com/votre-org/votre-repo" rel="noopener">GitHub</a>
+    <!-- Timer: Nouvelles annonces dans 12h -->
+    <section id="nextDrop" class="drop-card" aria-live="polite" hidden>
+      <div class="drop-left">
+        <div class="ring">
+          <svg viewBox="0 0 44 44" class="clock" aria-hidden="true">
+            <circle class="track" cx="22" cy="22" r="20"></circle>
+            <circle class="prog" cx="22" cy="22" r="20"></circle>
+          </svg>
+          <div class="digit" id="ndDigit">–:–</div>
+        </div>
+      </div>
+      <div class="drop-mid">
+        <div class="title">
+          <strong>Nouvelles annonces dans <span id="ndETA">—</span></strong>
+          <span class="pill" id="ndPill">Suivi auto</span>
+        </div>
+        <div class="sub" id="ndSub">On prépare la prochaine vague d’offres correspondant à ton profil.</div>
+        <div class="chips" id="ndChips"></div>
+      </div>
+      <div class="drop-cta">
+        <button id="ndRefresh" class="drop-btn" aria-label="Actualiser maintenant">Actualiser</button>
+      </div>
+    </section>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="tabs">
+        <button class="tab active" id="tabAll">Toutes les offres</button>
+        <button class="tab" id="tabFav">Favoris</button>
+      </div>
     </div>
-  </footer>
 
-  <!-- Modale : Connexion -->
-  <dialog id="dlg-login" aria-labelledby="dlg-login-title">
-    <div class="dlg-head" id="dlg-login-title">Se connecter</div>
-    <form class="dlg-body" data-form="login" method="dialog">
-      <div class="field">
-        <label for="login-email">E-mail</label>
-        <input id="login-email" name="email" type="email" required autocomplete="email" />
-      </div>
-      <div class="field">
-        <label for="login-password">Mot de passe</label>
-        <input id="login-password" name="password" type="password" required autocomplete="current-password" />
-      </div>
-      <div class="dlg-actions">
-        <button type="button" class="btn" onclick="document.getElementById('dlg-login').close()">Annuler</button>
-        <button class="btn primary" type="submit">Connexion</button>
-      </div>
-    </form>
-  </dialog>
+    <!-- LAYOUT -->
+    <div class="layout" style="display:flex;gap:16px;align-items:flex-start">
+      <section id="groups" class="groups"></section>
+      <aside id="details" class="details" style="position:sticky;top:calc(var(--topbar-h) + 8px);height:calc(100vh - var(--topbar-h) - 24px);overflow:auto;flex:0 0 620px;max-width:620px" aria-live="polite">
+        <div class="placeholder"><div><strong>Aucun poste sélectionné</strong><br>Cliquez sur une offre pour voir les détails ici.</div></div>
+      </aside>
+    </div>
+  </div>
 
-  <!-- Modale : Création de compte -->
-  <dialog id="dlg-signup" aria-labelledby="dlg-signup-title">
-    <div class="dlg-head" id="dlg-signup-title">Créer un compte</div>
-    <form class="dlg-body" data-form="signup" method="dialog">
-      <div class="field">
-        <label for="signup-email">E-mail</label>
-        <input id="signup-email" name="email" type="email" required autocomplete="email" />
-      </div>
-      <div class="field">
-        <label for="signup-password">Mot de passe</label>
-        <input id="signup-password" name="password" type="password" minlength="6" required autocomplete="new-password" />
-      </div>
-      <div class="dlg-actions">
-        <button type="button" class="btn" onclick="document.getElementById('dlg-signup').close()">Annuler</button>
-        <button class="btn primary" type="submit">Créer</button>
-      </div>
-    </form>
-  </dialog>
+  <footer class="site-footer"><div class="inner"><div class="signature">L’équipe <strong>Alternance &amp; Talent</strong></div></div></footer>
 
-  <!-- Modale : Profil -->
-  <dialog id="dlg-profile" aria-labelledby="dlg-profile-title">
-    <div class="dlg-head" id="dlg-profile-title">Votre profil</div>
-    <form class="dlg-body" data-form="profile" method="dialog">
-      <div class="field">
-        <label for="p-city">Ville (préférence)</label>
-        <input id="p-city" name="city" type="text" placeholder="ex. Lille" />
-      </div>
-      <div class="field">
-        <label for="p-radius">Rayon (km)</label>
-        <input id="p-radius" name="radius" type="number" min="0" step="1" placeholder="20" />
-      </div>
-      <div class="field">
-        <label><input type="checkbox" name="accept_remote" /> J’accepte le télétravail</label>
-      </div>
-      <div class="field">
-        <label for="p-keywords">Mots-clés (virgules)</label>
-        <input id="p-keywords" name="keywords" type="text" placeholder="javascript, UX, data" />
-      </div>
-      <div class="dlg-actions">
-        <button type="button" class="btn" onclick="document.getElementById('dlg-profile').close()">Fermer</button>
-        <button class="btn primary" type="submit">Enregistrer</button>
-      </div>
-    </form>
-  </dialog>
+  <div id="cookieBar" class="cookiebar" role="dialog" aria-label="Cookies">
+    <span class="msg">Nous utilisons des cookies pour des mesures anonymes.</span>
+    <div class="actions"><button id="cookieAccept" class="cbt primary">OK</button><button id="cookieReject" class="cbt">Refuser</button></div>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <!-- Zone toast (le bridge la remplira si absente) -->
-  <div data-ui="toast" style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 14px;border-radius:12px;font:14px/1.3 system-ui;box-shadow:0 6px 24px rgba(0,0,0,.18);transition:opacity .25s;z-index:9999;opacity:0;"></div>
+  <!-- ===== Modales & Profil (inchangé) ===== -->
+  <div id="authLogin" class="auth-modal" aria-modal="true" role="dialog" aria-label="Connexion">
+    <div class="auth-card auth-grid">
+      <h3 style="margin:0">Connexion</h3>
+      <div class="auth-field"><label for="loginEmail">Email</label><input id="loginEmail" type="email" placeholder="vous@exemple.com"></div>
+      <div class="auth-field"><label for="loginPass">Mot de passe</label><input id="loginPass" type="password" placeholder="******"></div>
+      <div class="auth-row"><button id="cancelLogin" class="btn-soft">Annuler</button><button id="doLogin" class="btn-dark">Se connecter</button></div>
+      <div class="hello" id="loginMsg"></div>
+    </div>
+  </div>
 
-  <!-- Bridge front → API (mettez ce fichier dans /public ou ajustez le chemin) -->
-  <script src="/bridge-v12.js" defer></script>
+  <div id="authSignup" class="auth-modal" aria-modal="true" role="dialog" aria-label="Créer un compte">
+    <div class="auth-card auth-grid">
+      <h3 style="margin:0">Créer un compte</h3>
+      <div class="auth-field"><label for="signEmail">Email</label><input id="signEmail" type="email" placeholder="vous@exemple.com"></div>
+      <div class="auth-field"><label for="signPass">Mot de passe (≥ 6 caractères)</label><input id="signPass" type="password" placeholder="******"></div>
+      <div class="auth-row"><button id="cancelSignup" class="btn-soft">Annuler</button><button id="doSignup" class="btn-dark">Créer mon compte</button></div>
+      <div class="hello" id="signupMsg"></div>
+    </div>
+  </div>
+
+  <div id="profilePanel" class="profile-drawer" role="dialog" aria-label="Mon profil">
+    <div class="profile-panel">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <h3 style="margin:0">Mon profil</h3>
+        <button id="closeProfile" class="btn-soft">Fermer</button>
+      </div>
+      <div class="auth-field" style="margin-top:10px"><label for="profCity">Ville (pour les alertes & trajets)</label><input id="profCity" placeholder="ex: Paris"></div>
+      <div class="auth-field"><label for="profRadius">Rayon (km)</label><input id="profRadius" type="number" min="0" value="20"></div>
+      <div class="auth-field">
+        <label for="profContract">Contrat</label>
+        <select id="profContract"><option value="">— indifférent —</option><option>alternance</option><option>apprentissage</option><option>professionnalisation</option></select>
+      </div>
+      <div class="auth-field">
+        <label for="profRhythm">Rythme</label>
+        <select id="profRhythm"><option value="">— indifférent —</option><option>3j/2j</option><option>1s/1s</option><option>2s/2s</option><option>autre</option></select>
+      </div>
+      <div class="auth-field"><label><input id="profRemote" type="checkbox"> Accepter télétravail partiel</label></div>
+      <div class="auth-field"><label for="profKeywords">Mots-clés (métier, techno)</label><textarea id="profKeywords" rows="3" placeholder="ex: développeur, node, marketing digital"></textarea></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:8px"><button id="saveProfile" class="btn-dark">Enregistrer le profil</button></div>
+      <div class="auth-field" style="margin-top:8px"><label class="hello">Suggestions d’alertes (démo)</label><div id="alertSuggestions" class="profile-chips"></div></div>
+    </div>
+  </div>
+
+  <!-- ========================= APP ========================== -->
+  <script>
+  /* ========================= Helpers & data ========================== */
+  const COMPANY_DOMAINS = {"Dataiku":"dataiku.com","Doctolib":"doctolib.com","Back Market":"backmarket.fr","Qonto":"qonto.com","Alan":"alan.com","BlaBlaCar":"blablacar.com","Mirakl":"mirakl.com","Vestiaire Collective":"vestiairecollective.com"};
+  const logoURL = (domain)=> domain ? `https://www.google.com/s2/favicons?sz=128&domain=${encodeURIComponent(domain)}` : null;
+  const $ = (s)=>document.querySelector(s);
+  function svgDataURI(s){ return 'data:image/svg+xml;utf8,'+encodeURIComponent(s); }
+  const DEFAULT_BRAND = '/icons/logo2.png';
+  const PREFER_LOCAL_LOGOS = true;
+  const GENERIC_LOGO = svgDataURI(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#f3f4f6"/><path d="M20 26h24l3 20a4 4 0 0 1-4 4H21a4 4 0 0 1-4-4l3-20z" fill="#111827"/><path d="M24 26a8 8 0 1 1 16 0" fill="none" stroke="#111827" stroke-width="3" stroke-linecap="round"/></svg>`);
+  window.GENERIC_LOGO = GENERIC_LOGO;
+
+  function resolveLogo(job) {
+    return (job.logoUrl && job.logoUrl.trim())
+        || (typeof LOCAL_LOGOS !== 'undefined' && LOCAL_LOGOS[job.company])
+        || (job.logoDomain ? "https://logo.clearbit.com/" + job.logoDomain : "")
+        || GENERIC_LOGO;
+  }
+
+  const HERO_DEFAULT = '/icons/illutration.png';
+  const LOCAL_LOGOS = { /* ... local SVG logos (inchangé) ... */ };
+  const COMPANY_BRAND = {'Dataiku':'#00b8d9','Doctolib':'#2f6fff','Back Market':'#111827','Qonto':'#6f3cff','Alan':'#00b894','BlaBlaCar':'#00c3a5','Mirakl':'#0b2a48','Vestiaire Collective':'#111111'};
+  const COMPANY_SECTOR = {'Dataiku':'data','Doctolib':'health','Back Market':'retail','Qonto':'fintech','Alan':'health','BlaBlaCar':'mobility','Mirakl':'saas','Vestiaire Collective':'fashion'};
+  function hexToRgb(hex){ hex = hex.replace('#',''); if(hex.length===3){hex = hex.split('').map(c=>c+c).join('');} const r=parseInt(hex.slice(0,2),16), g=parseInt(hex.slice(2,4),16), b=parseInt(hex.slice(4,6),16); return {r,g,b}; }
+  function rgbToHex(r,g,b){ return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join(''); }
+  function mixRgb(a,b,p){ return { r:Math.round(a.r+(b.r-a.r)*p), g:Math.round(a.g+(b.g-a.g)*p) , b:Math.round(a.b+(b.b-a.b)*p) }; }
+  function lighten(hex,ratio){ const a=hexToRgb(hex), w={r:255,g:255,b:255}; const m=mixRgb(a,w,ratio); return rgbToHex(m.r,m.g,m.b); }
+  function rgba(hex,alpha){ const {r,g,b}=hexToRgb(hex); return `rgba(${r},${g},${b},${alpha})`; }
+  const SECTOR_COLORS = { health:{base:'#fde2e8',grid:'rgba(225,29,72,.18)'}, data:{base:'#e0f2fe',grid:'rgba(30,58,138,.14)'}, mobility:{base:'#dcfce7',grid:'rgba(22,163,74,.16)'}, fintech:{base:'#ede9fe',grid:'rgba(124,58,237,.16)'}, retail:{base:'#fef3c7',grid:'rgba(245,158,11,.16)'}, fashion:{base:'#f5f5f5',grid:'rgba(17,24,39,.12)'}, saas:{base:'#e0e7ff',grid:'rgba(37,99,235,.16)'}, default:{base:'#f3f4f6',grid:'rgba(0,0,0,.12)'} };
+
+  /* Storage & toasts */
+  function storageBytes(ls){ try{ let sum=0; for(let i=0;i<ls.length;i++){ const k=ls.key(i); const v=ls.getItem(k); sum += (k.length + (v?v.length:0)) * 2; } return sum; }catch(e){ return 0; } }
+  function canStore(bytes){ const MAX=4.5*1024*1024; return storageBytes(localStorage)+bytes < MAX; }
+  function isQuotaErr(e){ return e && (e.name==='QuotaExceededError' || e.code===22); }
+  function showToast(msg){ const t=document.getElementById('toast'); if(!t) return; t.textContent=msg; t.style.display='block'; setTimeout(()=>{t.style.display='none';},2400); }
+  function setLocalSafe(key,val){ try{ if(!canStore((key.length+val.length)*2)) throw new Error('predicted-quota'); localStorage.setItem(key,val); return true; }catch(e){ if(isQuotaErr(e) || e.message==='predicted-quota'){ try{ localStorage.removeItem(key); if(canStore((key.length+val.length)*2)) { localStorage.setItem(key,val); return true; } }catch(_){} } return false; } }
+
+  /* ============== DATA: on remplace la démo par un fetch paginé /api/jobs ============== */
+  var JOBS = [];
+  let OFFSET = 0;
+  const PAGE_SIZE = 10000;
+  let TOTAL = 0;
+
+  function normalize(job){
+    return {
+      id: job.id || job.slug || job._id || crypto.randomUUID(),
+      title: job.title || job.job_title || "Sans titre",
+      company: job.company || job.company_name || "Entreprise",
+      location: job.city || job.location || "",
+      posted: job.posted || "récent",
+      tags: job.tags || [],
+      url: job.url || job.apply_url || "#",
+      logoDomain: job.logoDomain || null,
+      logoUrl: job.logoUrl || null
+    };
+  }
+
+  async function loadMoreJobs(){
+    try{
+      const params = new URLSearchParams({
+        limit: String(PAGE_SIZE),
+        offset: String(OFFSET),
+        q: (state.qTitle||'').trim(),
+        location: (state.qCity||'').trim()
+      });
+      const r = await fetch(`/api/jobs?${params.toString()}`);
+      const data = await r.json();
+      const batch = (data.jobs || []).map(normalize);
+      JOBS = JOBS.concat(batch);
+      OFFSET += batch.length;
+      TOTAL = data.count ?? JOBS.length;
+      render();
+
+      ensureLoadMoreButton();const btn = document.getElementById('btnLoadMore');
+      if (btn) btn.style.display = (JOBS.length < TOTAL) ? 'inline-block' : 'none';
+    }catch(e){
+      console.error('loadMoreJobs error', e);
+    }
+  }
+
+  function ensureLoadMoreButton(){
+    if (document.getElementById('btnLoadMore')) return;
+    const groups = document.getElementById('groups');
+    if(!groups) return;
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'text-align:center;margin:16px 0 40px;';
+    wrap.innerHTML = `<button id="btnLoadMore" class="btn" style="padding:10px 16px">Voir plus d’annonces</button>`;
+    groups.insertAdjacentElement('beforeend', wrap);
+    document.getElementById('btnLoadMore').addEventListener('click', loadMoreJobs);
+  }
+
+  function resetAndSearch(){
+    JOBS = [];
+    OFFSET = 0;
+    TOTAL = 0;
+    render(); 
+      ensureLoadMoreButton();// vide la liste le temps du chargement
+    loadMoreJobs();
+  }
+
+  /* ========================= Favoris & rendu ========================== */
+  const favKey='af_favs_v1';
+  const getFavs=()=>new Set(JSON.parse(localStorage.getItem(favKey)||'[]'));
+  const saveFavs=set=>localStorage.setItem(favKey,JSON.stringify(Array.from(set)));
+  let state={qTitle:'',qCity:'',view:'all'};
+  let currentJobId=null, activeCardEl=null;
+
+  function monogram(name){ return (name||'?').trim().split(' ').filter(Boolean).map(x=>x[0]).slice(0,2).join('').toUpperCase()||'?'; }
+  function tagNode(t){ const s=document.createElement('span'); s.className='chip'; s.textContent=t; return s; }
+  function logoNode(domain, altText, fallbackText, logoUrl){
+    const box=document.createElement('div'); box.className='logo2';
+    const img=document.createElement('img'); img.className='logo-img'; img.alt=altText||'logo'; img.referrerPolicy='no-referrer'; img.loading='lazy';
+    img.decoding='async';
+    const LOCAL_LOGOS_REF = (typeof LOCAL_LOGOS!=='undefined') ? LOCAL_LOGOS[altText] : null;
+    const useCdn=!PREFER_LOCAL_LOGOS && !logoUrl && !LOCAL_LOGOS_REF;
+    const _src = (logoUrl && logoUrl.trim()) || LOCAL_LOGOS_REF || (useCdn && domain?logoURL(domain):"") || GENERIC_LOGO; img.src = _src;
+    img.onerror = () => { img.src = GENERIC_LOGO; };
+    box.appendChild(img); return box;
+  }
+  function heartSVG(){ return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-4.35-9.33-7.17A5.25 5.25 0 0 1 9.06 4.44L12 6.7l2.94-2.26a5.25 5.25 0 0 1 6.39 8.39C18.5 16.65 12 21 12 21z" fill="none" stroke="#ef4444" stroke-width="2"/></svg>`; }
+
+  function openDetails(job){
+    const pane=document.getElementById('details'); if(!pane) return;
+    const favs=getFavs(); const isFav=favs.has(job.id);
+    
+    const logoSrc = resolveLogo(job);
+const companySub = [ (job.company||'Entreprise'), (job.location||'—') ].filter(Boolean).join(' • ');
+    pane.innerHTML = `
+      <article class="d-card" aria-label="Offre d'alternance détaillée">
+        <header class="d-header">
+          <div class="d-brand">
+            <div class="d-brand-logo" aria-hidden="true"><img src="${logoSrc}" alt="${job.company}" referrerpolicy="no-referrer" loading="lazy" decoding="async" onerror="this.src=GENERIC_LOGO"></div>
+            <div>
+              <h1>${job.title}</h1>
+              <p class="d-meta">${[job.company, job.location, job.posted].filter(Boolean).join(' · ')}</p>
+            </div>
+          </div>
+          <div class="d-actions">
+            <button class="d-btn-icon" id="dFavBtn" data-on="${isFav?'1':'0'}" style="${isFav?'background:rgba(239,68,68,.08)':''}" aria-label="Ajouter aux favoris">
+              ${heartSVG()}
+            </button>
+            <button class="d-btn close-drawer" id="dCloseBtn">Fermer</button>
+            <a class="d-btn primary" id="dApplyTop" href="${job.url}" target="_blank" rel="noopener">Postuler</a>
+          </div>
+        </header>
+        <div class="d-chips" role="list">
+          ${(job.tags||[]).map(t=>`<span class="d-chip" role="listitem">${t}</span>`).join('')}
+          <span class="d-chip salary" role="listitem"><strong>€</strong>&nbsp;1200 – 1800 <small>estimation</small></span>
+        </div>
+        <section class="d-about" aria-labelledby="apropos">
+          <h2 id="apropos" style="margin:0 0 8px;font-size:18px">À propos du poste</h2>
+          <p>Cette alternance chez <strong>${job.company}</strong> vous permettra d'évoluer sur des missions concrètes liées à <em>${(job.tags||[]).join(', ')||'vos compétences'}</em>.</p>
+          <ul><li><strong>Localisation</strong> : ${job.location||'—'}</li><li><strong>Publication</strong> : ${job.posted||'—'}</li><li><strong>Type</strong> : Alternance</li></ul>
+        </section>
+        <div class="d-cta-row">
+          <button class="d-btn" id="dShareBtn">Partager</button>
+          <a class="d-btn" id="dViewBtn" href="${job.url}" target="_blank" rel="noopener">Voir l'offre complète</a>
+        </div>
+      </article>
+    `;
+    document.getElementById('dFavBtn')?.addEventListener('click', ()=>{
+      const set=getFavs(); const on = document.getElementById('dFavBtn').getAttribute('data-on')==='1';
+      if(on){ set.delete(job.id); document.getElementById('dFavBtn').setAttribute('data-on','0'); document.getElementById('dFavBtn').style.background='#fff'; }
+      else { set.add(job.id); document.getElementById('dFavBtn').setAttribute('data-on','1'); document.getElementById('dFavBtn').style.background='rgba(239,68,68,.08)'; }
+      saveFavs(set); render();
+    
+      ensureLoadMoreButton();});
+    document.getElementById('dShareBtn')?.addEventListener('click', async ()=>{
+      const data = { title: `${job.title} — ${job.company}`, text: 'Belle alternance à découvrir.', url: job.url };
+      try{ if(navigator.share) await navigator.share(data); else { await navigator.clipboard.writeText(`${job.title} — ${job.url}`); showToast('Lien copié'); } } catch(_){}
+    });
+    document.getElementById('dCloseBtn')?.addEventListener('click', ()=> document.getElementById('details').classList.remove('open'));
+    document.getElementById('dApplyTop')?.addEventListener('click', (e)=>{ e.stopPropagation(); });
+    document.getElementById('details').classList.add('open');
+    currentJobId = job.id;
+  }
+
+  function selectCard(job, el){ if(activeCardEl) activeCardEl.classList.remove('active'); activeCardEl = el; el.classList.add('active'); openDetails(job); }
+
+  function card(job){
+    const a=document.createElement('article'); a.className='card';
+    const logo=logoNode(job.logoDomain,job.company,monogram(job.company),job.logoUrl);
+    const meta=Object.assign(document.createElement('div'),{className:'meta'});
+    const h3=Object.assign(document.createElement('h3'),{textContent:job.title});
+    const sub=Object.assign(document.createElement('div'),{className:'sub'});
+    sub.innerHTML = [`<strong>${job.company}</strong>`, job.location, job.posted].filter(Boolean).join(' · ');
+    const tags=Object.assign(document.createElement('div'),{className:'tags'});
+    (job.tags||[]).forEach(t=>{ const s=document.createElement('span'); s.className='chip'; s.textContent=t; tags.appendChild(s); });
+    meta.append(h3,sub,tags);
+
+    const cta=Object.assign(document.createElement('div'),{className:'cta'});
+    const favs=getFavs(); const isFav=favs.has(job.id);
+    const like=document.createElement('button'); like.className='btn heart'+(isFav?' saved':''); like.setAttribute('aria-pressed', String(isFav)); like.innerHTML=heartSVG(); like.title='Ajouter aux favoris';
+    like.onclick=(e)=>{ e.stopPropagation(); const set=getFavs(); const now=!set.has(job.id); if(now) set.add(job.id); else set.delete(job.id); saveFavs(set); like.classList.toggle('saved', now); like.setAttribute('aria-pressed', String(now)); render(); 
+      ensureLoadMoreButton();};
+    const apply=Object.assign(document.createElement('button'),{className:'btn primary',innerHTML:'Postuler'});
+    apply.onclick=e=>{ e.stopPropagation(); window.open(job.url,'_blank','noopener,noreferrer'); };
+
+    a.onclick=()=>selectCard(job,a);
+    cta.append(like,apply);
+    a.append(logo,meta,cta);
+    if(job.id===currentJobId) a.classList.add('active');
+    return a;
+  }
+
+  function buildShowcase(itemsForWeek){
+    if(!itemsForWeek||!itemsForWeek.length) return null;
+    const counts=itemsForWeek.reduce((m,j)=>{m[j.company]=(m[j.company]||0)+1; return m;},{});
+    let companies=Object.entries(counts).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).map(x=>({name:x[0],count:x[1]}));
+    companies=companies.slice(0,4);
+    const wrap=document.createElement('div'); wrap.className='showcase';
+    const h=document.createElement('h5'); h.textContent='Ils recrutent cette semaine'; wrap.appendChild(h);
+    const grid=document.createElement('div'); grid.className='tiles'; wrap.appendChild(grid);
+    companies.forEach(c=>{
+      const outer=document.createElement('div'); outer.className='tile-wrap';
+      const tile=document.createElement('div'); tile.className='tile';
+      const sbg=document.createElement('span'); sbg.className='sector';
+      const brandHex=COMPANY_BRAND[c.name];
+      if(brandHex){ sbg.style.setProperty('--base', lighten(brandHex,0.88)); sbg.style.setProperty('--grid', rgba(brandHex,0.18)); }
+      else { const sector=COMPANY_SECTOR[c.name]||'default'; const cols=SECTOR_COLORS[sector]||SECTOR_COLORS.default; sbg.style.setProperty('--base', cols.base); sbg.style.setProperty('--grid', cols.grid); }
+      const box=document.createElement('div'); box.className='logo-box';
+      const domain=COMPANY_DOMAINS[c.name]||null;
+      const LOCAL_LOGOS_REF = (typeof LOCAL_LOGOS!=='undefined') ? LOCAL_LOGOS[c.name] : null;
+      const useCdn=!PREFER_LOCAL_LOGOS && !LOCAL_LOGOS_REF;
+      const img=document.createElement('img'); img.src= LOCAL_LOGOS_REF || (useCdn && domain?logoURL(domain):null) || GENERIC_LOGO; img.alt=c.name; img.loading='lazy'; img.referrerPolicy='no-referrer';
+    img.decoding='async';
+      box.appendChild(img);
+      const name=document.createElement('div'); name.className='co-name'; name.textContent=c.name;
+      const sub=document.createElement('div'); sub.className='co-sub'; sub.textContent=(c.count||1)+((c.count||1)>1?' offres':' offre');
+      tile.append(sbg,box,name,sub); outer.appendChild(tile); grid.appendChild(outer);
+    });
+    return wrap;
+  }
+
+  const ORDER=['today','week','recent','other'];
+  const LABEL={today:'Aujourd’hui',week:'Cette semaine',recent:'Récents',other:'Plus anciens'};
+  function bucket(p){ const v=(p||'').toLowerCase(); if(v.includes('jourd')) return 'today'; if(v.includes('semaine')) return 'week'; if(v.includes('récent')||v.includes('recent')||v.includes('nouveau')) return 'recent'; return 'other'; }
+
+  function setStats(visibleCount){
+    const favsCount = getFavs().size;
+    const elOff = document.getElementById('statOffers'); const elFav = document.getElementById('statFav');
+    if(elOff) elOff.textContent = `${visibleCount} offre${visibleCount>1?'s':''} visibles`;
+    if(elFav) elFav.textContent = `${favsCount} favori${favsCount>1?'s':''}`;
+  }
+
+  function render(){
+    const wrap=document.getElementById('groups'); wrap.innerHTML='';
+    const q1=state.qTitle.trim().toLowerCase();
+    const qCity=state.qCity.trim().toLowerCase();
+    const favs=getFavs();
+    let items=JOBS.filter(j=>{
+      if(state.view==='fav'&&!favs.has(j.id)) return false;
+      if(q1){ const hay=[j.title,j.company,j.location,(j.tags||[]).join(' ')].join(' ').toLowerCase(); if(!hay.includes(q1)) return false; }
+      if(qCity){ if(!(j.location||'').toLowerCase().includes(qCity)) return false; }
+      return true;
+    });
+
+    setStats(Math.min(items.length, TOTAL || items.length));
+    if(items.length===0){
+      wrap.innerHTML='<div class="g-title">Aucun résultat</div>';
+      document.getElementById('details').innerHTML = '<div class="placeholder"><div><strong>Aucun poste</strong><br>Modifiez vos filtres pour voir des offres ici.</div></div>';
+      return;
+    }
+
+    const groups=items.reduce((acc,j)=>{ const k=bucket(j.posted); (acc[k]||(acc[k]=[])).push(j); return acc; },{});
+    ORDER.forEach(k=>{
+      const arr=groups[k]; if(!arr||!arr.length) return;
+      const sec=document.createElement('section'); sec.className='group';
+      const t=document.createElement('div'); t.className='g-title'; t.textContent=LABEL[k]+(k==='recent'?' (≤ 30 jours)':'');
+      const list=document.createElement('div'); list.className='list';
+      if(k==='week'){
+        arr.forEach((j,idx)=>{
+          if(idx===3){ const sc=buildShowcase(arr); if(sc) list.appendChild(sc); }
+          list.appendChild(card(j));
+        });
+      } else {
+        arr.forEach(j=>list.appendChild(card(j)));
+      }
+      sec.append(t,list); wrap.appendChild(sec);
+    });
+
+    // Auto-sélection desktop
+    if(!currentJobId && matchMedia('(min-width:760px)').matches){
+      const first = items[0]; if(first) { currentJobId = first.id; openDetails(first); const firstCard = wrap.querySelector('.card'); if(firstCard){ if(activeCardEl) activeCardEl.classList.remove('active'); firstCard.classList.add('active'); activeCardEl=firstCard; } }
+    } else {
+      if(currentJobId && !items.some(j=>j.id===currentJobId)){
+        currentJobId=null; document.getElementById('details').innerHTML='<div class="placeholder"><div><strong>Aucun poste sélectionné</strong><br>Cliquez sur une offre pour voir les détails ici.</div></div>';
+      }
+    }
+  }
+
+  /* ========================= Auth DEMO (inchangé) ========================== */
+  const USERS_KEY='af_users_v1';
+  const CUR_KEY='af_current_user';
+  function loadUsers(){ try{return JSON.parse(localStorage.getItem(USERS_KEY)||'{}');}catch(_){return {}} }
+  function saveUsers(o){ localStorage.setItem(USERS_KEY, JSON.stringify(o)); }
+  function getCurrent(){ return localStorage.getItem(CUR_KEY); }
+  function setCurrent(email){ if(email) localStorage.setItem(CUR_KEY,email); else localStorage.removeItem(CUR_KEY); }
+  const profileKey=(email)=>`af_profile__${email}`;
+  function loadProfile(email){ try{return JSON.parse(localStorage.getItem(profileKey(email))||'{}');}catch(_){return {}} }
+  function saveProfileLS(email,data){ localStorage.setItem(profileKey(email), JSON.stringify(data)); }
+  function showModal(id){ const el=document.getElementById(id.startsWith('#')?id.slice(1):id); if(!el) return; el.style.display='grid'; }
+  function hideModal(id){ const el=document.getElementById(id.startsWith('#')?id.slice(1):id); if(!el) return; el.style.display='none'; }
+  function refreshAuthUI(){ const email=getCurrent(); const logged=!!email; document.getElementById('btnLogin').style.display = logged?'none':''; document.getElementById('btnSignup').style.display = logged?'none':''; document.getElementById('btnProfile').style.display = logged?'':'none'; document.getElementById('btnLogout').style.display = logged?'':'none'; const hello=document.getElementById('helloUser'); if(logged){ hello.style.display='inline-block'; hello.textContent='Bonjour ' + (email.split('@')[0] || ''); } else { hello.style.display='none'; hello.textContent='—'; } }
+  function fillProfileForm(){ const email=getCurrent(); if(!email) return; const p=loadProfile(email); document.getElementById('profCity').value = p.city || ''; document.getElementById('profRadius').value = typeof p.radius==='number'? p.radius : 20; document.getElementById('profContract').value = p.contract || ''; document.getElementById('profRhythm').value = p.rhythm || ''; document.getElementById('profRemote').checked = !!p.remote; document.getElementById('profKeywords').value = p.keywords || ''; renderAlertSuggestions(); }
+  function renderAlertSuggestions(){ const box=document.getElementById('alertSuggestions'); if(!box) return; box.innerHTML=''; const kw = (document.getElementById('profKeywords').value||'').toLowerCase(); const base = ['data analyst', 'frontend', 'marketing digital', 'product', 'ui/ux', 'ops']; const extra = kw? kw.split(/[\,\s]+/).filter(Boolean).slice(0,6) : []; const uniq = Array.from(new Set([...extra, ...base])).slice(0,10); uniq.forEach(w=>{ const b=document.createElement('button'); b.className='profile-chip'; b.type='button'; b.textContent=w; b.onclick=()=>{ const cur=document.getElementById('profKeywords').value.trim(); const list=new Set(cur?cur.split(',').map(s=>s.trim()).filter(Boolean):[]); list.add(w); document.getElementById('profKeywords').value=Array.from(list).join(', '); }; box.appendChild(b); }); }
+
+  /* ========================= Boot & events ========================== */
+  window.addEventListener('DOMContentLoaded',()=>{
+    document.getElementById('qTitle').value = (state.qTitle||'');
+    document.getElementById('qCity').value = (state.qCity||'');
+    // Logos/hero restore
+    const logoTop=document.getElementById('brandLogoTop'); const savedLogo=localStorage.getItem('brand_logo_src'); logoTop.src=savedLogo||DEFAULT_BRAND;
+    const hero=document.getElementById('heroIllo'); const savedIllo=localStorage.getItem('hero_illo_src') || sessionStorage.getItem('hero_illo_src_session'); hero.src=savedIllo||HERO_DEFAULT;
+
+    // Upload pickers
+    document.getElementById('pickLogo')?.addEventListener('click',()=>document.getElementById('logoInput').click());
+    document.getElementById('logoInput')?.addEventListener('change',(e)=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=ev=>{ const src=ev.target.result; if(!setLocalSafe('brand_logo_src',src)) showToast("Logo trop lourd: non sauvegardé"); document.getElementById('brandLogoTop').src=src; }; r.readAsDataURL(f); });
+    document.getElementById('pickIllo')?.addEventListener('click',()=>document.getElementById('illoInput').click());
+    document.getElementById('illoInput')?.addEventListener('change', async (e)=>{ const f=e.target.files[0]; if(!f) return; try{ const presets=[[1200,700,0.8],[1000,600,0.72],[800,520,0.65],[640,420,0.6],[480,320,0.55]]; /* compression */ }catch(err){ console.error('Image processing failed', err); showToast("Erreur lors du traitement de l'image"); } });
+
+    // Recherche (tap pour filtrer local, bouton pour relancer la requête serveur)
+    document.getElementById('qTitle').addEventListener('input',e=>{ state.qTitle=e.target.value; render(); 
+      ensureLoadMoreButton();});
+    document.getElementById('qCity').addEventListener('input',e=>{ state.qCity=e.target.value; render(); 
+      ensureLoadMoreButton();});
+    document.getElementById('doSearch').addEventListener('click',()=>{
+      state.qTitle=document.getElementById('qTitle').value;
+      state.qCity=document.getElementById('qCity').value;
+      resetAndSearch();
+      document.getElementById('groups').scrollIntoView({behavior:'smooth',block:'start'});
+    });
+
+    // Tabs
+    document.getElementById('tabAll').addEventListener('click',()=>{ state.view='all'; document.getElementById('tabAll').classList.add('active'); document.getElementById('tabFav').classList.remove('active'); render(); 
+      ensureLoadMoreButton();});
+    document.getElementById('tabFav').addEventListener('click',()=>{ state.view='fav'; document.getElementById('tabFav').classList.add('active'); document.getElementById('tabAll').classList.remove('active'); render(); 
+      ensureLoadMoreButton();});
+
+    // Promo close
+    document.getElementById('promoClose').addEventListener('click',()=>{ document.getElementById('promo').style.display='none'; });
+
+    // Cookies
+    const cookiePref = localStorage.getItem('cookie_pref'); if(!cookiePref){ document.getElementById('cookieBar').style.display='flex'; }
+    document.getElementById('cookieAccept').addEventListener('click',()=>{ localStorage.setItem('cookie_pref','all'); document.getElementById('cookieBar').style.display='none'; });
+    document.getElementById('cookieReject').addEventListener('click',()=>{ localStorage.setItem('cookie_pref','none'); document.getElementById('cookieBar').style.display='none'; });
+
+    // Auth buttons
+    document.getElementById('btnLogin').addEventListener('click',()=>showModal('authLogin'));
+    document.getElementById('btnSignup').addEventListener('click',()=>showModal('authSignup'));
+    document.getElementById('cancelLogin').addEventListener('click',()=>hideModal('authLogin'));
+    document.getElementById('cancelSignup').addEventListener('click',()=>hideModal('authSignup'));
+
+    // Signup handler - using event delegation
+    document.addEventListener('click', (e)=>{
+      if(e.target && e.target.id === 'doSignup'){
+        e.preventDefault();
+        console.log('Signup clicked');
+        const email=document.getElementById('signEmail')?.value.trim();
+        const pass=document.getElementById('signPass')?.value;
+        const msg=document.getElementById('signupMsg');
+        if(!email||!pass){ if(msg){msg.textContent='Email et mot de passe requis'; msg.style.color='#c33';} return; }
+        if(pass.length<6){ if(msg){msg.textContent='Mot de passe trop court (min 6 caractères)'; msg.style.color='#c33';} return; }
+        const users=loadUsers();
+        if(users[email]){ if(msg){msg.textContent='Cet email existe déjà'; msg.style.color='#c33';} return; }
+        users[email]={password:pass,created:new Date().toISOString()};
+        saveUsers(users); setCurrent(email);
+        hideModal('authSignup'); refreshAuthUI();
+        showToast('Compte créé avec succès !');
+        const emailEl=document.getElementById('signEmail'); const passEl=document.getElementById('signPass');
+        if(emailEl)emailEl.value=''; if(passEl)passEl.value='';
+      }
+
+      // Login handler
+      if(e.target && e.target.id === 'doLogin'){
+        e.preventDefault();
+        console.log('Login clicked');
+        const email=document.getElementById('loginEmail')?.value.trim();
+        const pass=document.getElementById('loginPass')?.value;
+        const msg=document.getElementById('loginMsg');
+        if(!email||!pass){ if(msg){msg.textContent='Email et mot de passe requis'; msg.style.color='#c33';} return; }
+        const users=loadUsers();
+        if(!users[email]||users[email].password!==pass){ if(msg){msg.textContent='Email ou mot de passe incorrect'; msg.style.color='#c33';} return; }
+        setCurrent(email); hideModal('authLogin'); refreshAuthUI();
+        showToast('Connexion réussie !');
+        const emailEl=document.getElementById('loginEmail'); const passEl=document.getElementById('loginPass');
+        if(emailEl)emailEl.value=''; if(passEl)passEl.value='';
+      }
+
+      // Logout handler
+      if(e.target && e.target.id === 'btnLogout'){
+        e.preventDefault();
+        setCurrent(null); refreshAuthUI(); showToast('Déconnexion réussie');
+      }
+    });
+
+    // Support Enter key in login/signup forms
+    document.addEventListener('keypress', (e)=>{
+      if(e.key==='Enter' && e.target && e.target.id === 'signPass'){
+        e.preventDefault();
+        document.getElementById('doSignup')?.click();
+      }
+      if(e.key==='Enter' && e.target && e.target.id === 'loginPass'){
+        e.preventDefault();
+        document.getElementById('doLogin')?.click();
+      }
+    });
+
+    // Profile open/save
+    document.getElementById('btnProfile').addEventListener('click', ()=>{ const email=getCurrent(); if(!email){ showToast('Veuillez vous connecter'); return; } fillProfileForm(); document.getElementById('profilePanel').style.display='block'; });
+    document.getElementById('closeProfile').addEventListener('click', ()=>{ document.getElementById('profilePanel').style.display='none'; });
+    document.getElementById('saveProfile').addEventListener('click', ()=>{ const email=getCurrent(); if(!email) return; const data={ city: document.getElementById('profCity').value.trim(), radius: Number(document.getElementById('profRadius').value||20), contract: document.getElementById('profContract').value, rhythm: document.getElementById('profRhythm').value, remote: document.getElementById('profRemote').checked, keywords: document.getElementById('profKeywords').value.trim() }; localStorage.setItem(`af_profile__${email}`, JSON.stringify(data)); showToast('Profil enregistré ✅'); });
+
+    // Setup "Voir plus" + 1er chargement
+    ensureLoadMoreButton();
+    resetAndSearch(); // charge 10 annonces initiales
+    refreshAuthUI();
+  });
+
+  // Modales: close on ESC/backdrop
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ document.querySelectorAll('.auth-modal').forEach(m=>m.style.display='none'); document.getElementById('profilePanel').style.display='none'; document.getElementById('details').classList.remove('open'); } });
+  window.addEventListener('load', ()=>{ document.querySelectorAll('.auth-modal').forEach(m=> m.style.display = 'none'); const pd = document.getElementById('profilePanel'); if(pd) pd.style.display = 'none'; });
+  </script>
+
+  <script>
+  /* ===== Bandeau “Nouvelles annonces dans 12h” (facultatif) ===== */
+  (function initNextDrop(){
+    const el = document.getElementById('nextDrop'); if(!el) return;
+    const ndETA = document.getElementById('ndETA');
+    const ndDigit = document.getElementById('ndDigit');
+    const ndSub = document.getElementById('ndSub');
+    const ndChips = document.getElementById('ndChips');
+    const ndPill = document.getElementById('ndPill');
+    const ndRefresh = document.getElementById('ndRefresh');
+    const prog = document.querySelector('.clock .prog');
+    const R = 20, C = 2*Math.PI*R;
+    let eta = null, lastUpdated=null, timer=null;
+
+    const fmtETA = (ms)=>{ const t=Math.max(0,ms); const m=Math.floor(t/60000), h=Math.floor(m/60); return `${h}h ${String(m%60).padStart(2,'0')}`; };
+    const fmtDigit = (ms)=>{ const t=Math.max(0,ms); const s=Math.floor(t/1000); const m=String(Math.floor((s/60)%60)).padStart(2,'0'); const h=String(Math.floor(s/3600)).padStart(2,'0'); return `${h}:${m}`; };
+    function setProgress(){ if(!prog || !eta || !lastUpdated){ if(prog) prog.style.strokeDasharray = `0 ${C}`; return; } const span=eta-lastUpdated; const elapsed=Math.max(0,Math.min(span,Date.now()-lastUpdated)); const p= span ? (elapsed/span) : 0; const dash=Math.max(0,Math.min(C,C*p)); prog.style.strokeDasharray = `${dash} ${C}`; }
+    function tick(){ const remain = eta ? eta - Date.now() : 0; ndETA.textContent = fmtETA(remain); ndDigit.textContent = fmtDigit(remain); setProgress(); if(remain<=0){ clearInterval(timer); onETA(); } }
+
+    async function fetchMeta(){ try{ const r = await fetch('/api/jobs?limit=1&offset=0'); const j = await r.json(); if(j && j.updated_at){ lastUpdated = new Date(j.updated_at).getTime(); eta = lastUpdated + 12*60*60*1000; el.hidden = false; el.classList.remove('late','good'); ndPill.textContent = 'Suivi auto'; tick(); clearInterval(timer); timer = setInterval(tick, 1000);
+      } else { el.hidden = true; }
+    }catch(e){ el.hidden = true; }
+    }
+
+    async function onETA(){
+      try{ const r = await fetch('/api/jobs?limit=1&offset=0'); const j = await r.json();
+        if(j && j.has_new_for_profile){ el.classList.add('good'); ndSub.textContent = 'Nouvelles offres disponibles !'; ndPill.textContent = 'Nouvelles en ligne'; }
+        else { el.classList.add('late'); ndSub.textContent = 'On surveille 💡 — active les alertes'; ndPill.textContent = 'Surveillance'; }
+      }catch{}
+    }
+
+    ndRefresh?.addEventListener('click', fetchMeta);
+    fetchMeta();
+  })();
+  </script>
+
+    <script src="override.js" defer></script>
 </body>
 </html>
