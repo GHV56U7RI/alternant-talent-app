@@ -2,6 +2,5 @@ User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /students/
-Disallow: /beta-login
 
-Sitemap: https://votre-domaine.com/sitemap.xml
+Sitemap: https://www.alternant-talent.com/sitemap.xml
