@@ -21,7 +21,6 @@ build/
 
 # Wrangler
 .wrangler/
-wrangler.toml
 .wrangler.pid
 
 # Logs
@@ -54,3 +53,39 @@ Thumbs.db
 
 # Credentials
 credentials.json
+
+# Development/testing files
+src/
+scripts/
+tools/
+data/
+proxy-ft/
+workers/
+
+# Patch and repair scripts
+patch-*.cjs
+patch-*.mjs
+patch-*.js
+repair-*.cjs
+fix-*.cjs
+
+# Test files
+test-*.mjs
+test-*.js
+test-*.sh
+
+# Shell scripts
+*.sh
+!ci.yml
+
+# Large sample files
+*-sample.json
+*-response-*.json
+
+# Build artifacts
+index.html
+dist/
+
+# Documentation (kept in repo root only)
+*_SUMMARY.md
+*_COMPLETE.md
