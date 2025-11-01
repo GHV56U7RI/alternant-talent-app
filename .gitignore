@@ -55,7 +55,6 @@ Thumbs.db
 credentials.json
 
 # Development/testing files
-src/
 scripts/
 tools/
 data/
