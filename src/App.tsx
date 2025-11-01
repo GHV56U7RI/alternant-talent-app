@@ -919,6 +919,12 @@ export default function App() {
                     <div className="date-inline mb-1">
                       <Calendar className="w-3.5 h-3.5" />
                       <span className="date-strong">{job.posted}</span>
+                      {job.publishedAt && (
+                        <>
+                          <span>·</span>
+                          <span className="date-normal">{fmtDate(job.publishedAt)}</span>
+                        </>
+                      )}
                     </div>
                     <div className="date-hr" />
 
@@ -946,7 +952,16 @@ export default function App() {
           <aside className="detail-col" ref={detailRef}>
           <div className="card overflow-hidden detail-sticky">
             <div className="p-5 space-y-3" style={{display:'flex', flexDirection:'column', flex:1}}>
-              <div className="date-inline"><Calendar className="w-3.5 h-3.5"/> <span className="date-strong">{selectedJob.posted}</span></div>
+              <div className="date-inline">
+                <Calendar className="w-3.5 h-3.5"/>
+                <span className="date-strong">{selectedJob.posted}</span>
+                {selectedJob.publishedAt && (
+                  <>
+                    <span>·</span>
+                    <span className="date-normal">{fmtDate(selectedJob.publishedAt)}</span>
+                  </>
+                )}
+              </div>
               <div className="flex items-start gap-3">
                 <SquareDotLogo name={selectedJob.company} size={40} />
                 <div className="flex-1">

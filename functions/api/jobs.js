@@ -412,6 +412,7 @@ async function fetchJobsFromDB({ q, location, limit, offset, world, env }) {
 
   const rs = await env.DB.prepare(
     `SELECT id,title,company,location,tags,url,source,posted,logo_domain,logo_url,
+            COALESCE(created_at, posted_at) as publishedAt,
             COALESCE(created_at, posted_at, posted) as sort_date
      FROM jobs
      ${where}
