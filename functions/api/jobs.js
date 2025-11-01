@@ -66,8 +66,11 @@ export async function onRequest({ request, env }) {
     cacheStatus = await checkCacheStatus(env);
     hasData = cacheStatus.lastUpdate !== null;
 
+    console.log('Cache status:', { hasData, lastUpdate: cacheStatus.lastUpdate, forceRefresh });
+
     // 2. Si DB non initialisée ou pas de données, charger seed.json
     if (!hasData && !forceRefresh) {
+      console.log('Chargement de seed.json car base vide');
       const seedUrl = new URL('/data/seed.json', request.url);
       const seedResponse = await fetch(seedUrl.toString());
       const seedData = await seedResponse.json();
