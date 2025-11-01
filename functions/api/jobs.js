@@ -130,11 +130,15 @@ export async function onRequest({ request, env }) {
 async function checkCacheStatus(env) {
   try {
     const result = await env.DB.prepare(
-      `SELECT MAX(created_at) as last_update FROM jobs WHERE source IN ('adzuna', 'lba', 'jooble', 'francetravail', 'direct-careers')`
+      `SELECT MAX(COALESCE(created_at, posted_at, posted)) as last_update, COUNT(*) as job_count
+       FROM jobs
+       WHERE source IN ('adzuna', 'lba', 'jooble', 'francetravail', 'direct-careers', 'ats-feeds')`
     ).first();
 
-    if (!result || !result.last_update) {
-      return { isRecent: false, lastUpdate: null };
+    console.log('checkCacheStatus result:', result);
+
+    if (!result || !result.last_update || result.job_count === 0) {
+      return { isRecent: false, lastUpdate: null, jobCount: result?.job_count || 0 };
     }
 
     const lastUpdate = new Date(result.last_update);
@@ -143,11 +147,12 @@ async function checkCacheStatus(env) {
 
     return {
       isRecent: diffMinutes < 720, // Cache valide pendant 12 heures
-      lastUpdate: result.last_update
+      lastUpdate: result.last_update,
+      jobCount: result.job_count
     };
   } catch (error) {
     console.error('Erreur checkCacheStatus:', error);
-    return { isRecent: false, lastUpdate: null };
+    return { isRecent: false, lastUpdate: null, jobCount: 0 };
   }
 }
 
