@@ -1,67 +1,89 @@
 /**
- * Indeed Job Scraper
- * Note: Indeed n'a pas d'API publique officielle
- * Cette implémentation utilise le RSS feed public d'Indeed
+ * Indeed Job Fetcher
+ * Utilise l'API Indeed Publisher (nécessite Publisher ID)
+ * Documentation: https://docs.indeed.com/publisher-api/
+ * Note: API limitée aux offres organiques, pas de scraping
  */
 
 export async function fetchIndeedJobs({ query = 'alternance', location = 'France', limit = 100, env }) {
   const jobs = [];
 
+  // Vérifier si le Publisher ID est configuré
+  const publisherId = env?.INDEED_PUBLISHER_ID;
+  if (!publisherId) {
+    console.warn('⚠️ INDEED_PUBLISHER_ID non configuré - skipping Indeed');
+    return jobs;
+  }
+
   try {
-    // Indeed RSS Feed - disponible publiquement
-    // Format: https://fr.indeed.com/rss?q=alternance&l=Paris
+    // Indeed Publisher API - recherche par ville
+    // Documentation: https://docs.indeed.com/api/job-search/job-search-api/
     const cities = [
       'Paris', 'Lyon', 'Marseille', 'Toulouse', 'Bordeaux',
       'Nantes', 'Nice', 'Lille', 'Rennes', 'Strasbourg'
     ];
 
-    const searchQueries = ['alternance', 'apprentissage'];
+    const searchTerms = ['alternance', 'apprentissage', 'contrat apprentissage'];
 
-    for (const city of cities.slice(0, Math.ceil(limit / 20))) {
-      for (const searchQuery of searchQueries) {
+    for (const city of cities.slice(0, Math.ceil(limit / 30))) {
+      for (const searchTerm of searchTerms) {
         try {
-          const rssUrl = `https://fr.indeed.com/rss?q=${encodeURIComponent(searchQuery)}&l=${encodeURIComponent(city)}&limit=50&sort=date`;
+          if (jobs.length >= limit) break;
 
-          console.log(`Fetching Indeed RSS: ${rssUrl}`);
+          // Indeed Publisher API endpoint
+          const apiUrl = new URL('https://api.indeed.com/ads/apisearch');
+          apiUrl.searchParams.set('publisher', publisherId);
+          apiUrl.searchParams.set('q', searchTerm);
+          apiUrl.searchParams.set('l', city);
+          apiUrl.searchParams.set('co', 'fr');
+          apiUrl.searchParams.set('format', 'json');
+          apiUrl.searchParams.set('v', '2');
+          apiUrl.searchParams.set('limit', '25');
+          apiUrl.searchParams.set('sort', 'date');
 
-          const response = await fetch(rssUrl, {
+          console.log(`Fetching Indeed API: ${city} - ${searchTerm}`);
+
+          const response = await fetch(apiUrl.toString(), {
             headers: {
-              'User-Agent': 'Mozilla/5.0 (compatible; AlternantTalentBot/1.0)',
-              'Accept': 'application/rss+xml, application/xml, text/xml'
+              'User-Agent': 'AlternantTalent/1.0',
+              'Accept': 'application/json'
             }
           });
 
           if (!response.ok) {
-            console.error(`Indeed RSS error for ${city}: ${response.status}`);
+            console.error(`Indeed API error for ${city}: ${response.status}`);
+            await sleep(1000);
             continue;
           }
 
-          const xmlText = await response.text();
+          const data = await response.json();
 
-          // Parser simple pour RSS/XML
-          const items = parseIndeedRSS(xmlText);
+          if (data.results && Array.isArray(data.results)) {
+            for (const result of data.results) {
+              if (jobs.length >= limit) break;
 
-          for (const item of items) {
-            if (jobs.length >= limit) break;
+              const jobId = `indeed-${result.jobkey}`;
 
-            const jobId = `indeed-${generateIdFromUrl(item.link)}`;
+              // Éviter les doublons
+              if (jobs.some(j => j.id === jobId)) continue;
 
-            jobs.push({
-              id: jobId,
-              title: cleanText(item.title),
-              company: extractCompany(item.title, item.description) || 'Entreprise confidentielle',
-              location: item.location || city,
-              posted: 'Récemment',
-              url: item.link,
-              source: 'indeed',
-              tags: ['alternance'],
-              logo_domain: extractDomain(item.link),
-              logo_url: null
-            });
+              jobs.push({
+                id: jobId,
+                title: cleanText(result.jobtitle),
+                company: cleanText(result.company) || 'Entreprise confidentielle',
+                location: cleanText(result.formattedLocation || result.city || city),
+                posted: formatIndeedDate(result.date),
+                url: result.url,
+                source: 'indeed',
+                tags: ['alternance'],
+                logo_domain: 'indeed.fr',
+                logo_url: null
+              });
+            }
           }
 
-          // Rate limiting
-          await sleep(500);
+          // Rate limiting - Indeed limite les requêtes
+          await sleep(1000);
 
         } catch (error) {
           console.error(`Error fetching Indeed for ${city}:`, error.message);
@@ -78,7 +100,26 @@ export async function fetchIndeedJobs({ query = 'alternance', location = 'France
   }
 }
 
-// Parser simple pour RSS Indeed
+// Formater la date Indeed (format: "Wed, 01 Nov 2025")
+function formatIndeedDate(dateString) {
+  if (!dateString) return 'Récemment';
+
+  try {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return "Aujourd'hui";
+    if (diffDays === 1) return 'Hier';
+    if (diffDays < 7) return `Il y a ${diffDays} jours`;
+    if (diffDays < 30) return `Il y a ${Math.floor(diffDays / 7)} semaines`;
+    return 'Récemment';
+  } catch {
+    return 'Récemment';
+  }
+}
+
+// Parser simple pour RSS Indeed (legacy)
 function parseIndeedRSS(xmlText) {
   const items = [];
 

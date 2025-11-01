@@ -6,6 +6,8 @@ import { fetchDirectCareersJobs } from '../../sources/direct-careers.js';
 import { fetchATSJobs } from '../../sources/ats-feeds.js';
 import { fetchIndeedJobs } from '../../sources/indeed.js';
 import { fetchWTTJJobs } from '../../sources/welcometothejungle.js';
+import { fetchHelloWorkJobs } from '../../sources/hellowork.js';
+import { fetchLinkedInJobs } from '../../sources/linkedin.js';
 
 const like = (q="") => `%${q}%`;
 const isTrue = v => v === '1' || v === 'true';
@@ -134,7 +136,7 @@ async function checkCacheStatus(env) {
     const result = await env.DB.prepare(
       `SELECT MAX(COALESCE(created_at, posted_at, posted)) as last_update, COUNT(*) as job_count
        FROM jobs
-       WHERE source IN ('adzuna', 'lba', 'jooble', 'francetravail', 'direct-careers', 'ats-feeds', 'indeed', 'welcometothejungle')`
+       WHERE source IN ('adzuna', 'lba', 'jooble', 'francetravail', 'direct-careers', 'ats-feeds', 'indeed', 'welcometothejungle', 'hellowork', 'linkedin')`
     ).first();
 
     console.log('checkCacheStatus result:', result);
@@ -263,18 +265,46 @@ async function refreshJobsFromAPIs(env) {
       console.error('Erreur Indeed:', error);
     }
 
-    // Welcome to the Jungle - Via API GraphQL
+    // Welcome to the Jungle - Via API Welcomekit
     try {
       const wttjJobs = await fetchWTTJJobs({
         query: 'alternance',
         location: 'France',
-        limit: 200, // GraphQL API
+        limit: 200, // Welcomekit API (nécessite clé API)
         env
       });
       allJobs.push(...wttjJobs);
       console.log(`Welcome to the Jungle: ${wttjJobs.length} jobs`);
     } catch (error) {
       console.error('Erreur Welcome to the Jungle:', error);
+    }
+
+    // HelloWork - Via API publique
+    try {
+      const helloworkJobs = await fetchHelloWorkJobs({
+        query: 'alternance',
+        location: 'France',
+        limit: 200, // 10 régions françaises
+        env
+      });
+      allJobs.push(...helloworkJobs);
+      console.log(`HelloWork: ${helloworkJobs.length} jobs`);
+    } catch (error) {
+      console.error('Erreur HelloWork:', error);
+    }
+
+    // LinkedIn - Via RapidAPI
+    try {
+      const linkedinJobs = await fetchLinkedInJobs({
+        query: 'alternance',
+        location: 'France',
+        limit: 100, // RapidAPI (nécessite clé API)
+        env
+      });
+      allJobs.push(...linkedinJobs);
+      console.log(`LinkedIn: ${linkedinJobs.length} jobs`);
+    } catch (error) {
+      console.error('Erreur LinkedIn:', error);
     }
 
     console.log(`Total jobs récupérés: ${allJobs.length}`);
@@ -288,7 +318,7 @@ async function refreshJobsFromAPIs(env) {
 
     // Supprimer les anciens jobs API (garder seulement seed)
     await env.DB.prepare(
-      `DELETE FROM jobs WHERE source IN ('adzuna', 'lba', 'jooble', 'francetravail', 'direct-careers', 'ats-feeds', 'indeed', 'welcometothejungle')`
+      `DELETE FROM jobs WHERE source IN ('adzuna', 'lba', 'jooble', 'francetravail', 'direct-careers', 'ats-feeds', 'indeed', 'welcometothejungle', 'hellowork', 'linkedin')`
     ).run();
 
     // Préparer tous les statements pour le batch
@@ -348,7 +378,7 @@ async function cleanExpiredJobs(env) {
   try {
     const result = await env.DB.prepare(`
       DELETE FROM jobs
-      WHERE source IN ('adzuna', 'lba', 'jooble', 'francetravail', 'indeed', 'welcometothejungle')
+      WHERE source IN ('adzuna', 'lba', 'jooble', 'francetravail', 'indeed', 'welcometothejungle', 'hellowork', 'linkedin')
       AND created_at < datetime('now', '-10 months')
     `).run();
 
