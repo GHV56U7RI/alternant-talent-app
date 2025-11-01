@@ -346,7 +346,7 @@ async function fetchJobsFromDB({ q, location, limit, offset, world, env }) {
     `SELECT id,title,company,location,tags,url,source,posted,logo_domain,logo_url
      FROM jobs
      ${where}
-     ORDER BY created_at DESC
+     ORDER BY COALESCE(created_at, posted_at, posted) DESC
      LIMIT ? OFFSET ?`
   ).bind(...params, limit, offset).all();
 
