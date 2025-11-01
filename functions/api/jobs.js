@@ -430,6 +430,7 @@ async function fetchJobsFromDB({ q, location, limit, offset, world, env }) {
 
   return (rs.results || []).map(r => ({
     ...r,
+    posted: r.posted || 'Récemment',
     tags: (() => { try { return JSON.parse(r.tags||'[]'); } catch { return []; } })()
   }));
 }
