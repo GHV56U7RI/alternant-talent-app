@@ -4,6 +4,8 @@ import { fetchJoobleJobs } from '../../sources/jooble.js';
 import { fetchFranceTravailJobs } from '../../sources/francetravail.js';
 import { fetchDirectCareersJobs } from '../../sources/direct-careers.js';
 import { fetchATSJobs } from '../../sources/ats-feeds.js';
+import { fetchIndeedJobs } from '../../sources/indeed.js';
+import { fetchWTTJJobs } from '../../sources/welcometothejungle.js';
 
 const like = (q="") => `%${q}%`;
 const isTrue = v => v === '1' || v === 'true';
@@ -132,7 +134,7 @@ async function checkCacheStatus(env) {
     const result = await env.DB.prepare(
       `SELECT MAX(COALESCE(created_at, posted_at, posted)) as last_update, COUNT(*) as job_count
        FROM jobs
-       WHERE source IN ('adzuna', 'lba', 'jooble', 'francetravail', 'direct-careers', 'ats-feeds')`
+       WHERE source IN ('adzuna', 'lba', 'jooble', 'francetravail', 'direct-careers', 'ats-feeds', 'indeed', 'welcometothejungle')`
     ).first();
 
     console.log('checkCacheStatus result:', result);
@@ -247,6 +249,34 @@ async function refreshJobsFromAPIs(env) {
       console.error('Erreur ATS Feeds:', error);
     }
 
+    // Indeed - Via RSS Feed
+    try {
+      const indeedJobs = await fetchIndeedJobs({
+        query: 'alternance',
+        location: 'France',
+        limit: 300, // RSS feed de plusieurs villes
+        env
+      });
+      allJobs.push(...indeedJobs);
+      console.log(`Indeed: ${indeedJobs.length} jobs`);
+    } catch (error) {
+      console.error('Erreur Indeed:', error);
+    }
+
+    // Welcome to the Jungle - Via API GraphQL
+    try {
+      const wttjJobs = await fetchWTTJJobs({
+        query: 'alternance',
+        location: 'France',
+        limit: 200, // GraphQL API
+        env
+      });
+      allJobs.push(...wttjJobs);
+      console.log(`Welcome to the Jungle: ${wttjJobs.length} jobs`);
+    } catch (error) {
+      console.error('Erreur Welcome to the Jungle:', error);
+    }
+
     console.log(`Total jobs récupérés: ${allJobs.length}`);
 
     // Compter les jobs par source avant insertion
@@ -258,7 +288,7 @@ async function refreshJobsFromAPIs(env) {
 
     // Supprimer les anciens jobs API (garder seulement seed)
     await env.DB.prepare(
-      `DELETE FROM jobs WHERE source IN ('adzuna', 'lba', 'jooble', 'francetravail', 'direct-careers', 'ats-feeds')`
+      `DELETE FROM jobs WHERE source IN ('adzuna', 'lba', 'jooble', 'francetravail', 'direct-careers', 'ats-feeds', 'indeed', 'welcometothejungle')`
     ).run();
 
     // Préparer tous les statements pour le batch
@@ -318,7 +348,7 @@ async function cleanExpiredJobs(env) {
   try {
     const result = await env.DB.prepare(`
       DELETE FROM jobs
-      WHERE source IN ('adzuna', 'lba', 'jooble', 'francetravail')
+      WHERE source IN ('adzuna', 'lba', 'jooble', 'francetravail', 'indeed', 'welcometothejungle')
       AND created_at < datetime('now', '-10 months')
     `).run();
 
