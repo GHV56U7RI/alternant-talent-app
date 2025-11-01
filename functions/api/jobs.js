@@ -411,10 +411,20 @@ async function fetchJobsFromDB({ q, location, limit, offset, world, env }) {
   const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
 
   const rs = await env.DB.prepare(
-    `SELECT id,title,company,location,tags,url,source,posted,logo_domain,logo_url
+    `SELECT id,title,company,location,tags,url,source,posted,logo_domain,logo_url,
+            COALESCE(created_at, posted_at, posted) as sort_date
      FROM jobs
      ${where}
-     ORDER BY COALESCE(created_at, posted_at, posted) DESC
+     ORDER BY
+       CASE
+         WHEN posted LIKE '%aujourd%' OR posted LIKE '%today%' THEN 1
+         WHEN posted LIKE '%hier%' OR posted LIKE '%yesterday%' THEN 2
+         WHEN posted LIKE '%jour%' OR posted LIKE '%day%' THEN 3
+         WHEN posted LIKE '%semaine%' OR posted LIKE '%week%' THEN 4
+         WHEN posted LIKE '%mois%' OR posted LIKE '%month%' THEN 5
+         ELSE 6
+       END ASC,
+       sort_date DESC
      LIMIT ? OFFSET ?`
   ).bind(...params, limit, offset).all();
 
