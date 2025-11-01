@@ -48,7 +48,7 @@ export async function onRequest({ request, env }) {
   const url = new URL(request.url);
   const q = url.searchParams.get('q') || '';
   const location = url.searchParams.get('location') || '';
-  const limit = Math.min(parseInt(url.searchParams.get('limit')||'1000',10), 10000);
+  const limit = Math.min(parseInt(url.searchParams.get('limit')||'20000',10), 20000);
   const offset = Math.max(parseInt(url.searchParams.get('offset')||'0',10), 0);
   const world = isTrue(url.searchParams.get('world') || '0');
   const forceRefresh = isTrue(url.searchParams.get('refresh') || '0');

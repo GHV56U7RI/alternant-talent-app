@@ -26,7 +26,7 @@ function useScrollShrink(threshold = 8) {
 }
 
 /********************* NOUVEAU HEADER — HeaderGlassDropdown ************************/
-function HeaderGlassDropdown() {
+function HeaderGlassDropdown({ onProfileClick, onFavorisClick, onSettingsClick, onHelpClick }) {
   const shrunk = useScrollShrink(8);
   const pillRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -100,7 +100,7 @@ function HeaderGlassDropdown() {
         }
         .menu-panel.hidden{ opacity:0; pointer-events:none; transform:translateY(-6px) scale(0.98); }
         .menu-panel.show{ opacity:1; transform:translateY(0) scale(1); transition:opacity .18s ease, transform .18s ease; }
-        .menu-item{ display:flex; align-items:center; gap:10px; padding:10px 12px; text-decoration:none; color:#fff; font-weight:600; font-size:13px; cursor:pointer; }
+        .menu-item{ display:flex; align-items:center; gap:10px; padding:10px 12px; text-decoration:none; color:#fff; font-weight:600; font-size:13px; cursor:pointer; border:none; background:transparent; width:100%; text-align:left; }
         .menu-item:hover{ background:rgba(255,255,255,.10); }
         .menu-icon{ width:16px; height:16px; opacity:.95; }
 
@@ -135,22 +135,22 @@ function HeaderGlassDropdown() {
 
         <div className="profile-menu" aria-hidden={!menuOpen}>
           <div className={`menu-panel ${menuOpen ? "show" : "hidden"}`} role="menu" aria-labelledby="btn-profile">
-            <a href="#/profil" className="menu-item" role="menuitem" onClick={() => setMenuOpen(false)}>
+            <button className="menu-item" role="menuitem" onClick={() => { setMenuOpen(false); onProfileClick(); }}>
               <User className="menu-icon" />
               <span>Profil</span>
-            </a>
-            <a href="#/favoris" className="menu-item" role="menuitem" onClick={() => setMenuOpen(false)}>
+            </button>
+            <button className="menu-item" role="menuitem" onClick={() => { setMenuOpen(false); onFavorisClick(); }}>
               <Heart className="menu-icon" />
               <span>Favoris</span>
-            </a>
-            <a href="#/parametres" className="menu-item" role="menuitem" onClick={() => setMenuOpen(false)}>
+            </button>
+            <button className="menu-item" role="menuitem" onClick={() => { setMenuOpen(false); onSettingsClick(); }}>
               <Settings className="menu-icon" />
               <span>Paramètres</span>
-            </a>
-            <a href="#/aide" className="menu-item" role="menuitem" onClick={() => setMenuOpen(false)}>
+            </button>
+            <button className="menu-item" role="menuitem" onClick={() => { setMenuOpen(false); onHelpClick(); }}>
               <HelpCircle className="menu-icon" />
               <span>Aide</span>
-            </a>
+            </button>
           </div>
         </div>
       </div>
@@ -211,6 +211,357 @@ const parseSalaryAvg = (s) => {
   return (raw[0] + raw[1]) / 2;
 };
 
+/********************* SETTINGS PAGE ************************/
+function SettingsPage({ onClose }) {
+  const [settings, setSettings] = useState({
+    emailNotifications: true,
+    smsNotifications: false,
+    newJobAlerts: true,
+    weeklyDigest: true,
+    theme: 'light'
+  });
+
+  const handleToggle = (key) => {
+    setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleThemeChange = (e) => {
+    setSettings(prev => ({ ...prev, theme: e.target.value }));
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingTop: '80px' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
+          <button
+            onClick={onClose}
+            style={{ marginRight: '16px', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border)', background: '#fff', cursor: 'pointer', fontWeight: '600' }}
+          >
+            ← Retour
+          </button>
+          <h1 style={{ fontSize: '32px', fontWeight: '900', margin: 0 }}>Paramètres</h1>
+        </div>
+
+        <div style={{ display: 'grid', gap: '16px' }}>
+          <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px' }}>Notifications</h2>
+
+            <div style={{ display: 'grid', gap: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontWeight: '600', fontSize: '14px' }}>Notifications par email</div>
+                  <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px' }}>Recevoir des notifications par email</div>
+                </div>
+                <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
+                  <input type="checkbox" checked={settings.emailNotifications} onChange={() => handleToggle('emailNotifications')} style={{ opacity: 0, width: 0, height: 0 }} />
+                  <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, background: settings.emailNotifications ? '#2563EB' : '#ccc', borderRadius: '24px', transition: '.4s' }}>
+                    <span style={{ position: 'absolute', height: '18px', width: '18px', left: settings.emailNotifications ? '26px' : '3px', bottom: '3px', background: '#fff', borderRadius: '50%', transition: '.4s' }} />
+                  </span>
+                </label>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontWeight: '600', fontSize: '14px' }}>Notifications par SMS</div>
+                  <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px' }}>Recevoir des notifications par SMS</div>
+                </div>
+                <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
+                  <input type="checkbox" checked={settings.smsNotifications} onChange={() => handleToggle('smsNotifications')} style={{ opacity: 0, width: 0, height: 0 }} />
+                  <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, background: settings.smsNotifications ? '#2563EB' : '#ccc', borderRadius: '24px', transition: '.4s' }}>
+                    <span style={{ position: 'absolute', height: '18px', width: '18px', left: settings.smsNotifications ? '26px' : '3px', bottom: '3px', background: '#fff', borderRadius: '50%', transition: '.4s' }} />
+                  </span>
+                </label>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontWeight: '600', fontSize: '14px' }}>Alertes nouvelles offres</div>
+                  <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px' }}>Être notifié des nouvelles offres</div>
+                </div>
+                <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
+                  <input type="checkbox" checked={settings.newJobAlerts} onChange={() => handleToggle('newJobAlerts')} style={{ opacity: 0, width: 0, height: 0 }} />
+                  <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, background: settings.newJobAlerts ? '#2563EB' : '#ccc', borderRadius: '24px', transition: '.4s' }}>
+                    <span style={{ position: 'absolute', height: '18px', width: '18px', left: settings.newJobAlerts ? '26px' : '3px', bottom: '3px', background: '#fff', borderRadius: '50%', transition: '.4s' }} />
+                  </span>
+                </label>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontWeight: '600', fontSize: '14px' }}>Résumé hebdomadaire</div>
+                  <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px' }}>Recevoir un résumé hebdomadaire</div>
+                </div>
+                <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
+                  <input type="checkbox" checked={settings.weeklyDigest} onChange={() => handleToggle('weeklyDigest')} style={{ opacity: 0, width: 0, height: 0 }} />
+                  <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, background: settings.weeklyDigest ? '#2563EB' : '#ccc', borderRadius: '24px', transition: '.4s' }}>
+                    <span style={{ position: 'absolute', height: '18px', width: '18px', left: settings.weeklyDigest ? '26px' : '3px', bottom: '3px', background: '#fff', borderRadius: '50%', transition: '.4s' }} />
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px' }}>Apparence</h2>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Thème</label>
+              <select value={settings.theme} onChange={handleThemeChange} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px', background: '#fff' }}>
+                <option value="light">Clair</option>
+                <option value="dark">Sombre</option>
+                <option value="auto">Automatique</option>
+              </select>
+            </div>
+          </div>
+
+          <button
+            style={{
+              padding: '14px 24px',
+              background: '#2563EB',
+              color: '#fff',
+              borderRadius: '10px',
+              border: 'none',
+              fontWeight: '700',
+              fontSize: '15px',
+              cursor: 'pointer'
+            }}
+          >
+            Enregistrer les paramètres
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/********************* HELP PAGE ************************/
+function HelpPage({ onClose }) {
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingTop: '80px' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
+          <button
+            onClick={onClose}
+            style={{ marginRight: '16px', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border)', background: '#fff', cursor: 'pointer', fontWeight: '600' }}
+          >
+            ← Retour
+          </button>
+          <h1 style={{ fontSize: '32px', fontWeight: '900', margin: 0 }}>Aide</h1>
+        </div>
+
+        <div style={{ display: 'grid', gap: '16px' }}>
+          <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px' }}>Comment utiliser Alternant Talent ?</h2>
+
+            <div style={{ display: 'grid', gap: '16px', fontSize: '14px', lineHeight: '1.6' }}>
+              <div>
+                <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>🔍 Rechercher des offres</h3>
+                <p style={{ color: 'var(--muted)', margin: 0 }}>Utilisez la barre de recherche pour trouver des offres par poste, entreprise ou mot-clé. Vous pouvez également filtrer par ville.</p>
+              </div>
+
+              <div>
+                <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>❤️ Sauvegarder vos favoris</h3>
+                <p style={{ color: 'var(--muted)', margin: 0 }}>Cliquez sur le cœur pour ajouter une offre à vos favoris. Retrouvez toutes vos offres favorites en cliquant sur l'onglet "Favoris".</p>
+              </div>
+
+              <div>
+                <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>👤 Compléter votre profil</h3>
+                <p style={{ color: 'var(--muted)', margin: 0 }}>Renseignez vos informations personnelles et téléchargez votre CV pour faciliter vos candidatures.</p>
+              </div>
+
+              <div>
+                <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>📧 Postuler aux offres</h3>
+                <p style={{ color: 'var(--muted)', margin: 0 }}>Cliquez sur "Postuler" pour accéder directement à la page de candidature de l'entreprise.</p>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px' }}>Questions fréquentes</h2>
+
+            <div style={{ display: 'grid', gap: '16px', fontSize: '14px', lineHeight: '1.6' }}>
+              <div>
+                <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>Combien d'offres sont disponibles ?</h3>
+                <p style={{ color: 'var(--muted)', margin: 0 }}>Nous agrégeons des milliers d'offres d'alternance provenant de sources vérifiées comme Adzuna, France Travail, et des sites carrières d'entreprises.</p>
+              </div>
+
+              <div>
+                <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>Les offres sont-elles à jour ?</h3>
+                <p style={{ color: 'var(--muted)', margin: 0 }}>Oui, notre base de données est mise à jour automatiquement toutes les 12 heures pour vous garantir les offres les plus récentes.</p>
+              </div>
+
+              <div>
+                <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>Comment contacter le support ?</h3>
+                <p style={{ color: 'var(--muted)', margin: 0 }}>Pour toute question, vous pouvez nous contacter à l'adresse : <a href="mailto:contact@alternant-talent.com" style={{ color: '#2563EB', textDecoration: 'none' }}>contact@alternant-talent.com</a></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/********************* PROFILE PAGE ************************/
+function ProfilePage({ onClose }) {
+  const [profile, setProfile] = useState({
+    firstName: 'Jean',
+    lastName: 'Dupont',
+    email: 'jean.dupont@exemple.fr',
+    phone: '06 12 34 56 78',
+    school: 'Université Paris-Saclay',
+    degree: 'Master Informatique',
+    year: '2ème année',
+    cv: null
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setProfile(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfile(prev => ({ ...prev, cv: file }));
+    }
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingTop: '80px' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
+          <button
+            onClick={onClose}
+            style={{ marginRight: '16px', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border)', background: '#fff', cursor: 'pointer', fontWeight: '600' }}
+          >
+            ← Retour
+          </button>
+          <h1 style={{ fontSize: '32px', fontWeight: '900', margin: 0 }}>Mon Profil</h1>
+        </div>
+
+        <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', padding: '32px' }}>
+          <div style={{ display: 'grid', gap: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Prénom</label>
+                <input
+                  type="text"
+                  name="firstName"
+                  value={profile.firstName}
+                  onChange={handleChange}
+                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Nom</label>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={profile.lastName}
+                  onChange={handleChange}
+                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px' }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Email</label>
+              <input
+                type="email"
+                name="email"
+                value={profile.email}
+                onChange={handleChange}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Téléphone</label>
+              <input
+                type="tel"
+                name="phone"
+                value={profile.phone}
+                onChange={handleChange}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px' }}
+              />
+            </div>
+
+            <div style={{ height: '1px', background: 'var(--border)', margin: '8px 0' }} />
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>École / Université</label>
+              <input
+                type="text"
+                name="school"
+                value={profile.school}
+                onChange={handleChange}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px' }}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Diplôme</label>
+                <input
+                  type="text"
+                  name="degree"
+                  value={profile.degree}
+                  onChange={handleChange}
+                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Année</label>
+                <input
+                  type="text"
+                  name="year"
+                  value={profile.year}
+                  onChange={handleChange}
+                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px' }}
+                />
+              </div>
+            </div>
+
+            <div style={{ height: '1px', background: 'var(--border)', margin: '8px 0' }} />
+
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>CV (PDF)</label>
+              <input
+                type="file"
+                accept=".pdf"
+                onChange={handleFileChange}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px' }}
+              />
+              {profile.cv && (
+                <p style={{ marginTop: '8px', fontSize: '13px', color: 'var(--muted)' }}>
+                  Fichier sélectionné: {profile.cv.name}
+                </p>
+              )}
+            </div>
+
+            <button
+              style={{
+                marginTop: '16px',
+                padding: '14px 24px',
+                background: '#2563EB',
+                color: '#fff',
+                borderRadius: '10px',
+                border: 'none',
+                fontWeight: '700',
+                fontSize: '15px',
+                cursor: 'pointer'
+              }}
+            >
+              Enregistrer les modifications
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /********************* APP ************************/
 export default function App() {
   const [jobs, setJobs] = useState([]);
@@ -219,13 +570,16 @@ export default function App() {
   const selectedJob = useMemo(() => jobs.find(j => j.id === selectedId) || jobs[0], [selectedId, jobs]);
   const [liked, setLiked] = useState({});
   const [showFavs, setShowFavs] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   // Charger les jobs depuis l'API au démarrage
   useEffect(() => {
     const fetchJobs = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/jobs?limit=50');
+        const response = await fetch('/api/jobs?limit=20000');
         const data = await response.json();
         if (data.jobs && data.jobs.length > 0) {
           setJobs(data.jobs);
@@ -307,6 +661,18 @@ export default function App() {
 
   const visibleJobs = useMemo(() => showFavs ? filtered.filter(j => liked[j.id]) : filtered, [showFavs, liked, filtered]);
 
+  if (showProfile) {
+    return <ProfilePage onClose={() => setShowProfile(false)} />;
+  }
+
+  if (showSettings) {
+    return <SettingsPage onClose={() => setShowSettings(false)} />;
+  }
+
+  if (showHelp) {
+    return <HelpPage onClose={() => setShowHelp(false)} />;
+  }
+
   return (
     <div className={`min-h-screen ${showFavs ? 'showFavsMobile' : ''}`} style={{ background: 'var(--bg)', color: 'var(--text)' }}>
       <style>{`
@@ -333,7 +699,9 @@ export default function App() {
         .card--first:not(.card--selected){ border-color: var(--searchBorder); }
 
         .search-wrap{ display:flex; align-items:center; gap:14px; background:var(--searchBg); border:1px solid var(--searchBorder); border-radius:9999px; padding:10px 14px; width:100%; max-width: var(--searchMax); margin: 0 auto 16px; box-sizing:border-box; }
+        @media (max-width: 640px){ .search-wrap{ margin-top: -35px !important; } }
         .search-section{ margin-top: var(--searchSectionTop); margin-bottom: var(--searchSectionBottom); }
+        @media (max-width: 640px){ .search-section{ margin-top: 0 !important; } }
 
         .filters-row{ display:flex; align-items:center; justify-content:center; gap:16px; white-space:nowrap; flex-wrap:wrap; }
         .filters-row > *{ flex:0 0 auto; }
@@ -369,7 +737,8 @@ export default function App() {
         .detail-sticky{ position:sticky; top: var(--stickyTop); }
         .with-like{ padding-right: calc(var(--likeS) + 22px); }
 
-        .flow-hero{ position:relative; padding:72px 0 36px; }
+        .flow-hero{ position:relative; padding:72px 0 10px; }
+        @media (max-width: 640px){ .flow-hero{ padding:72px 0 5px; } }
         .flow-hero .bg-bleed{ position:absolute; inset:0; left:50%; width:100vw; transform:translateX(-50%); background:linear-gradient(180deg,#F7F7F8 0%, #FFFFFF 70%); z-index:0; }
         .flow-wrap{ position:relative; z-index:1; max-width:72rem; margin:0 auto; text-align:center; padding:0 16px; }
         .flow-title{ font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; font-weight:900; letter-spacing:-.02em; font-size:clamp(40px, 6.5vw, 96px); line-height:.95; color:#111111; margin:0 0 10px; }
@@ -447,14 +816,29 @@ export default function App() {
         @media (min-width: 641px){ .detail-col{ display:block; } }
       `}</style>
 
-      <HeaderGlassDropdown />
+      <HeaderGlassDropdown
+        onProfileClick={() => setShowProfile(true)}
+        onFavorisClick={() => {
+          setShowFavs(true);
+          document.getElementById('search')?.scrollIntoView({ behavior: 'smooth' });
+        }}
+        onSettingsClick={() => setShowSettings(true)}
+        onHelpClick={() => setShowHelp(true)}
+      />
 
       <section className="mx-auto max-w-6xl px-4 mt-0">
         <LightActionHero onPrimaryClick={scrollToSearch} />
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 mt-5 search-section" id="search">
-        <div className="search-wrap">
+      <section className="mx-auto max-w-6xl search-section" id="search" style={{ marginTop: '0px', paddingTop: '0px', paddingLeft: '16px', paddingRight: '16px' }}>
+        <div className="hero-illustration" style={{ textAlign: 'center', marginBottom: '0px', marginTop: '0px', overflow: 'hidden' }}>
+          <img
+            src={isMobile ? "/icons/Image PNG 2.png" : "/icons/Image PNG.png"}
+            alt="Illustration recherche"
+            style={{ maxWidth: '1200px', height: 'auto', margin: '0 auto', display: 'block', width: '100%', verticalAlign: 'bottom' }}
+          />
+        </div>
+        <div className="search-wrap" style={{ marginTop: '0px' }}>
           <div className="input-with-icon">
             <BriefcaseBusiness className="w-4 h-4" />
             <input
@@ -488,7 +872,7 @@ export default function App() {
         </div>
       </section>
 
-      <main className="mx-auto max-w-6xl px-4 mt-5 pb-8 split-area" id="jobs-list">
+      <main className="mx-auto max-w-6xl px-4 pb-8 split-area" id="jobs-list" style={{ marginTop: '40px' }}>
         <div className="list-scroll">
           {loading ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>
