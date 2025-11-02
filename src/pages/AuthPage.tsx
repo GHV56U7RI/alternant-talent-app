@@ -1,55 +1,13 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState } from "react";
 import { ShieldCheck, Mail, Eye, EyeOff, ChevronDown, ChevronUp, ArrowLeft, Apple, Github, Loader2, Send } from "lucide-react";
 
 /*
-  Page d'authentification « email d'abord » — Alternance & Talent
-  • Détecte automatiquement si l'email existe -> connexion (mot de passe)
-    sinon -> création de compte (nom + mot de passe)
-  • Bouton SSO Google + options additionnelles (Apple, GitHub) masquées par défaut
-  • Design compact, mobile‑first, arrondis façon screenshot Mobbin
-
-  ⚙️ Intégration backend:
-    - /api/auth/check-email    { email }        => { exists: boolean }
-    - /api/auth/login          { email, password }
-    - /api/auth/register       { email, password, firstName, lastName }
-
-  👉 En attendant votre backend, laissez MOCK=true pour une démo 100% front.
-     Règle démo: tous les emails finissant par "@demo.com" EXISTENT déjà.
+  Auth Email First — Lucide Style Match (v5)
+  - Respecte exactement le style bouton bleu + icônes (comme ta photo 2)
+  - Même largeur et hauteur pour l'input e‑mail et le bouton (56px arrondi)
+  - Pas d'effet flou en disabled (garde le bleu, baisse légère d'opacité)
+  - SSO: Google (G officiel inline), Apple, GitHub avec icônes Lucide/inline
 */
-
-const MOCK = true;
-
-async function apiCheckEmail(email: string){
-  if(MOCK){
-    await new Promise(r=>setTimeout(r, 500));
-    return { exists: email.trim().toLowerCase().endsWith("@demo.com") };
-  }
-  const res = await fetch("/api/auth/check-email",{ method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({email})});
-  if(!res.ok) throw new Error("check-email failed");
-  return res.json();
-}
-
-async function apiLogin({email,password}: {email: string, password: string}){
-  if(MOCK){
-    await new Promise(r=>setTimeout(r, 700));
-    if(password === "password") return { ok:true };
-    throw new Error("Mot de passe incorrect");
-  }
-  const res = await fetch("/api/auth/login",{ method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({email,password})});
-  if(!res.ok) throw new Error("login failed");
-  return res.json();
-}
-
-async function apiRegister({email,password,firstName,lastName}: {email: string, password: string, firstName: string, lastName: string}){
-  if(MOCK){
-    await new Promise(r=>setTimeout(r, 800));
-    if(password.length < 6) throw new Error("Mot de passe trop court (min. 6)");
-    return { ok:true };
-  }
-  const res = await fetch("/api/auth/register",{ method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({email,password,firstName,lastName})});
-  if(!res.ok) throw new Error("register failed");
-  return res.json();
-}
 
 function GoogleLogo(){
   return (
@@ -62,13 +20,33 @@ function GoogleLogo(){
   );
 }
 
+const MOCK = true;
+async function apiCheckEmail(email:string){
+  if(MOCK){ await new Promise(r=>setTimeout(r,500)); return { exists: email.trim().toLowerCase().endsWith("@demo.com") }; }
+  const res = await fetch("/api/auth/check-email",{ method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({email})});
+  if(!res.ok) throw new Error("check-email failed");
+  return res.json();
+}
+async function apiLogin({email,password}:{email:string,password:string}){
+  if(MOCK){ await new Promise(r=>setTimeout(r,700)); if(password==="password") return {ok:true}; throw new Error("Mot de passe incorrect"); }
+  const res = await fetch("/api/auth/login",{ method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({email,password})});
+  if(!res.ok) throw new Error("login failed");
+  return res.json();
+}
+async function apiRegister({email,password,firstName,lastName}:{email:string,password:string,firstName:string,lastName:string}){
+  if(MOCK){ await new Promise(r=>setTimeout(r,800)); if(password.length<6) throw new Error("Mot de passe trop court (min. 6)"); return {ok:true}; }
+  const res = await fetch("/api/auth/register",{ method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({email,password,firstName,lastName})});
+  if(!res.ok) throw new Error("register failed");
+  return res.json();
+}
+
 interface AuthEmailFirstProps {
   onBack: () => void;
   onAuthSuccess: (user: any) => void;
 }
 
 export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirstProps){
-  const [step, setStep] = useState("email"); // 'email' | 'login' | 'register' | 'done'
+  const [step, setStep] = useState<"email"|"login"|"register"|"done">("email");
   const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");
   const [pwd2, setPwd2] = useState("");
@@ -84,23 +62,19 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
 
   async function onContinue(){
     setMsg("");
-    if(!canContinueEmail) return setMsg("Entre une adresse e‑mail valide");
+    if(!canContinueEmail){ setMsg("Entre une adresse e‑mail valide"); return; }
     setLoading(true);
     try{
       const { exists } = await apiCheckEmail(email);
-      if(exists){
-        setStep("login");
-      }else{
-        setStep("register");
-      }
-    }catch(e: any){ setMsg(e.message || "Erreur réseau"); }
+      setStep(exists?"login":"register");
+    }
+    catch(e:any){ setMsg(e.message || "Erreur réseau"); }
     finally{ setLoading(false); }
   }
-
   async function onLogin(){
     setLoading(true); setMsg("");
     try{
-      await apiLogin({email, password: pwd});
+      await apiLogin({email,password:pwd});
       setStep("done");
       setMsg("Connexion réussie. Redirection…");
 
@@ -108,16 +82,13 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
       const user = { email, nom: "User", prenom: "Test" };
       localStorage.setItem('user', JSON.stringify(user));
       setTimeout(() => onAuthSuccess(user), 1000);
-    }
-    catch(e: any){ setMsg(e.message || "Échec de connexion"); }
-    finally{ setLoading(false); }
+    }catch(e:any){ setMsg(e.message||"Échec de connexion"); }finally{ setLoading(false);}
   }
-
   async function onRegister(){
     setLoading(true); setMsg("");
     try{
-      if(pwd !== pwd2) throw new Error("Les mots de passe ne correspondent pas");
-      await apiRegister({email, password: pwd, firstName, lastName});
+      if(pwd!==pwd2) throw new Error("Les mots de passe ne correspondent pas");
+      await apiRegister({email,password:pwd,firstName,lastName});
       setStep("done");
       setMsg("Compte créé ! Vérifie ta boîte mail.");
 
@@ -125,8 +96,7 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
       const user = { email, nom: lastName, prenom: firstName };
       localStorage.setItem('user', JSON.stringify(user));
       setTimeout(() => onAuthSuccess(user), 1000);
-    }catch(e: any){ setMsg(e.message || "Échec de l'inscription"); }
-    finally{ setLoading(false); }
+    }catch(e:any){ setMsg(e.message||"Échec de l'inscription"); }finally{ setLoading(false);}
   }
 
   function Header(){
@@ -137,7 +107,6 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
       </div>
     );
   }
-
   function Separator(){
     return (
       <div className="relative my-6">
@@ -149,27 +118,26 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
 
   function GoogleButton(){
     return (
-      <button className="w-full h-12 rounded-full border border-neutral-200 bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-3 text-[15px]" onClick={()=>alert("TODO: OAuth Google")}>
+      <button className="w-full h-14 rounded-full border border-neutral-200 bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-3 text-[15px]" onClick={()=>alert("TODO: OAuth Google")}>
         <GoogleLogo />
         <span>Continuer avec Google</span>
       </button>
     );
   }
-
   function OtherOptions(){
     return (
       <>
-        <button onClick={()=>setOtherSSO(v=>!v)} className="w-full h-12 rounded-full border border-neutral-200 bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2 text-[15px]">
-          {otherSSO ? <ChevronUp className="w-4 h-4"/> : <ChevronDown className="w-4 h-4"/>}
+        <button onClick={()=>setOtherSSO(v=>!v)} className="w-full h-14 rounded-full border border-neutral-200 bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2 text-[15px]">
+          {otherSSO ? <ChevronUp className="w-4 h-4 text-neutral-600"/> : <ChevronDown className="w-4 h-4 text-neutral-600"/>}
           <span>Voir d'autres options</span>
         </button>
         {otherSSO && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-            <button className="h-12 rounded-full border border-neutral-200 bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2" onClick={()=>alert("TODO: Apple OAuth")}>
-              <Apple className="w-5 h-5"/> <span>Apple</span>
+            <button className="h-14 rounded-full border border-neutral-200 bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2">
+              <Apple className="w-5 h-5 text-neutral-900"/> <span>Apple</span>
             </button>
-            <button className="h-12 rounded-full border border-neutral-200 bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2" onClick={()=>alert("TODO: GitHub OAuth")}>
-              <Github className="w-5 h-5"/> <span>GitHub</span>
+            <button className="h-14 rounded-full border border-neutral-200 bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2">
+              <Github className="w-5 h-5 text-neutral-900"/> <span>GitHub</span>
             </button>
           </div>
         )}
@@ -182,15 +150,15 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
       <div className="mt-6">
         <Separator />
         <label htmlFor="email" className="sr-only">Adresse e‑mail</label>
-        <div className="w-full h-12 rounded-2xl border border-neutral-200 bg-neutral-100/70 flex items-center px-4">
+        <div className="w-full h-14 rounded-[18px] border border-neutral-200 bg-neutral-100/70 flex items-center px-4">
           <Mail className="w-5 h-5 text-neutral-500"/>
           <input id="email" type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} className="ml-3 w-full bg-transparent outline-none text-[15px] placeholder:text-neutral-400" placeholder="Entrez l'adresse e‑mail" onKeyDown={(e)=>{ if(e.key==='Enter'){ onContinue(); }}}/>
         </div>
         <button
           onClick={onContinue}
           disabled={!canContinueEmail || loading}
-          className="mt-4 w-full h-11 rounded-full text-white text-[15px] font-semibold inline-flex items-center justify-center gap-2 transition transform hover:-translate-y-[1px] active:translate-y-0 focus:outline-none focus-visible:ring-4 focus-visible:ring-[#2663eb]/30 disabled:cursor-not-allowed shadow-[inset_0_1px_0_rgba(255,255,255,.35),_0_6px_16px_rgba(38,99,235,.28)] hover:shadow-[inset_0_1.5px_0_rgba(255,255,255,.45),_0_10px_24px_rgba(38,99,235,.34)]"
-          style={{ background: 'linear-gradient(180deg, #2e6ffa 0%, #2663eb 70%)', border: '1px solid #1f4fd1' }}
+          className="mt-4 w-full h-14 rounded-full text-white text-[15px] font-semibold inline-flex items-center justify-center gap-2 transition transform hover:-translate-y-[1px] active:translate-y-0 focus:outline-none focus-visible:ring-4 focus-visible:ring-[#2663eb]/30 disabled:opacity-90 disabled:cursor-not-allowed"
+          style={{ background: "linear-gradient(180deg, #3d6fff 0%, #2e63f2 55%, #2557e4 100%)", border: "1px solid #1f4fd1", boxShadow: "0 10px 22px rgba(37,87,228,.28), inset 0 1px 0 rgba(255,255,255,.35)" }}
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : <Send className="w-4 h-4 -ml-1"/>}
           <span>Continuer</span>
@@ -206,7 +174,7 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
           <ArrowLeft className="w-4 h-4"/> Changer d'adresse
         </button>
         <div className="text-sm text-neutral-600">Adresse reconnue: <span className="font-medium text-neutral-900">{email}</span></div>
-        <div className="w-full h-12 rounded-2xl border border-neutral-200 bg-white flex items-center px-4">
+        <div className="w-full h-14 rounded-[18px] border border-neutral-200 bg-white flex items-center px-4">
           <button type="button" onClick={()=>setShowPwd(s=>!s)} className="text-neutral-500">
             {showPwd ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
           </button>
@@ -215,7 +183,7 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
         <div className="flex items-center justify-between">
           <a className="text-sm text-neutral-600 hover:text-black" href="#">Mot de passe oublié ?</a>
         </div>
-        <button onClick={onLogin} disabled={!pwd || loading} className="w-full h-12 rounded-full bg-black text-white text-[15px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+        <button onClick={onLogin} disabled={!pwd || loading} className="w-full h-14 rounded-full bg-black text-white text-[15px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
           {loading && <Loader2 className="w-4 h-4 animate-spin"/>}
           <span>Se connecter</span>
         </button>
@@ -231,22 +199,22 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
         </button>
         <div className="text-sm text-neutral-600">Nouvelle adresse détectée: <span className="font-medium text-neutral-900">{email}</span></div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <input className="h-12 rounded-2xl border border-neutral-200 px-4 text-[15px]" placeholder="Prénom" value={firstName} onChange={e=>setFirstName(e.target.value)} />
-          <input className="h-12 rounded-2xl border border-neutral-200 px-4 text-[15px]" placeholder="Nom" value={lastName} onChange={e=>setLastName(e.target.value)} />
+          <input className="h-14 rounded-[18px] border border-neutral-200 px-4 text-[15px]" placeholder="Prénom" value={firstName} onChange={e=>setFirstName(e.target.value)} />
+          <input className="h-14 rounded-[18px] border border-neutral-200 px-4 text-[15px]" placeholder="Nom" value={lastName} onChange={e=>setLastName(e.target.value)} />
         </div>
-        <div className="w-full h-12 rounded-2xl border border-neutral-200 bg-white flex items-center px-4">
+        <div className="w-full h-14 rounded-[18px] border border-neutral-200 bg-white flex items-center px-4">
           <button type="button" onClick={()=>setShowPwd(s=>!s)} className="text-neutral-500">
             {showPwd ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
           </button>
           <input type={showPwd?"text":"password"} value={pwd} onChange={e=>setPwd(e.target.value)} className="ml-3 w-full bg-transparent outline-none text-[15px] placeholder:text-neutral-400" placeholder="Mot de passe (min. 6)" />
         </div>
-        <div className="w-full h-12 rounded-2xl border border-neutral-200 bg-white flex items-center px-4">
+        <div className="w-full h-14 rounded-[18px] border border-neutral-200 bg-white flex items-center px-4">
           <button type="button" onClick={()=>setShowPwd2(s=>!s)} className="text-neutral-500">
             {showPwd2 ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
           </button>
           <input type={showPwd2?"text":"password"} value={pwd2} onChange={e=>setPwd2(e.target.value)} className="ml-3 w-full bg-transparent outline-none text-[15px] placeholder:text-neutral-400" placeholder="Confirmer le mot de passe" />
         </div>
-        <button onClick={onRegister} disabled={!firstName || !lastName || !pwd || !pwd2 || loading} className="w-full h-12 rounded-full bg-black text-white text-[15px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+        <button onClick={onRegister} disabled={!firstName || !lastName || !pwd || !pwd2 || loading} className="w-full h-14 rounded-full bg-black text-white text-[15px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
           {loading && <Loader2 className="w-4 h-4 animate-spin"/>}
           <span>Créer mon compte</span>
         </button>
@@ -267,8 +235,6 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
 
       <div className="w-full max-w-md">
         <Header />
-
-        {/* Bloc SSO + Email flow */}
         <div className="mt-8">
           <div className="flex flex-col gap-3">
             <GoogleButton />

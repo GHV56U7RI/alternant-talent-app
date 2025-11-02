@@ -316,20 +316,366 @@ function SettingsPage({ onClose }) {
   );
 }
 
-function ProfilePage({ onClose, user }) {
-  const [formData, setFormData] = useState({ prenom: user?.prenom || '', nom: user?.nom || '', email: user?.email || '' });
+function ProfilePage({ onClose, user: initialUser }) {
+  const [user, setUser] = useState({
+    firstName: initialUser?.prenom || "Élodie",
+    lastName: initialUser?.nom || "Martin",
+    title: "Chargée de communication",
+    email: initialUser?.email || "elodie.martin@demo.com",
+    phone: "+33 6 12 34 56 78",
+    city: "Lyon, Auvergne-Rhône-Alpes",
+    visibility: "public",
+  });
+
+  const initials = useMemo(() => {
+    const f = user.firstName?.[0] || "?";
+    const l = user.lastName?.[0] || "";
+    return (f + l).toUpperCase();
+  }, [user.firstName, user.lastName]);
+
+  const [applications] = useState(2);
+  const [favorites] = useState(1);
+  const [alerts] = useState(1);
+
+  const [edit, setEdit] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [savedToast, setSavedToast] = useState(false);
+
+  const [open, setOpen] = useState({
+    perso: false,
+    docs: false,
+    apps: false,
+    fav: false,
+    alerts: false,
+    privacy: false,
+  });
+
+  function toggle(key) {
+    setOpen((o) => ({ ...o, [key]: !o[key] }));
+  }
+
+  async function onClickEditSave() {
+    if (!edit) { setEdit(true); return; }
+    try {
+      setSaving(true);
+      await new Promise((r) => setTimeout(r, 800));
+      setEdit(false);
+      setSavedToast(true);
+      setTimeout(() => setSavedToast(false), 1600);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function TitleRow({ id, Icon, title, suffix, isOpen, onClick }) {
+    return (
+      <li>
+        <button
+          id={`${id}-title`}
+          type="button"
+          className="group flex w-full items-center justify-between py-3 md:py-3.5 text-left"
+          aria-expanded={isOpen}
+          aria-controls={`${id}-panel`}
+          onClick={onClick}
+          data-testid={`title-${id}`}
+        >
+          <span className="inline-flex items-center gap-2 min-w-0">
+            {Icon ? (
+              <Icon className="h-4 w-4 text-neutral-500 group-hover:text-neutral-700" />
+            ) : null}
+            <span className="truncate text-[15px] font-medium text-neutral-900">{title}</span>
+          </span>
+
+          <span className="flex items-center gap-2">
+            {suffix != null && (
+              <span className="text-[12px] text-neutral-500">{suffix}</span>
+            )}
+            <ChevronRight
+              data-testid={`chev-${id}`}
+              className={`h-4 w-4 transition-transform duration-200 ${
+                isOpen ? "rotate-90" : "rotate-0"
+              } text-neutral-500 group-hover:text-neutral-700`}
+            />
+          </span>
+        </button>
+      </li>
+    );
+  }
+
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingTop: '80px' }}>
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 16px' }}>
-        <button onClick={onClose} style={{ marginBottom: '24px', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--sep)', background: '#fff', cursor: 'pointer', fontWeight: '600' }}>← Retour</button>
-        <h1 style={{ fontSize: '32px', fontWeight: '900', margin: '0 0 24px' }}>Mon Profil</h1>
-        <div style={{ background: '#fff', border: '1px solid var(--sep)', borderRadius: '12px', padding: '24px' }}>
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px' }}>Email</label>
-            <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--sep)', boxSizing: 'border-box' }} />
+    <div className="min-h-screen bg-neutral-50 text-neutral-900">
+      <main className="mx-auto max-w-3xl px-4 py-6">
+        {/* Header centré */}
+        <section className="px-6 py-8">
+          <div className="flex w-full flex-col items-center text-center">
+            <div
+              aria-label="Avatar"
+              className="flex h-20 w-20 items-center justify-center rounded-2xl bg-neutral-900 text-white text-2xl font-semibold shadow-sm"
+            >
+              {initials}
+            </div>
+
+            <div className="mt-4">
+              <div className="text-[18px] font-semibold">
+                {user.firstName} {user.lastName}
+              </div>
+              <div className="mt-0.5 text-[13px] text-neutral-600">{user.title}</div>
+            </div>
+
+            <span className="mt-4 inline-flex items-center gap-1 rounded-full border border-neutral-300 px-3 py-1 text-[12px] text-neutral-700">
+              <ShieldCheck className="h-3.5 w-3.5" /> Profil {user.visibility}
+            </span>
           </div>
+        </section>
+
+        {/* Sections FAQ */}
+        <nav aria-label="Sections du profil" className="mt-6">
+          <ul className="divide-y divide-neutral-200 border-y border-neutral-200">
+            <TitleRow
+              id="perso"
+              Icon={User}
+              title="Informations personnelles"
+              isOpen={open.perso}
+              onClick={() => toggle("perso")}
+            />
+            {open.perso && (
+              <li id="perso-panel" className="pb-3" role="region" aria-labelledby="perso-title">
+                <div className="pl-[22px] md:pl-6 text-[14px] text-neutral-700">
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="flex flex-col gap-1">
+                      <span className="text-[12px] text-neutral-500">Prénom</span>
+                      {edit ? (
+                        <input
+                          data-testid="input-firstName"
+                          className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-[14px] focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+                          value={user.firstName}
+                          onChange={(e) => setUser({ ...user, firstName: e.target.value })}
+                        />
+                      ) : (
+                        <span className="text-neutral-900">{user.firstName}</span>
+                      )}
+                    </label>
+
+                    <label className="flex flex-col gap-1">
+                      <span className="text-[12px] text-neutral-500">Nom</span>
+                      {edit ? (
+                        <input
+                          data-testid="input-lastName"
+                          className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-[14px] focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+                          value={user.lastName}
+                          onChange={(e) => setUser({ ...user, lastName: e.target.value })}
+                        />
+                      ) : (
+                        <span className="text-neutral-900">{user.lastName}</span>
+                      )}
+                    </label>
+
+                    <label className="flex flex-col gap-1 sm:col-span-2">
+                      <span className="text-[12px] text-neutral-500">Intitulé de poste</span>
+                      {edit ? (
+                        <input
+                          data-testid="input-title"
+                          className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-[14px] focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+                          value={user.title}
+                          onChange={(e) => setUser({ ...user, title: e.target.value })}
+                        />
+                      ) : (
+                        <span className="text-neutral-900">{user.title}</span>
+                      )}
+                    </label>
+
+                    <label className="flex flex-col gap-1">
+                      <span className="text-[12px] text-neutral-500">Email</span>
+                      {edit ? (
+                        <input
+                          type="email"
+                          data-testid="input-email"
+                          className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-[14px] focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+                          value={user.email}
+                          onChange={(e) => setUser({ ...user, email: e.target.value })}
+                        />
+                      ) : (
+                        <span className="text-neutral-900">{user.email}</span>
+                      )}
+                    </label>
+                    <label className="flex flex-col gap-1">
+                      <span className="text-[12px] text-neutral-500">Téléphone</span>
+                      {edit ? (
+                        <input
+                          data-testid="input-phone"
+                          className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-[14px] focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+                          value={user.phone}
+                          onChange={(e) => setUser({ ...user, phone: e.target.value })}
+                        />
+                      ) : (
+                        <span className="text-neutral-900">{user.phone}</span>
+                      )}
+                    </label>
+
+                    <label className="flex flex-col gap-1 sm:col-span-2">
+                      <span className="text-[12px] text-neutral-500">Ville</span>
+                      {edit ? (
+                        <input
+                          data-testid="input-city"
+                          className="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-[14px] focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+                          value={user.city}
+                          onChange={(e) => setUser({ ...user, city: e.target.value })}
+                        />
+                      ) : (
+                        <span className="text-neutral-900">{user.city}</span>
+                      )}
+                    </label>
+                  </div>
+                </div>
+              </li>
+            )}
+
+            <TitleRow
+              id="docs"
+              Icon={FileText}
+              title="CV & documents"
+              isOpen={open.docs}
+              onClick={() => toggle("docs")}
+            />
+            {open.docs && (
+              <li id="docs-panel" className="pb-3" role="region" aria-labelledby="docs-title">
+                <div className="pl-[22px] md:pl-6 text-[14px] text-neutral-700">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      disabled={!edit}
+                      className="inline-flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-[13px] disabled:opacity-60"
+                      data-testid="btn-upload"
+                    >
+                      <Upload className="h-4 w-4" />
+                      Importer un document
+                    </button>
+                    <div className="inline-flex items-center gap-2 text-neutral-600">
+                      <FileText className="h-4 w-4" /> Aucun document
+                    </div>
+                  </div>
+                </div>
+              </li>
+            )}
+
+            <TitleRow
+              id="apps"
+              Icon={BriefcaseBusiness}
+              title="Candidatures (résumé)"
+              suffix={applications}
+              isOpen={open.apps}
+              onClick={() => toggle("apps")}
+            />
+            {open.apps && (
+              <li id="apps-panel" className="pb-3" role="region" aria-labelledby="apps-title">
+                <div className="pl-[22px] md:pl-6 text-[14px] text-neutral-700">
+                  <p>Aucune action ici pour l'instant. Résumé: {applications} candidatures.</p>
+                </div>
+              </li>
+            )}
+
+            <TitleRow
+              id="fav"
+              Icon={Heart}
+              title="Favoris"
+              suffix={favorites}
+              isOpen={open.fav}
+              onClick={() => toggle("fav")}
+            />
+            {open.fav && (
+              <li id="fav-panel" className="pb-3" role="region" aria-labelledby="fav-title">
+                <div className="pl-[22px] md:pl-6 text-[14px] text-neutral-700">
+                  <div className="inline-flex items-center gap-2 text-neutral-600">
+                    <Heart className="h-4 w-4" /> {favorites} offre(s) favorite(s)
+                  </div>
+                </div>
+              </li>
+            )}
+
+            <TitleRow
+              id="alerts"
+              Icon={Bell}
+              title="Alertes d'emploi"
+              suffix={alerts}
+              isOpen={open.alerts}
+              onClick={() => toggle("alerts")}
+            />
+            {open.alerts && (
+              <li id="alerts-panel" className="pb-3" role="region" aria-labelledby="alerts-title">
+                <div className="pl-[22px] md:pl-6 text-[14px] text-neutral-700">
+                  <div className="inline-flex items-center gap-2 text-neutral-600">
+                    <Bell className="h-4 w-4" /> {alerts} alerte(s) active(s)
+                  </div>
+                </div>
+              </li>
+            )}
+
+            <TitleRow
+              id="privacy"
+              Icon={Lock}
+              title="Confidentialité"
+              isOpen={open.privacy}
+              onClick={() => toggle("privacy")}
+            />
+            {open.privacy && (
+              <li id="privacy-panel" className="pb-3" role="region" aria-labelledby="privacy-title">
+                <div className="pl-[22px] md:pl-6 text-[14px] text-neutral-700">
+                  <div className="flex items-center gap-2 text-neutral-700">
+                    <Lock className="h-4 w-4" />
+                    <span className="text-[14px]">Visibilité du profil :</span>
+                    {edit ? (
+                      <select
+                        data-testid="select-visibility"
+                        className="ml-2 rounded-lg border border-neutral-300 bg-white px-2 py-1 text-[13px] focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+                        value={user.visibility}
+                        onChange={(e) => setUser({ ...user, visibility: e.target.value })}
+                      >
+                        <option value="public">public</option>
+                        <option value="private">private</option>
+                        <option value="réseau">réseau</option>
+                      </select>
+                    ) : (
+                      <span className="ml-2 rounded-full border border-neutral-200 bg-neutral-50 px-2 py-0.5 text-[12px] text-neutral-600">
+                        {user.visibility}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </li>
+            )}
+          </ul>
+        </nav>
+
+        <section className="mt-3 flex items-center justify-end text-[13px]">
+          <button
+            onClick={onClose}
+            className="inline-flex items-center gap-2 text-neutral-600 hover:text-red-600 hover:underline"
+          >
+            Déconnexion
+          </button>
+        </section>
+      </main>
+
+      <button
+        aria-label={edit ? "Enregistrer" : "Éditer"}
+        onClick={onClickEditSave}
+        disabled={saving}
+        data-testid="edit-save"
+        className="fixed bottom-5 right-4 z-40 inline-flex h-11 items-center gap-2 rounded-full bg-[#2663eb] px-4 text-[13px] text-white focus:outline-none focus:ring-4 focus:ring-[#2663eb]/30 disabled:opacity-70"
+      >
+        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Pencil className="h-4 w-4" />}
+        {saving ? "Enregistrement…" : edit ? "Enregistrer" : "Éditer"}
+      </button>
+
+      {savedToast && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-[13px] text-neutral-800 shadow-sm">
+          Modifications enregistrées ✅
         </div>
-      </div>
+      )}
+
+      <footer className="mx-auto max-w-3xl px-4 py-10 text-center text-[12px] text-neutral-500">
+        © 2025 Alternance & Talent — Profil
+      </footer>
     </div>
   );
 }
