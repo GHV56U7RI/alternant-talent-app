@@ -481,6 +481,8 @@ export default function App() {
 
         .search-wrap{ display:flex; align-items:center; gap:14px; background:var(--searchBg); border:1px solid var(--searchBorder); border-radius:9999px; padding:10px 14px; width:100%; max-width: var(--searchMax); margin: 0 auto 16px; box-sizing:border-box; }
         .search-section{ margin-top: var(--searchSectionTop); margin-bottom: var(--searchSectionBottom); }
+        .hero-illustration{ display:block; width:100%; max-width:1200px; margin:0 auto 4px; height:auto; }
+        @media (max-width: 640px){ .hero-illustration{ max-width:100%; margin-bottom:6px; } }
         .filters-row{ display:flex; align-items:center; justify-content:center; gap:16px; white-space:nowrap; flex-wrap:wrap; }
         .filters-row > *{ flex:0 0 auto; }
 
@@ -597,6 +599,17 @@ export default function App() {
       )}
 
       <section className="mx-auto max-w-6xl px-4 mt-5 search-section" id="search">
+        {/* Illustration responsive - desktop et mobile */}
+        <picture>
+          <source media="(max-width: 640px)" srcSet="/icons/Image PNG 2.png" />
+          <img
+            src="/icons/Image PNG.png"
+            alt="Illustration alternance"
+            className="hero-illustration"
+            loading="eager"
+          />
+        </picture>
+
         <div className="search-wrap">
           <div className="input-with-icon">
             <BriefcaseBusiness className="w-4 h-4" />
