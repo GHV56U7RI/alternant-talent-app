@@ -12,6 +12,7 @@ import {
   Settings,
   HelpCircle,
 } from "lucide-react";
+import AuthPage from "./pages/AuthPage";
 
 /********************* HOOK COMMUN (scroll shrink) ************************/
 function useScrollShrink(threshold = 8) {
@@ -25,8 +26,75 @@ function useScrollShrink(threshold = 8) {
   return shrunk;
 }
 
-/********************* NOUVEAU HEADER — HeaderGlassDropdown ************************/
-function HeaderGlassDropdown({ onProfileClick, onFavorisClick, onSettingsClick, onHelpClick }) {
+/********************* HEADER NON-CONNECTÉ ************************/
+function HeaderNotConnected({ onLoginClick }) {
+  const shrunk = useScrollShrink(8);
+
+  return (
+    <>
+      <style>{`
+        :root{
+          --bg:#FFFFFF; --panel:#FFFFFF; --text:#0F0F10; --muted:#6F6B65;
+          --border:#ECEBEA; --borderStrong:#E6E5E3; --sep:#E6E5E3;
+          --pill:#f7f6f4; --link:#1F2937; --linkHover:#0B1220;
+          --headerPill:rgba(192,192,192,.84);
+          --flowCream:#F5F5F5;
+        }
+        .header-shell{ position:static; background:transparent; border:0; box-shadow:none; }
+        .header-inner{ max-width:72rem; margin:0 auto; display:flex; align-items:center; justify-content:center; padding:0; }
+
+        .brand-badge{ display:inline-flex; align-items:center; justify-content:center; background:#0f0f10; color:#fff; border-radius:10px; height:18px; padding:0 8px; font-weight:700; font-size:10.5px; letter-spacing:.04em; line-height:1; }
+        .brand-sep{ width:1px; height:16px; background:rgba(255,255,255,.35); margin:0 8px; display:inline-block; vertical-align:middle; transition:opacity .18s ease, transform .18s ease; }
+        .header-pill.shrunk .brand-sep{ opacity:1 !important; transform:none !important; width:1px !important; margin:0 8px !important; }
+
+        .brand-text{ display:inline-block; font-weight:400; font-size:13px; letter-spacing:.01em; color:#FFFFFF; white-space:nowrap; overflow:hidden; max-width:220px; opacity:1; transform:translateY(0) scale(1); transition: opacity .18s ease, transform .18s ease, max-width .22s ease, margin .18s ease; }
+        .brand-text.hidden{ opacity:0; transform:translateY(-1px) scale(.97); max-width:0; margin:0; }
+
+        .header-pill{ position:fixed; top:8px; left:50%; transform:translateX(-50%); z-index:70; color:#FFFFFF;
+          background:var(--headerPill); border:1px solid rgba(180,180,180,.9);
+          border-radius:9999px; display:flex; align-items:center; gap:10px; white-space:nowrap; overflow:visible;
+          backdrop-filter:saturate(180%) blur(8px); -webkit-backdrop-filter:saturate(180%) blur(8px);
+          transition: padding .18s ease, gap .18s ease, box-shadow .18s ease;
+          padding:6px 12px; isolation:isolate;
+          box-shadow: 0 12px 32px rgba(0,0,0,.18), 0 2px 10px rgba(0,0,0,.10), inset 0 1px rgba(255,255,255,.08), inset 0 -1px rgba(255,255,255,.04);
+        }
+        .header-pill.shrunk{ gap:6px; padding:4px 10px; }
+        .header-pill::before{ content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+          background:linear-gradient(180deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,.02) 60%, rgba(255,255,255,0) 100%);
+          opacity:1;
+        }
+        .header-pill::after{ content:""; position:absolute; inset:1px; border-radius:calc(9999px - 1px); pointer-events:none;
+          background:radial-gradient(120% 90% at 50% -10%, rgba(255,255,255,.25) 0%, rgba(255,255,255,0) 60%);
+          opacity:.9;
+        }
+
+        .btn-login{ display:inline-flex; align-items:center; justify-content:center; background:rgba(255,255,255,.95); color:#667eea; font-weight:600; font-size:13px; border:1px solid rgba(255,255,255,.3); border-radius:9999px; padding:6px 16px; cursor:pointer; transition: all .18s ease; }
+        .btn-login:hover{ background:#fff; box-shadow: 0 4px 12px rgba(102,126,234,.25); }
+      `}</style>
+
+      <header className="header-shell" role="banner">
+        <div className="header-inner" />
+      </header>
+
+      <div className={`header-pill ${shrunk ? "shrunk" : ""}`}>
+        <span className="brand-badge">mon</span>
+        <span className="brand-sep" aria-hidden></span>
+        <span className={`brand-text ${shrunk ? "hidden" : ""}`}>alternance & talent</span>
+
+        <button
+          type="button"
+          className="btn-login"
+          onClick={onLoginClick}
+        >
+          Se connecter
+        </button>
+      </div>
+    </>
+  );
+}
+
+/********************* HEADER CONNECTÉ ************************/
+function HeaderConnected({ user, onProfileClick, onFavorisClick, onSettingsClick, onHelpClick, onLogout }) {
   const shrunk = useScrollShrink(8);
   const pillRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -151,6 +219,10 @@ function HeaderGlassDropdown({ onProfileClick, onFavorisClick, onSettingsClick, 
               <HelpCircle className="menu-icon" />
               <span>Aide</span>
             </button>
+            <div style={{ borderTop: '1px solid rgba(255,255,255,.2)', margin: '4px 0' }} />
+            <button className="menu-item" role="menuitem" onClick={() => { setMenuOpen(false); onLogout(); }}>
+              <span style={{ marginLeft: '26px' }}>Déconnexion</span>
+            </button>
           </div>
         </div>
       </div>
@@ -249,85 +321,168 @@ function SettingsPage({ onClose }) {
             <div style={{ display: 'grid', gap: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontWeight: '600', fontSize: '14px' }}>Notifications par email</div>
-                  <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px' }}>Recevoir des notifications par email</div>
+                  <div style={{ fontWeight: '600', marginBottom: '4px' }}>Notifications par email</div>
+                  <div style={{ fontSize: '14px', color: 'var(--muted)' }}>Recevez des emails pour les nouvelles offres</div>
                 </div>
-                <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
-                  <input type="checkbox" checked={settings.emailNotifications} onChange={() => handleToggle('emailNotifications')} style={{ opacity: 0, width: 0, height: 0 }} />
-                  <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, background: settings.emailNotifications ? '#2563EB' : '#ccc', borderRadius: '24px', transition: '.4s' }}>
-                    <span style={{ position: 'absolute', height: '18px', width: '18px', left: settings.emailNotifications ? '26px' : '3px', bottom: '3px', background: '#fff', borderRadius: '50%', transition: '.4s' }} />
-                  </span>
-                </label>
+                <input type="checkbox" checked={settings.emailNotifications} onChange={() => handleToggle('emailNotifications')} />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontWeight: '600', fontSize: '14px' }}>Notifications par SMS</div>
-                  <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px' }}>Recevoir des notifications par SMS</div>
+                  <div style={{ fontWeight: '600', marginBottom: '4px' }}>Notifications SMS</div>
+                  <div style={{ fontSize: '14px', color: 'var(--muted)' }}>Recevez des SMS pour les alertes importantes</div>
                 </div>
-                <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
-                  <input type="checkbox" checked={settings.smsNotifications} onChange={() => handleToggle('smsNotifications')} style={{ opacity: 0, width: 0, height: 0 }} />
-                  <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, background: settings.smsNotifications ? '#2563EB' : '#ccc', borderRadius: '24px', transition: '.4s' }}>
-                    <span style={{ position: 'absolute', height: '18px', width: '18px', left: settings.smsNotifications ? '26px' : '3px', bottom: '3px', background: '#fff', borderRadius: '50%', transition: '.4s' }} />
-                  </span>
-                </label>
+                <input type="checkbox" checked={settings.smsNotifications} onChange={() => handleToggle('smsNotifications')} />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontWeight: '600', fontSize: '14px' }}>Alertes nouvelles offres</div>
-                  <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px' }}>Être notifié des nouvelles offres</div>
+                  <div style={{ fontWeight: '600', marginBottom: '4px' }}>Alertes nouvelles offres</div>
+                  <div style={{ fontSize: '14px', color: 'var(--muted)' }}>Soyez notifié des nouvelles opportunités</div>
                 </div>
-                <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
-                  <input type="checkbox" checked={settings.newJobAlerts} onChange={() => handleToggle('newJobAlerts')} style={{ opacity: 0, width: 0, height: 0 }} />
-                  <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, background: settings.newJobAlerts ? '#2563EB' : '#ccc', borderRadius: '24px', transition: '.4s' }}>
-                    <span style={{ position: 'absolute', height: '18px', width: '18px', left: settings.newJobAlerts ? '26px' : '3px', bottom: '3px', background: '#fff', borderRadius: '50%', transition: '.4s' }} />
-                  </span>
-                </label>
+                <input type="checkbox" checked={settings.newJobAlerts} onChange={() => handleToggle('newJobAlerts')} />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontWeight: '600', fontSize: '14px' }}>Résumé hebdomadaire</div>
-                  <div style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '4px' }}>Recevoir un résumé hebdomadaire</div>
+                  <div style={{ fontWeight: '600', marginBottom: '4px' }}>Résumé hebdomadaire</div>
+                  <div style={{ fontSize: '14px', color: 'var(--muted)' }}>Recevez un résumé chaque semaine</div>
                 </div>
-                <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '24px' }}>
-                  <input type="checkbox" checked={settings.weeklyDigest} onChange={() => handleToggle('weeklyDigest')} style={{ opacity: 0, width: 0, height: 0 }} />
-                  <span style={{ position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, background: settings.weeklyDigest ? '#2563EB' : '#ccc', borderRadius: '24px', transition: '.4s' }}>
-                    <span style={{ position: 'absolute', height: '18px', width: '18px', left: settings.weeklyDigest ? '26px' : '3px', bottom: '3px', background: '#fff', borderRadius: '50%', transition: '.4s' }} />
-                  </span>
-                </label>
+                <input type="checkbox" checked={settings.weeklyDigest} onChange={() => handleToggle('weeklyDigest')} />
               </div>
             </div>
           </div>
 
           <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
             <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px' }}>Apparence</h2>
-
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Thème</label>
-              <select value={settings.theme} onChange={handleThemeChange} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px', background: '#fff' }}>
+              <label style={{ fontWeight: '600', marginBottom: '8px', display: 'block' }}>Thème</label>
+              <select value={settings.theme} onChange={handleThemeChange} style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)', background: '#fff', width: '200px' }}>
                 <option value="light">Clair</option>
                 <option value="dark">Sombre</option>
                 <option value="auto">Automatique</option>
               </select>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
+/********************* PROFILE PAGE ************************/
+function ProfilePage({ onClose, user }) {
+  const [formData, setFormData] = useState({
+    prenom: user?.prenom || '',
+    nom: user?.nom || '',
+    email: user?.email || '',
+    entreprise: user?.entreprise || '',
+    ville: user?.ville || '',
+    telephone: user?.telephone || ''
+  });
+
+  const handleChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSave = () => {
+    // Sauvegarder dans localStorage
+    const updatedUser = { ...user, ...formData };
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    alert('Profil mis à jour !');
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingTop: '80px' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
           <button
-            style={{
-              padding: '14px 24px',
-              background: '#2563EB',
-              color: '#fff',
-              borderRadius: '10px',
-              border: 'none',
-              fontWeight: '700',
-              fontSize: '15px',
-              cursor: 'pointer'
-            }}
+            onClick={onClose}
+            style={{ marginRight: '16px', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border)', background: '#fff', cursor: 'pointer', fontWeight: '600' }}
           >
-            Enregistrer les paramètres
+            ← Retour
           </button>
+          <h1 style={{ fontSize: '32px', fontWeight: '900', margin: 0 }}>Mon Profil</h1>
+        </div>
+
+        <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
+          <div style={{ display: 'grid', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px' }}>Prénom</label>
+              <input
+                type="text"
+                value={formData.prenom}
+                onChange={(e) => handleChange('prenom', e.target.value)}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px' }}>Nom</label>
+              <input
+                type="text"
+                value={formData.nom}
+                onChange={(e) => handleChange('nom', e.target.value)}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px' }}>Email</label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleChange('email', e.target.value)}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px' }}>Entreprise</label>
+              <input
+                type="text"
+                value={formData.entreprise}
+                onChange={(e) => handleChange('entreprise', e.target.value)}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px' }}>Ville</label>
+              <input
+                type="text"
+                value={formData.ville}
+                onChange={(e) => handleChange('ville', e.target.value)}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px' }}>Téléphone</label>
+              <input
+                type="tel"
+                value={formData.telephone}
+                onChange={(e) => handleChange('telephone', e.target.value)}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            <button
+              onClick={handleSave}
+              style={{
+                padding: '12px 24px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                marginTop: '8px'
+              }}
+            >
+              Enregistrer
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -351,210 +506,37 @@ function HelpPage({ onClose }) {
 
         <div style={{ display: 'grid', gap: '16px' }}>
           <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px' }}>Comment utiliser Alternant Talent ?</h2>
-
-            <div style={{ display: 'grid', gap: '16px', fontSize: '14px', lineHeight: '1.6' }}>
-              <div>
-                <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>🔍 Rechercher des offres</h3>
-                <p style={{ color: 'var(--muted)', margin: 0 }}>Utilisez la barre de recherche pour trouver des offres par poste, entreprise ou mot-clé. Vous pouvez également filtrer par ville.</p>
-              </div>
-
-              <div>
-                <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>❤️ Sauvegarder vos favoris</h3>
-                <p style={{ color: 'var(--muted)', margin: 0 }}>Cliquez sur le cœur pour ajouter une offre à vos favoris. Retrouvez toutes vos offres favorites en cliquant sur l'onglet "Favoris".</p>
-              </div>
-
-              <div>
-                <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>👤 Compléter votre profil</h3>
-                <p style={{ color: 'var(--muted)', margin: 0 }}>Renseignez vos informations personnelles et téléchargez votre CV pour faciliter vos candidatures.</p>
-              </div>
-
-              <div>
-                <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>📧 Postuler aux offres</h3>
-                <p style={{ color: 'var(--muted)', margin: 0 }}>Cliquez sur "Postuler" pour accéder directement à la page de candidature de l'entreprise.</p>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', padding: '24px' }}>
             <h2 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '16px' }}>Questions fréquentes</h2>
 
-            <div style={{ display: 'grid', gap: '16px', fontSize: '14px', lineHeight: '1.6' }}>
+            <div style={{ display: 'grid', gap: '24px' }}>
               <div>
-                <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>Combien d'offres sont disponibles ?</h3>
-                <p style={{ color: 'var(--muted)', margin: 0 }}>Nous agrégeons des milliers d'offres d'alternance provenant de sources vérifiées comme Adzuna, France Travail, et des sites carrières d'entreprises.</p>
+                <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>Comment rechercher une offre ?</h3>
+                <p style={{ color: 'var(--muted)', lineHeight: '1.6' }}>
+                  Utilisez la barre de recherche en haut de la page pour saisir un mot-clé (métier, compétence) et une ville. Les résultats s'afficheront automatiquement.
+                </p>
               </div>
 
               <div>
-                <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>Les offres sont-elles à jour ?</h3>
-                <p style={{ color: 'var(--muted)', margin: 0 }}>Oui, notre base de données est mise à jour automatiquement toutes les 12 heures pour vous garantir les offres les plus récentes.</p>
+                <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>Comment sauvegarder une offre ?</h3>
+                <p style={{ color: 'var(--muted)', lineHeight: '1.6' }}>
+                  Cliquez sur l'icône cœur ❤️ sur une offre pour l'ajouter à vos favoris. Retrouvez toutes vos offres sauvegardées en cliquant sur "Favoris" dans le menu.
+                </p>
+              </div>
+
+              <div>
+                <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>D'où viennent les offres ?</h3>
+                <p style={{ color: 'var(--muted)', lineHeight: '1.6' }}>
+                  Les offres proviennent de plusieurs sources : Adzuna, La Bonne Alternance, Jooble, France Travail, Indeed, Welcome to the Jungle, HelloWork, LinkedIn et sites carrières d'entreprises.
+                </p>
               </div>
 
               <div>
                 <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>Comment contacter le support ?</h3>
-                <p style={{ color: 'var(--muted)', margin: 0 }}>Pour toute question, vous pouvez nous contacter à l'adresse : <a href="mailto:contact@alternant-talent.com" style={{ color: '#2563EB', textDecoration: 'none' }}>contact@alternant-talent.com</a></p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/********************* PROFILE PAGE ************************/
-function ProfilePage({ onClose }) {
-  const [profile, setProfile] = useState({
-    firstName: 'Jean',
-    lastName: 'Dupont',
-    email: 'jean.dupont@exemple.fr',
-    phone: '06 12 34 56 78',
-    school: 'Université Paris-Saclay',
-    degree: 'Master Informatique',
-    year: '2ème année',
-    cv: null
-  });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setProfile(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setProfile(prev => ({ ...prev, cv: file }));
-    }
-  };
-
-  return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingTop: '80px' }}>
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '0 16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
-          <button
-            onClick={onClose}
-            style={{ marginRight: '16px', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border)', background: '#fff', cursor: 'pointer', fontWeight: '600' }}
-          >
-            ← Retour
-          </button>
-          <h1 style={{ fontSize: '32px', fontWeight: '900', margin: 0 }}>Mon Profil</h1>
-        </div>
-
-        <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px', padding: '32px' }}>
-          <div style={{ display: 'grid', gap: '24px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Prénom</label>
-                <input
-                  type="text"
-                  name="firstName"
-                  value={profile.firstName}
-                  onChange={handleChange}
-                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px' }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Nom</label>
-                <input
-                  type="text"
-                  name="lastName"
-                  value={profile.lastName}
-                  onChange={handleChange}
-                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px' }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Email</label>
-              <input
-                type="email"
-                name="email"
-                value={profile.email}
-                onChange={handleChange}
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px' }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Téléphone</label>
-              <input
-                type="tel"
-                name="phone"
-                value={profile.phone}
-                onChange={handleChange}
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px' }}
-              />
-            </div>
-
-            <div style={{ height: '1px', background: 'var(--border)', margin: '8px 0' }} />
-
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>École / Université</label>
-              <input
-                type="text"
-                name="school"
-                value={profile.school}
-                onChange={handleChange}
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px' }}
-              />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Diplôme</label>
-                <input
-                  type="text"
-                  name="degree"
-                  value={profile.degree}
-                  onChange={handleChange}
-                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px' }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>Année</label>
-                <input
-                  type="text"
-                  name="year"
-                  value={profile.year}
-                  onChange={handleChange}
-                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px' }}
-                />
-              </div>
-            </div>
-
-            <div style={{ height: '1px', background: 'var(--border)', margin: '8px 0' }} />
-
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>CV (PDF)</label>
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={handleFileChange}
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '14px' }}
-              />
-              {profile.cv && (
-                <p style={{ marginTop: '8px', fontSize: '13px', color: 'var(--muted)' }}>
-                  Fichier sélectionné: {profile.cv.name}
+                <p style={{ color: 'var(--muted)', lineHeight: '1.6' }}>
+                  Pour toute question, envoyez-nous un email à <a href="mailto:support@alternant-talent.com" style={{ color: '#667eea', textDecoration: 'underline' }}>support@alternant-talent.com</a>
                 </p>
-              )}
+              </div>
             </div>
-
-            <button
-              style={{
-                marginTop: '16px',
-                padding: '14px 24px',
-                background: '#2563EB',
-                color: '#fff',
-                borderRadius: '10px',
-                border: 'none',
-                fontWeight: '700',
-                fontSize: '15px',
-                cursor: 'pointer'
-              }}
-            >
-              Enregistrer les modifications
-            </button>
           </div>
         </div>
       </div>
@@ -562,8 +544,25 @@ function ProfilePage({ onClose }) {
   );
 }
 
-/********************* APP ************************/
+/********************* APP PRINCIPAL ************************/
 export default function App() {
+  // État d'authentification
+  const [user, setUser] = useState(null);
+  const [showAuthPage, setShowAuthPage] = useState(false);
+
+  // Vérifier si l'utilisateur est connecté au démarrage
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        localStorage.removeItem('user');
+      }
+    }
+  }, []);
+
+  // États pour les jobs et l'interface
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState(null);
@@ -646,7 +645,11 @@ export default function App() {
       else { await navigator.clipboard.writeText(`${data.title} — ${data.text} — ${data.url}`); alert('Lien copié dans le presse‑papiers'); }
     } catch { /* noop */ }
   };
-  const openFullOffer = () => { const url = `https://example.com/offre/${encodeURIComponent(selectedJob.title)}`; window.open(url, '_blank', 'noopener'); };
+  const openFullOffer = () => {
+    if (selectedJob?.url) {
+      window.open(selectedJob.url, '_blank', 'noopener');
+    }
+  };
   const toggleLike = (id) => setLiked(p => ({ ...p, [id]: !p[id] }));
 
   const filtered = useMemo(() => {
@@ -661,8 +664,33 @@ export default function App() {
 
   const visibleJobs = useMemo(() => showFavs ? filtered.filter(j => liked[j.id]) : filtered, [showFavs, liked, filtered]);
 
+  // Gestion de l'authentification
+  const handleLoginClick = () => {
+    setShowAuthPage(true);
+  };
+
+  const handleAuthSuccess = (userData) => {
+    setUser(userData);
+    setShowAuthPage(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    setUser(null);
+    setShowProfile(false);
+    setShowFavs(false);
+    setShowSettings(false);
+    setShowHelp(false);
+  };
+
+  // Afficher la page d'authentification
+  if (showAuthPage) {
+    return <AuthPage onBack={() => setShowAuthPage(false)} onAuthSuccess={handleAuthSuccess} />;
+  }
+
+  // Afficher les pages de profil, paramètres, aide
   if (showProfile) {
-    return <ProfilePage onClose={() => setShowProfile(false)} />;
+    return <ProfilePage user={user} onClose={() => setShowProfile(false)} />;
   }
 
   if (showSettings) {
@@ -673,6 +701,7 @@ export default function App() {
     return <HelpPage onClose={() => setShowHelp(false)} />;
   }
 
+  // Page principale
   return (
     <div className={`min-h-screen ${showFavs ? 'showFavsMobile' : ''}`} style={{ background: 'var(--bg)', color: 'var(--text)' }}>
       <style>{`
@@ -713,285 +742,272 @@ export default function App() {
         .heart-liked{ background:var(--redBg); border-color:rgba(179,38,30,.35); }
         .counter{ display:inline-flex; align-items:center; height:var(--chipH); padding:0 10px; border-radius:9999px; border:none; background:var(--counterBg); font-weight:400; color:#6F6B65; font-size:13px; }
         .input-with-icon{ flex:1; display:flex; align-items:center; gap:8px; color:#8A867F; min-width:0; }
-        .input-with-icon input{ flex:1; border:0; outline:none; background:transparent; color:var(--text); font-size:13px; }
-        .mini-divider{ width:1px; height:14px; background:rgba(0,0,0,.14); }
-        .search-btn{ margin-left:auto; display:inline-flex; align-items:center; gap:6px; font-weight:600; font-size:13px; padding:10px 16px; border-radius:9999px; color:#fff; background: linear-gradient(180deg, #2e6ffa 0%, var(--ctaBlue) 70%); border:1px solid var(--ctaBlueDark); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 6px 16px rgba(38,99,235,.28); transition: transform .08s ease, box-shadow .2s ease, filter .2s ease; cursor:pointer; }
-        .search-btn:hover{ transform: translateY(-1px); box-shadow: inset 0 1.5px 0 rgba(255,255,255,.45), 0 10px 24px rgba(38,99,235,.34); filter:saturate(1.05); }
-        .search-btn:active{ transform: translateY(0); box-shadow: inset 0 2px 6px rgba(0,0,0,.18), 0 6px 14px rgba(38,99,235,.25); }
-        .search-btn svg{ width:16px; height:16px; }
+        .input-with-icon input{ border:0; outline:0; background:transparent; width:100%; font-size:14px; color:var(--text); flex:1; font-weight:500; }
+        .input-with-icon input::placeholder{ color:#8A867F; font-weight:400; }
+        .input-with-icon svg{ width:16px; height:16px; flex-shrink:0; }
+        .flow-hero{ position:relative; padding:80px 24px 40px; text-align:center; overflow:hidden; }
+        .bg-bleed{ position:absolute; inset:0; background:var(--flowCream); z-index:-1; }
+        .flow-wrap{ max-width:42rem; margin:0 auto; position:relative; z-index:1; }
+        .flow-title{ font-size:clamp(28px,5vw,56px); font-weight:900; line-height:1.1; color:var(--text); margin-bottom:18px; }
+        .flow-underline{ position:relative; white-space:nowrap; }
+        .flow-underline::before{ content:''; position:absolute; bottom:-2px; left:0; right:0; height:14px; background:#FFE066; border-radius:8px; z-index:-1; }
+        .flow-sub{ font-size:18px; color:var(--muted); max-width:36rem; margin:0 auto 32px; line-height:1.5; }
+        .flow-cta{ display:flex; justify-content:center; flex-wrap:wrap; gap:14px; }
+        .flow-btn{ display:inline-flex; align-items:center; gap:10px; border-radius:9999px; font-size:14px; cursor:pointer; border:0; transition: transform .18s ease, box-shadow .18s ease; }
+        .flow-btn--compact{ background:#fff; border:1px solid rgba(0,0,0,.12); color:var(--text); padding:10px 18px; box-shadow: 0 2px 6px rgba(0,0,0,.06); }
+        .flow-btn--compact:hover{ transform:translateY(-1px); box-shadow:0 6px 14px rgba(0,0,0,.1); }
+        .txt-strong{ font-weight:700; color:var(--ctaBlue); }
+        .txt-muted{ font-weight:400; color:var(--muted); }
+        .flow-divider{ width:1px; height:14px; background:rgba(0,0,0,.15); }
 
-        .seg{ display:inline-flex; align-items:center; height:var(--chipH); background:#fff; border:1px solid var(--border); border-radius:9999px; padding:2px; }
-        .seg-item{ height:calc(var(--chipH) - 4px); display:inline-flex; align-items:center; padding:0 10px; border-radius:9999px; font-weight:500; color:#3F3D39; font-size:13px; cursor:pointer; }
-        .seg-item.active{ background:#2B2B2B; color:#fff; font-weight:600; }
-        .date-inline{ display:inline-flex; align-items:center; gap:6px; color:#1E40AF; font-size:12.5px; } .date-strong{ font-weight:700; } .date-normal{ font-weight:400; }
-        .date-hr{ height:1px; background:var(--sep); margin:6px 0 8px; }
-        .page-sep{ height:1px; background:var(--border); }
-        .hr{ height:1px; background:var(--sep); }
-        .like-top-right{ position:absolute; top:10px; right:10px; }
-        .see-bottom-right{ position:absolute; right:12px; bottom:10px; display:inline-flex; align-items:center; gap:6px; font-weight:700; font-size:13px; padding:0; border:0; background:transparent; color:#2d6cf7; border-radius:0; box-shadow:none; cursor:pointer; }
-        .see-bottom-right svg{ width:16px; height:16px; }
-        @media (min-width:641px){ .see-bottom-right{ color: rgba(45,108,247,.85); } .see-bottom-right:hover{ color:#2d6cf7; } }
-        .split-area{ display:grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap:18px; align-items:start; }
-        .list-scroll{ grid-column: span 7 / span 7; height: var(--splitH); overflow-y:auto; padding-right:4px; }
-        .detail-col{ grid-column: span 5 / span 5; position:relative; }
-        .detail-sticky{ position:sticky; top: var(--stickyTop); }
-        .with-like{ padding-right: calc(var(--likeS) + 22px); }
+        .main-split{ display:grid; gap:20px; padding:20px; max-width:1440px; margin:0 auto; }
+        @media (min-width:641px){ .main-split{ grid-template-columns:minmax(380px,480px) 1fr; } }
+        @media (max-width:640px){ .main-split{ grid-template-columns:1fr; } }
+        .jobs-col{ overflow:visible; }
+        .detail-col{ position:sticky; top:var(--stickyTop); height:var(--splitH); overflow-y:auto; }
+        @media (max-width:640px){ .detail-col{ position:static; height:auto; overflow:visible; } .detail-col.showFavsMobile{ display:none; } .jobs-col.showFavsMobile .card:not(.card--liked){ display:none; } }
 
-        .flow-hero{ position:relative; padding:72px 0 10px; }
-        @media (max-width: 640px){ .flow-hero{ padding:72px 0 5px; } }
-        .flow-hero .bg-bleed{ position:absolute; inset:0; left:50%; width:100vw; transform:translateX(-50%); background:linear-gradient(180deg,#F7F7F8 0%, #FFFFFF 70%); z-index:0; }
-        .flow-wrap{ position:relative; z-index:1; max-width:72rem; margin:0 auto; text-align:center; padding:0 16px; }
-        .flow-title{ font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; font-weight:900; letter-spacing:-.02em; font-size:clamp(40px, 6.5vw, 96px); line-height:.95; color:#111111; margin:0 0 10px; }
-        .flow-sub{ color:#6b7280; font-weight:500; font-size:clamp(18px, 2.3vw, 28px); margin-top:8px; }
-        @media (min-width: 1024px){ .flow-wrap{ padding-left:160px; padding-right:160px; } .flow-title{ font-size:clamp(20px, 3.25vw, 48px); } .flow-sub{ font-size:clamp(9px, 1.15vw, 14px); } }
-        .flow-cta{ display:flex; justify-content:center; margin-top:28px; }
-        .flow-btn{ display:inline-flex; align-items:center; gap:10px; background:#FAFAFA; border:1px solid #EAEAEA; border-radius:9999px; padding:12px 18px; font-weight:700; cursor:pointer; }
-        .flow-btn--compact{ padding:4px 6px; font-size:10px; gap:6px; }
-        .flow-divider{ width:1px; height:12px; background:rgba(0,0,0,.14); margin:0 6px; }
-        .flow-btn .txt-muted{ color:#6F6B65; font-weight:600; }
-        .flow-btn .txt-strong{ font-weight:700; }
-        .flow-underline{ position:relative; display:inline-block; }
+        .job-row{ padding:var(--cardPad); display:flex; align-items:center; gap:12px; min-height:var(--rowMinH); cursor:pointer; }
+        .job-row__logo{ flex-shrink:0; }
+        .job-row__content{ flex:1; min-width:0; }
+        .job-row__like{ flex-shrink:0; }
+        .job-title{ font-size:var(--titleList); font-weight:700; color:var(--text); margin-bottom:2px; line-height:1.25; }
+        .job-meta{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-bottom:6px; font-size:var(--meta); color:var(--muted); }
+        .job-meta .icon-inline{ width:14px; height:14px; vertical-align:middle; margin-right:2px; }
+        .job-tags{ display:flex; flex-wrap:wrap; gap:6px; }
+        .job-tag{ display:inline-flex; align-items:center; height:var(--chipH); padding:0 10px; background:var(--counterBg); border-radius:9999px; font-size:12px; font-weight:500; color:var(--text); }
 
-        .tool-card{ border:1px solid var(--borderStrong); border-radius:var(--radiusSoft); padding:10px; background:#fff; display:grid; gap:8px; }
-        .tool-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
-        .tool-row label{ color:#3F3D39; font-size:13px; }
-        .tool-row input{ width:120px; background:#fff; border:1px solid var(--border); border-radius:6px; padding:6px 8px; font-size:13px; color:var(--text); }
-        .tool-results{ display:grid; gap:6px; padding-top:4px; }
-        .tool-results .k{ color:#6F6B65; font-size:12.5px; }
-        .tool-results .v{ font-weight:700; color:#1F1E1B; }
-        .tool-note{ color:#8B877F; font-size:12px; }
+        .detail-header{ display:flex; align-items:flex-start; gap:16px; margin-bottom:24px; }
+        .detail-header__logo{ flex-shrink:0; }
+        .detail-header__info{ flex:1; min-width:0; }
+        .detail-title{ font-size:var(--titleDetail); font-weight:700; color:var(--text); margin-bottom:8px; line-height:1.25; }
+        .detail-company{ font-size:15px; color:var(--muted); margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+        .detail-company .icon-inline{ width:16px; height:16px; }
+        .detail-location{ font-size:14px; color:var(--muted); margin-bottom:12px; display:flex; align-items:center; gap:6px; }
+        .detail-location .icon-inline{ width:16px; height:16px; }
+        .date-inline{ display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); margin-bottom:4px; }
+        .date-inline .w-3\.5{ width:14px; height:14px; }
+        .date-strong{ font-weight:600; color:var(--text); }
+        .date-normal{ font-weight:400; color:var(--muted); }
 
-        .pad-card{ padding: var(--cardPad); padding-bottom: 32px; }
+        .detail-body{ overflow-y:auto; }
+        .hr{ height:1px; background:var(--border); margin:20px 0; }
+        .actions-row{ display:flex; gap:12px; justify-content:flex-end; }
+        .action-pill{ display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:9999px; font-size:14px; font-weight:600; cursor:pointer; border:1px solid var(--border); background:#fff; transition:transform .12s ease, box-shadow .12s ease; }
+        .action-pill:hover{ transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,.08); }
+        .action-share{ color:var(--muted); }
+        .action-apply{ background:var(--ctaBlue); color:#fff; border-color:var(--ctaBlue); }
+        .action-apply:hover{ background:var(--ctaBlueDark); border-color:var(--ctaBlueDark); }
 
-        .cookie-bar{ position:fixed; left:0; right:0; bottom:0; z-index:60; color:#fff; background:rgba(17,17,17,.78); backdrop-filter:saturate(120%) blur(4px); -webkit-backdrop-filter:saturate(120%) blur(4px); border:0; box-shadow:0 -6px 18px rgba(0,0,0,.18); }
-        .cookie-inner{ max-width:72rem; margin:0 auto; padding:8px 12px; display:flex; align-items:center; gap:8px; justify-content:space-between; }
-        .cookie-text{ opacity:.96; font-size:12.5px; }
-        .cookie-actions{ display:flex; align-items:center; gap:8px; }
-        .cookie-accept{ background:#fff; color:#111; border:0; border-radius:9999px; padding:6px 10px; font-weight:700; cursor:pointer; }
-        .cookie-decline{ background:transparent; color:#fff; border:0; padding:6px 8px; text-decoration:underline; cursor:pointer; }
+        .salary-tool{ background:var(--counterBg); border-radius:10px; padding:16px; }
+        .tool-title{ font-weight:700; margin-bottom:12px; color:var(--text); }
+        .tool-inputs{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+        .tool-input-group{ display:flex; flex-direction:column; gap:4px; }
+        .tool-input-group label{ font-size:12px; font-weight:600; color:var(--muted); }
+        .tool-input-group input{ border:1px solid var(--border); border-radius:6px; padding:8px; font-size:14px; outline:0; background:#fff; }
+        .tool-results{ display:grid; gap:8px; }
+        .tool-results > div{ display:flex; justify-content:space-between; font-size:14px; }
+        .tool-results .k{ font-weight:400; color:var(--muted); }
+        .tool-results .v{ font-weight:700; color:var(--text); }
+        .tool-note{ margin-top:12px; font-size:12px; color:var(--muted); }
 
-        .footer-shell{ background:#fff; border-top:1px solid var(--border); }
-        .footer-inner{ max-width:72rem; margin:0 auto; padding:24px 16px; }
-        .footer-grid{ display:grid; grid-template-columns:1.5fr repeat(3,1fr); gap:24px; align-items:flex-start; }
-        .footer-title{ font-weight:700; font-size:14px; color:#1F1E1B; margin-bottom:8px; }
-        .footer-link{ display:block; color:#6F6B65; font-size:13px; padding:4px 0; text-decoration:none; }
-        .footer-link:hover{ color:#1F1E1B; }
-        .footer-brand{ display:flex; align-items:center; gap:8px; color:#1F1E1B; }
-        .footer-bottom{ margin-top:16px; padding-top:12px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; color:#6F6B65; font-size:12px; }
-        .footer-bottom .footer-link{ display:inline-block; padding:0; margin-left:12px; }
+        .job-bullets{ list-style:disc; margin-left:20px; margin-top:8px; color:var(--muted); font-size:14px; line-height:1.6; }
+        .job-bullets li{ margin-bottom:6px; }
 
-        .job-bullets{ margin: 8px 0 0 18px; padding: 0; list-style: disc; color: var(--muted); font-size: 13px; }
-        .job-bullets li{ line-height: 1.5; }
+        .footer-shell{ border-top:1px solid var(--border); padding:48px 24px; background:var(--flowCream); margin-top:80px; }
+        .footer-inner{ max-width:1200px; margin:0 auto; }
+        .footer-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:32px; }
+        .footer-brand{ display:flex; align-items:center; gap:8px; font-weight:700; margin-bottom:12px; }
+        .footer-title{ font-weight:700; margin-bottom:12px; color:var(--text); }
+        .footer-link{ display:block; margin-bottom:8px; color:var(--muted); text-decoration:none; font-size:14px; }
+        .footer-link:hover{ color:var(--text); text-decoration:underline; }
+        .footer-bottom{ display:flex; justify-content:space-between; flex-wrap:wrap; align-items:center; margin-top:32px; padding-top:24px; border-top:1px solid var(--border); font-size:14px; color:var(--muted); }
+        .footer-bottom > div{ display:flex; gap:16px; }
 
-        .actions-row{ display:flex; align-items:center; gap:10px; justify-content:flex-end; }
-        .action-pill{ display:inline-flex; align-items:center; gap:8px; height:40px; padding:0 12px; background:#fff; border-radius:10px; font-weight:700; font-size:13px; }
-        .action-share{ border:1px solid var(--border); color:var(--text); }
-        .action-share:hover{ background:var(--hoverBg); }
-        .action-apply{ border:1px solid var(--ctaBlue); color:var(--ctaBlue); font-weight:800; }
-        .action-apply:hover{ background:rgba(45,108,247,.06); }
-        .action-apply:active{ background:rgba(45,108,247,.12); }
-
-        @media (max-width: 640px){
-          :root{ --chipH:24px; }
-          .filters-row{ gap:6px; padding-bottom:2px; }
-          .counter{ padding:0 8px; font-size:11px; }
-          .seg-item{ padding:0 8px; font-size:11px; }
-          .search-wrap{ padding:10px 12px; gap:10px; }
-          .search-btn{ padding:8px 12px; font-size:12px; }
-          .city-input{ max-width:140px; }
-          .split-area{ display:block; }
-          .list-scroll{ height:auto; overflow:visible; padding-right:0; }
-          .detail-col{ display:none; }
-          .cookie-inner{ flex-direction:column; align-items:stretch; gap:8px; }
-          .cookie-actions{ justify-content:flex-end; }
-          .header-pill{ max-width: calc(100vw - 12px); white-space:nowrap; }
-          .flow-title{ font-size:clamp(28px, 8.5vw, 48px); line-height:1; }
-          .flow-sub{ font-size:clamp(14px, 4vw, 18px); }
-          .footer-grid{ grid-template-columns: 1fr 1fr; gap:16px; }
-          .footer-inner{ padding:16px 12px; }
-          .footer-bottom{ flex-direction:column; align-items:flex-start; gap:8px; }
-        }
-
-        @media (max-width: 1024px){ .split-area{ display:block; } .list-scroll{ height:auto; overflow:visible; } .detail-sticky{ position:static; } }
-        @media (min-width: 641px){ .detail-col{ display:block; } }
+        .cookie-bar{ position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--border); padding:16px; z-index:100; box-shadow:0 -2px 8px rgba(0,0,0,.08); }
+        .cookie-inner{ max-width:1200px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; }
+        .cookie-text{ font-size:14px; color:var(--text); }
+        .cookie-actions{ display:flex; gap:12px; }
+        .cookie-decline{ padding:8px 16px; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; font-weight:600; }
+        .cookie-accept{ padding:8px 16px; border:1px solid var(--ctaBlue); border-radius:8px; background:var(--ctaBlue); color:#fff; cursor:pointer; font-weight:600; }
       `}</style>
 
-      <HeaderGlassDropdown
-        onProfileClick={() => setShowProfile(true)}
-        onFavorisClick={() => {
-          setShowFavs(true);
-          document.getElementById('search')?.scrollIntoView({ behavior: 'smooth' });
-        }}
-        onSettingsClick={() => setShowSettings(true)}
-        onHelpClick={() => setShowHelp(true)}
-      />
+      {/* Header conditionnel */}
+      {user ? (
+        <HeaderConnected
+          user={user}
+          onProfileClick={() => setShowProfile(true)}
+          onFavorisClick={() => setShowFavs(v => !v)}
+          onSettingsClick={() => setShowSettings(true)}
+          onHelpClick={() => setShowHelp(true)}
+          onLogout={handleLogout}
+        />
+      ) : (
+        <HeaderNotConnected onLoginClick={handleLoginClick} />
+      )}
 
-      <section className="mx-auto max-w-6xl px-4 mt-0">
-        <LightActionHero onPrimaryClick={scrollToSearch} />
-      </section>
+      {!user && <LightActionHero onPrimaryClick={handleLoginClick} />}
 
-      <section className="mx-auto max-w-6xl search-section" id="search" style={{ marginTop: '0px', paddingTop: '0px', paddingLeft: '16px', paddingRight: '16px' }}>
-        <div className="hero-illustration" style={{ textAlign: 'center', marginBottom: '0px', marginTop: '0px', overflow: 'hidden' }}>
-          <img
-            src={isMobile ? "/icons/Image PNG 2.png" : "/icons/Image PNG.png"}
-            alt="Illustration recherche"
-            style={{ maxWidth: '1200px', height: 'auto', margin: '0 auto', display: 'block', width: '100%', verticalAlign: 'bottom' }}
-          />
-        </div>
-        <div className="search-wrap" style={{ marginTop: '0px' }}>
+      {/* Illustration */}
+      <div style={{ marginBottom: '0px' }}>
+        <img
+          src={isMobile ? "/icons/Image PNG 2.png" : "/icons/Image PNG.png"}
+          alt="Illustration recherche alternance"
+          style={{
+            maxWidth: '1200px',
+            height: 'auto',
+            margin: '0 auto',
+            display: 'block',
+            width: '100%'
+          }}
+        />
+      </div>
+
+      {/* Barre de recherche */}
+      <div id="search" className="search-section" style={{ padding: '0 20px' }}>
+        <div className="search-wrap">
           <div className="input-with-icon">
-            <BriefcaseBusiness className="w-4 h-4" />
+            <Search />
             <input
-              aria-label="Poste, entreprise, mot-clé"
-              placeholder="Poste, entreprise, mot-clé"
+              type="text"
               value={qDraft}
               onChange={(e) => setQDraft(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') applySearch(); }}
+              placeholder="Métier, mot-clé, entreprise…"
+              data-testid="search-input"
             />
           </div>
-          <div className="input-with-icon city-input">
-            <MapPin className="w-4 h-4" />
-            <span className="mini-divider" />
+          <div className="input-with-icon">
+            <MapPin />
             <input
-              aria-label="Ville"
-              placeholder="Ville"
+              type="text"
               value={cityDraft}
               onChange={(e) => setCityDraft(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') applySearch(); }}
+              placeholder="Ville…"
+              data-testid="city-input"
             />
           </div>
-          <button className="search-btn" onClick={applySearch}><Search className="w-4 h-4" /> Rechercher</button>
+          <button className="btn btn-primary" style={{ padding: '10px 20px', flexShrink: 0 }} onClick={applySearch}>
+            Rechercher
+          </button>
         </div>
-        <div className="filters-row" data-testid="filters-inline">
-          <span className="counter">{visibleJobs.length} offres visibles</span>
-          <span className="counter">{Object.values(liked).filter(Boolean).length} favoris</span>
-          <div className="seg">
-            <button className={`seg-item ${!showFavs ? 'active' : ''}`} onClick={() => setShowFavs(false)}>Toutes les offres</button>
-            <button className={`seg-item ${showFavs ? 'active' : ''}`} onClick={() => setShowFavs(true)}>Favoris</button>
-          </div>
-        </div>
-      </section>
 
-      <main className="mx-auto max-w-6xl px-4 pb-8 split-area" id="jobs-list" style={{ marginTop: '40px' }}>
-        <div className="list-scroll">
-          {loading ? (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>
-              Chargement des offres...
-            </div>
-          ) : visibleJobs.length === 0 ? (
-            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>
-              Aucune offre trouvée
-            </div>
-          ) : (
-            <div className="space-y-3">
-            {visibleJobs.map((job, idx) => {
-              const isLiked = !!liked[job.id];
-              const isSelected = job.id === selectedId;
-              const isFirst = idx === 0;
-              return (
-                <article
-                  key={job.id}
-                  className={`relative card overflow-hidden ${isSelected ? 'card--selected' : ''} ${isFirst ? 'card--first' : ''}`}
-                  data-testid={`job-${job.id}`}
-                >
-                  <div className="like-top-right">
-                    <button
-                      aria-label={isLiked ? "Retirer des favoris" : "Ajouter aux favoris"}
-                      className={`icon-btn ${isLiked ? 'heart-liked' : ''}`}
-                      onClick={() => toggleLike(job.id)}
-                    >
-                      <Heart
-                        className="w-4 h-4"
-                        style={{ color: isLiked ? 'var(--redText)' : 'inherit' }}
-                        fill={isLiked ? 'currentColor' : 'none'}
-                      />
-                    </button>
+        <div className="filters-row">
+          <span className="counter" data-testid="job-counter">{visibleJobs.length} offres</span>
+          {user && (
+            <button
+              className={`btn ${showFavs ? 'btn-primary' : 'btn-outline'}`}
+              style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '6px' }}
+              onClick={() => setShowFavs(v => !v)}
+              data-testid="favs-toggle"
+            >
+              <Heart className="w-4 h-4" />
+              <span>Favoris</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Jobs */}
+      <main className="main-split" id="jobs-list">
+        <div className={`jobs-col ${showFavs ? 'showFavsMobile' : ''}`} style={{ display: 'grid', gap: '8px', alignContent: 'start' }}>
+          {loading && <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)' }}>Chargement des offres...</div>}
+          {!loading && visibleJobs.length === 0 && <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)' }}>Aucune offre trouvée</div>}
+          {visibleJobs.map((j, i) => {
+            const isLiked = liked[j.id];
+            const isSel = selectedId === j.id;
+            const isFirst = i === 0;
+            return (
+              <article
+                key={j.id}
+                className={`card job-row ${isLiked ? 'card--liked' : ''} ${isSel ? 'card--selected' : ''} ${isFirst ? 'card--first' : ''}`}
+                onClick={() => handleVoir(j.id)}
+                tabIndex={0}
+                role="button"
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleVoir(j.id); }}
+                aria-label={`Voir l'offre ${j.title} chez ${j.company}`}
+              >
+                <div className="job-row">
+                  <div className="job-row__logo">
+                    <SquareDotLogo name={j.company} size={48} />
                   </div>
-                  <button
-                    onClick={() => (isMobile ? openFullOffer() : handleVoir(job.id))}
-                    className="see-bottom-right"
-                    data-testid={`voir-${job.id}`}
-                  >
-                    {isMobile ? 'Postuler' : 'Voir'} <ChevronRight />
-                  </button>
-
-                  <div className="pad-card with-like" style={{ minHeight: 'var(--rowMinH)' }}>
+                  <div className="job-row__content">
+                    <h2 className="job-title">{j.title}</h2>
+                    <div className="job-meta">
+                      <span><Building2 className="icon-inline" />{j.company}</span>
+                      {j.location && <span><MapPin className="icon-inline" />{j.location}</span>}
+                    </div>
                     <div className="date-inline mb-1">
                       <Calendar className="w-3.5 h-3.5" />
-                      <span className="date-strong">{job.posted}</span>
-                      {job.publishedAt && (
+                      <span className="date-strong">{j.posted}</span>
+                      {j.publishedAt && (
                         <>
                           <span>·</span>
-                          <span className="date-normal">{fmtDate(job.publishedAt)}</span>
+                          <span className="date-normal">{fmtDate(j.publishedAt)}</span>
                         </>
                       )}
                     </div>
-                    <div className="date-hr" />
-
-                    <div className="flex items-start gap-3 md:gap-4">
-                      <SquareDotLogo name={job.company} size={40} />
-
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold leading-snug" style={{ fontSize: 'var(--titleList)', color: 'var(--text)' }}>{job.title}</h3>
-                        <div className="mt-1.5 flex flex-wrap items-center gap-3" style={{ fontSize: 'var(--meta)', color: 'var(--muted)' }}>
-                          <span className="flex items-center gap-1.5"><Building2 className="w-3.5 h-3.5" />{job.company}</span>
-                          <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" />{job.location}</span>
-                          {job.salary && <span className="font-semibold">{job.salary}</span>}
-                        </div>
-                      </div>
+                    <div className="job-tags">
+                      {(j.tags || []).map((t, ti) => <span key={ti} className="job-tag">{t}</span>)}
                     </div>
                   </div>
-                </article>
-              );
-            })}
-          </div>
-        )}
+                  {user && (
+                    <div className="job-row__like">
+                      <button
+                        className={`icon-btn ${isLiked ? 'heart-liked' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); toggleLike(j.id); }}
+                        aria-label={isLiked ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                      >
+                        <Heart style={{ fill: isLiked ? '#B3261E' : 'none' }} className="w-5 h-5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </article>
+            );
+          })}
         </div>
 
-        {!loading && selectedJob && (
-          <aside className="detail-col" ref={detailRef}>
-          <div className="card overflow-hidden detail-sticky">
-            <div className="p-5 space-y-3" style={{display:'flex', flexDirection:'column', flex:1}}>
-              <div className="date-inline">
-                <Calendar className="w-3.5 h-3.5"/>
-                <span className="date-strong">{selectedJob.posted}</span>
-                {selectedJob.publishedAt && (
-                  <>
-                    <span>·</span>
-                    <span className="date-normal">{fmtDate(selectedJob.publishedAt)}</span>
-                  </>
-                )}
+        {selectedJob && (
+        <aside ref={detailRef} className={`detail-col ${showFavs ? 'showFavsMobile' : ''}`} aria-label="Détail de l'offre">
+          <div style={{ position: 'sticky', top: 0 }}>
+            <div className="detail-header">
+              <div className="detail-header__logo">
+                <SquareDotLogo name={selectedJob.company} size={64} />
               </div>
-              <div className="flex items-start gap-3">
-                <SquareDotLogo name={selectedJob.company} size={40} />
-                <div className="flex-1">
-                  <h2 className="font-semibold leading-snug" data-testid="detail-title" style={{ fontSize:'var(--titleDetail)', color:'var(--text)' }}>{selectedJob.title}</h2>
-                  <div className="mt-1 flex flex-wrap items-center gap-3" style={{color:'#6F6B65', fontSize:'var(--meta)'}}>
-                    <span className="inline-flex items-center gap-2"><Building2 className="w-4 h-4"/> {selectedJob.company}</span>
-                    <span className="inline-flex items-center gap-2"><MapPin className="w-4 h-4"/> {selectedJob.location}</span>
+              <div className="detail-header__info">
+                <h1 className="detail-title">{selectedJob.title}</h1>
+                <div className="detail-company"><Building2 className="icon-inline" />{selectedJob.company}</div>
+                {selectedJob.location && <div className="detail-location"><MapPin className="icon-inline" />{selectedJob.location}</div>}
+                <div className="date-inline mb-1">
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span className="date-strong">{selectedJob.posted}</span>
+                  {selectedJob.publishedAt && (
+                    <>
+                      <span>·</span>
+                      <span className="date-normal">{fmtDate(selectedJob.publishedAt)}</span>
+                    </>
+                  )}
+                </div>
+                <div className="job-tags" style={{ marginTop: '8px' }}>
+                  {(selectedJob.tags || []).map((t, ti) => <span key={ti} className="job-tag">{t}</span>)}
+                </div>
+              </div>
+            </div>
+
+            <div className="detail-body">
+              <div className="salary-tool">
+                <h3 className="tool-title">Simulateur de salaire</h3>
+                <div className="tool-inputs">
+                  <div className="tool-input-group">
+                    <label htmlFor="input-gross">Brut mensuel (€)</label>
+                    <input id="input-gross" type="number" value={gross} onChange={(e) => setGross(toNumber(e.target.value))} min="0" data-testid="gross-input" />
                   </div>
-                </div>
-                <button className={`icon-btn ${liked[selectedJob.id]? 'heart-liked':''}`} aria-label="Aimer" onClick={()=>toggleLike(selectedJob.id)}>
-                  <Heart className="w-4 h-4" style={{ color: liked[selectedJob.id]? 'var(--redText)' : 'inherit' }} fill={liked[selectedJob.id]? 'currentColor' : 'none'} />
-                </button>
-              </div>
-              <div className="hr" />
-
-              {selectedJob.salary && (
-                <div className="inline-flex items-center gap-2 salary-chip" style={{ borderRadius:8, padding:'6px 10px', background:'#f7f6f4', border:'1px solid var(--border)' }}>
-                  <span>{selectedJob.salary}</span>
-                  <span style={{ color:'#8B877F', display:'inline-flex', alignItems:'center', gap:4 }}>estimation <ChevronRight className="w-3 h-3"/></span>
-                </div>
-              )}
-
-              <div className="tool-card">
-                <div className="tool-row">
-                  <label>Brut mensuel (€)</label>
-                  <input data-testid="salary-gross-input" type="number" min={0} step={50} value={gross} onChange={(e)=> setGross(clamp(toNumber(e.target.value), 0, 100000))} />
-                </div>
-                <div className="tool-row">
-                  <label>Heures / semaine</label>
-                  <input data-testid="salary-hours-input" type="number" min={1} max={45} step={1} value={hours} onChange={(e)=> setHours(clamp(toNumber(e.target.value), 1, 60))} />
+                  <div className="tool-input-group">
+                    <label htmlFor="input-hours">Heures / semaine</label>
+                    <input id="input-hours" type="number" value={hours} onChange={(e) => setHours(clamp(toNumber(e.target.value), 1, 80))} min="1" max="80" data-testid="hours-input" />
+                  </div>
                 </div>
                 <div className="tool-results">
                   <div>
