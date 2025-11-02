@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Search,
   MapPin,
@@ -11,6 +11,13 @@ import {
   User,
   Settings,
   HelpCircle,
+  FileText,
+  Bell,
+  Lock,
+  Upload,
+  Loader2,
+  Pencil,
+  ShieldCheck,
 } from "lucide-react";
 import AuthPage from "./pages/AuthPage";
 
