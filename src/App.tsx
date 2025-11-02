@@ -482,7 +482,7 @@ export default function App() {
         .search-wrap{ display:flex; align-items:center; gap:14px; background:var(--searchBg); border:1px solid var(--searchBorder); border-radius:9999px; padding:10px 14px; width:100%; max-width: var(--searchMax); margin: 0 auto 16px; box-sizing:border-box; }
         .search-section{ margin-top: var(--searchSectionTop); margin-bottom: var(--searchSectionBottom); }
         .hero-illustration{ display:block; width:100%; max-width:1200px; margin:0 auto 4px; height:auto; }
-        @media (max-width: 640px){ .hero-illustration{ max-width:100%; margin-bottom:6px; } }
+        @media (max-width: 640px){ .hero-illustration{ max-width:100%; margin-bottom:0px; } }
         .filters-row{ display:flex; align-items:center; justify-content:center; gap:16px; white-space:nowrap; flex-wrap:wrap; }
         .filters-row > *{ flex:0 0 auto; }
 
