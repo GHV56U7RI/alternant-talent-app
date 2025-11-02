@@ -493,7 +493,7 @@ export default function App() {
         .search-btn:active{ transform: translateY(0); box-shadow: inset 0 2px 6px rgba(0,0,0,.18), 0 6px 14px rgba(38,99,235,.25); }
 
         .seg{ display:inline-flex; align-items:center; height:var(--chipH); background:#fff; border:1px solid var(--sep); border-radius:9999px; padding:2px; }
-        .seg-item{ height:calc(var(--chipH) - 4px); display:inline-flex; align-items:center; padding:0 10px; border-radius:9999px; font-weight:500; color:#3F3D39; font-size:13px; cursor:pointer; }
+        .seg-item{ height:calc(var(--chipH) - 4px); display:inline-flex; align-items:center; padding:0 10px; border-radius:9999px; font-weight:500; color:#3F3D39; font-size:13px; cursor:pointer; border:none; background:transparent; transition: all 0.2s ease; }
         .seg-item.active{ background:#2B2B2B; color:#fff; font-weight:600; }
         .date-inline{ display:inline-flex; align-items:center; gap:6px; color:#1E40AF; font-size:12.5px; } .date-strong{ font-weight:700; } .date-normal{ font-weight:400; }
         .date-hr{ height:1px; background:var(--sep); margin:6px 0 8px; }
@@ -631,7 +631,7 @@ export default function App() {
         </div>
       </section>
 
-      <main className="mx-auto max-w-6xl px-4 mt-5 pb-8 split-area" id="jobs-list">
+      <main className="mx-auto max-w-6xl px-4 mt-8 md:mt-12 pb-8 split-area" id="jobs-list">
         <div className="list-scroll">
           <div className="space-y-3">
             {loading && <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)' }}>Chargement...</div>}
