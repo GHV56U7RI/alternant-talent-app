@@ -404,14 +404,11 @@ function ProfilePage({ onClose, user: initialUser }) {
     privacy: false,
   });
 
-  const togglePerso = useCallback(() => setOpen((o) => ({ ...o, perso: !o.perso })), []);
-  const toggleDocs = useCallback(() => setOpen((o) => ({ ...o, docs: !o.docs })), []);
-  const toggleApps = useCallback(() => setOpen((o) => ({ ...o, apps: !o.apps })), []);
-  const toggleFav = useCallback(() => setOpen((o) => ({ ...o, fav: !o.fav })), []);
-  const toggleAlerts = useCallback(() => setOpen((o) => ({ ...o, alerts: !o.alerts })), []);
-  const togglePrivacy = useCallback(() => setOpen((o) => ({ ...o, privacy: !o.privacy })), []);
+  function toggle(key: keyof typeof open) {
+    setOpen((o) => ({ ...o, [key]: !o[key] }));
+  }
 
-  const onClickEditSave = useCallback(async () => {
+  async function onClickEditSave() {
     if (!edit) { setEdit(true); return; }
     try {
       setSaving(true);
@@ -422,7 +419,15 @@ function ProfilePage({ onClose, user: initialUser }) {
     } finally {
       setSaving(false);
     }
-  }, [edit]);
+  }
+
+  // Smoke tests simples
+  useEffect(() => {
+    const editBtn = document.querySelector('[data-testid="edit-save"]');
+    const titles = document.querySelectorAll('[data-testid^="title-"]');
+    console.assert(!!editBtn, "[TEST] Bouton Éditer/Enregistrer présent");
+    console.assert(titles.length === 6, "[TEST] 6 sections attendues");
+  }, []);
 
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900">
@@ -458,7 +463,7 @@ function ProfilePage({ onClose, user: initialUser }) {
               Icon={User}
               title="Informations personnelles"
               isOpen={open.perso}
-              onClick={togglePerso}
+              onClick={() => toggle("perso")}
             />
             {open.perso && (
               <li id="perso-panel" className="pb-3" role="region" aria-labelledby="perso-title">
@@ -557,7 +562,7 @@ function ProfilePage({ onClose, user: initialUser }) {
               Icon={FileText}
               title="CV & documents"
               isOpen={open.docs}
-              onClick={toggleDocs}
+              onClick={() => toggle("docs")}
             />
             {open.docs && (
               <li id="docs-panel" className="pb-3" role="region" aria-labelledby="docs-title">
@@ -586,7 +591,7 @@ function ProfilePage({ onClose, user: initialUser }) {
               title="Candidatures (résumé)"
               suffix={applications}
               isOpen={open.apps}
-              onClick={toggleApps}
+              onClick={() => toggle("apps")}
             />
             {open.apps && (
               <li id="apps-panel" className="pb-3" role="region" aria-labelledby="apps-title">
@@ -602,7 +607,7 @@ function ProfilePage({ onClose, user: initialUser }) {
               title="Favoris"
               suffix={favorites}
               isOpen={open.fav}
-              onClick={toggleFav}
+              onClick={() => toggle("fav")}
             />
             {open.fav && (
               <li id="fav-panel" className="pb-3" role="region" aria-labelledby="fav-title">
@@ -620,7 +625,7 @@ function ProfilePage({ onClose, user: initialUser }) {
               title="Alertes d'emploi"
               suffix={alerts}
               isOpen={open.alerts}
-              onClick={toggleAlerts}
+              onClick={() => toggle("alerts")}
             />
             {open.alerts && (
               <li id="alerts-panel" className="pb-3" role="region" aria-labelledby="alerts-title">
@@ -637,7 +642,7 @@ function ProfilePage({ onClose, user: initialUser }) {
               Icon={Lock}
               title="Confidentialité"
               isOpen={open.privacy}
-              onClick={togglePrivacy}
+              onClick={() => toggle("privacy")}
             />
             {open.privacy && (
               <li id="privacy-panel" className="pb-3" role="region" aria-labelledby="privacy-title">
@@ -668,16 +673,19 @@ function ProfilePage({ onClose, user: initialUser }) {
           </ul>
         </nav>
 
+        {/* Liens du bas — uniquement Déconnexion, aligné à droite */}
         <section className="mt-3 flex items-center justify-end text-[13px]">
-          <button
+          <a
+            href="#"
             onClick={onClose}
             className="inline-flex items-center gap-2 text-neutral-600 hover:text-red-600 hover:underline"
           >
             Déconnexion
-          </button>
+          </a>
         </section>
       </main>
 
+      {/* Bouton Éditer / Enregistrer */}
       <button
         aria-label={edit ? "Enregistrer" : "Éditer"}
         onClick={onClickEditSave}
