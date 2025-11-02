@@ -255,16 +255,17 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
   }
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Bouton retour en haut à gauche */}
-        <button
-          onClick={onBack}
-          className="mb-4 text-sm text-neutral-600 hover:text-black inline-flex items-center gap-2"
-        >
-          <ArrowLeft className="w-4 h-4"/> Retour
-        </button>
+    <div className="min-h-screen bg-white text-neutral-900 flex items-center justify-center p-4 relative">
+      {/* Bouton retour en position absolue */}
+      <button
+        onClick={onBack}
+        className="absolute top-4 left-4 sm:top-6 sm:left-6 text-sm text-neutral-600 hover:text-black inline-flex items-center gap-2 transition-colors"
+        aria-label="Retour"
+      >
+        <ArrowLeft className="w-4 h-4"/> Retour
+      </button>
 
+      <div className="w-full max-w-md">
         <Header />
 
         {/* Bloc SSO + Email flow */}
