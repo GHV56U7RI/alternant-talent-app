@@ -29,16 +29,6 @@ body {
 input::placeholder {
   color: #a3a3a3;
   opacity: 1;
-  transition: opacity 0.15s ease;
-  user-select: none;
-}
-
-input:focus::placeholder {
-  opacity: 0;
-}
-
-input:not(:placeholder-shown)::placeholder {
-  opacity: 0;
 }
 
 /* Supprimer les styles par défaut des boutons */
@@ -51,19 +41,6 @@ button {
 
 button:focus {
   outline: none;
-}
-
-/* Améliorer la sélection du texte dans les inputs */
-input {
-  user-select: text;
-  -webkit-user-select: text;
-  -moz-user-select: text;
-}
-
-input:focus {
-  user-select: text;
-  -webkit-user-select: text;
-  -moz-user-select: text;
 }
 
 /* Utility classes similaires à Tailwind */
