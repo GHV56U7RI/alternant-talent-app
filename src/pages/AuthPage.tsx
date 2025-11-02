@@ -118,7 +118,7 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
 
   function GoogleButton(){
     return (
-      <button className="w-full h-14 rounded-full border border-neutral-200 bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-3 text-[15px]" onClick={()=>alert("TODO: OAuth Google")}>
+      <button className="w-full h-14 rounded-full bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-3 text-[15px]" style={{border: "1px solid rgba(0,0,0,0.08)"}} onClick={()=>alert("TODO: OAuth Google")}>
         <GoogleLogo />
         <span>Continuer avec Google</span>
       </button>
@@ -127,16 +127,16 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
   function OtherOptions(){
     return (
       <>
-        <button onClick={()=>setOtherSSO(v=>!v)} className="w-full h-14 rounded-full border border-neutral-200 bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2 text-[15px]">
+        <button onClick={()=>setOtherSSO(v=>!v)} className="w-full h-14 rounded-full bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2 text-[15px]" style={{border: "1px solid rgba(0,0,0,0.08)"}}>
           {otherSSO ? <ChevronUp className="w-4 h-4 text-neutral-600"/> : <ChevronDown className="w-4 h-4 text-neutral-600"/>}
           <span>Voir d'autres options</span>
         </button>
         {otherSSO && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-            <button className="h-14 rounded-full border border-neutral-200 bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2">
+            <button className="h-14 rounded-full bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2" style={{border: "1px solid rgba(0,0,0,0.08)"}}>
               <Apple className="w-5 h-5 text-neutral-900"/> <span>Apple</span>
             </button>
-            <button className="h-14 rounded-full border border-neutral-200 bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2">
+            <button className="h-14 rounded-full bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2" style={{border: "1px solid rgba(0,0,0,0.08)"}}>
               <Github className="w-5 h-5 text-neutral-900"/> <span>GitHub</span>
             </button>
           </div>
@@ -150,14 +150,14 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
       <div className="mt-6">
         <Separator />
         <label htmlFor="email" className="sr-only">Adresse e‑mail</label>
-        <div className="w-full h-14 rounded-[18px] border border-neutral-200 bg-neutral-100/70 flex items-center px-4">
+        <div className="w-full h-14 rounded-[18px] bg-neutral-100/70 flex items-center px-4" style={{border: "1px solid rgba(0,0,0,0.06)"}}>
           <Mail className="w-5 h-5 text-neutral-500"/>
-          <input id="email" type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} className="ml-3 w-full bg-transparent outline-none text-[15px] placeholder:text-neutral-400" placeholder="Entrez l'adresse e‑mail" onKeyDown={(e)=>{ if(e.key==='Enter'){ onContinue(); }}}/>
+          <input id="email" type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} className="ml-3 w-full bg-transparent outline-none text-[15px]" placeholder="Entrez l'adresse e‑mail" style={{color: "#111"}} onKeyDown={(e)=>{ if(e.key==='Enter'){ onContinue(); }}}/>
         </div>
         <button
           onClick={onContinue}
           disabled={!canContinueEmail || loading}
-          className="mt-4 w-full h-14 rounded-full text-white text-[15px] font-semibold inline-flex items-center justify-center gap-2 transition transform hover:-translate-y-[1px] active:translate-y-0 focus:outline-none focus-visible:ring-4 focus-visible:ring-[#2663eb]/30 disabled:opacity-90 disabled:cursor-not-allowed"
+          className="mt-4 w-full h-14 rounded-full text-white text-[15px] font-semibold inline-flex items-center justify-center gap-2 transition transform hover:-translate-y-[1px] active:translate-y-0 focus:outline-none disabled:cursor-not-allowed"
           style={{ background: "linear-gradient(180deg, #3d6fff 0%, #2e63f2 55%, #2557e4 100%)", border: "1px solid #1f4fd1", boxShadow: "0 10px 22px rgba(37,87,228,.28), inset 0 1px 0 rgba(255,255,255,.35)" }}
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : <Send className="w-4 h-4 -ml-1"/>}
@@ -174,16 +174,16 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
           <ArrowLeft className="w-4 h-4"/> Changer d'adresse
         </button>
         <div className="text-sm text-neutral-600">Adresse reconnue: <span className="font-medium text-neutral-900">{email}</span></div>
-        <div className="w-full h-14 rounded-[18px] border border-neutral-200 bg-white flex items-center px-4">
+        <div className="w-full h-14 rounded-[18px] bg-white flex items-center px-4" style={{border: "1px solid rgba(0,0,0,0.08)"}}>
           <button type="button" onClick={()=>setShowPwd(s=>!s)} className="text-neutral-500">
             {showPwd ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
           </button>
-          <input type={showPwd?"text":"password"} value={pwd} onChange={e=>setPwd(e.target.value)} className="ml-3 w-full bg-transparent outline-none text-[15px] placeholder:text-neutral-400" placeholder="Mot de passe" onKeyDown={(e)=>{ if(e.key==='Enter'){ onLogin(); }}}/>
+          <input type={showPwd?"text":"password"} value={pwd} onChange={e=>setPwd(e.target.value)} className="ml-3 w-full bg-transparent outline-none text-[15px]" placeholder="Mot de passe" style={{color: "#111"}} onKeyDown={(e)=>{ if(e.key==='Enter'){ onLogin(); }}}/>
         </div>
         <div className="flex items-center justify-between">
           <a className="text-sm text-neutral-600 hover:text-black" href="#">Mot de passe oublié ?</a>
         </div>
-        <button onClick={onLogin} disabled={!pwd || loading} className="w-full h-14 rounded-full bg-black text-white text-[15px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+        <button onClick={onLogin} disabled={!pwd || loading} className="w-full h-14 rounded-full bg-black text-white text-[15px] flex items-center justify-center gap-2" style={{opacity: (!pwd || loading) ? 0.4 : 1, cursor: (!pwd || loading) ? "not-allowed" : "pointer"}}>
           {loading && <Loader2 className="w-4 h-4 animate-spin"/>}
           <span>Se connecter</span>
         </button>
@@ -192,6 +192,7 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
   }
 
   function RegisterStep(){
+    const canSubmit = firstName && lastName && pwd && pwd2 && !loading;
     return (
       <div className="mt-6 space-y-3">
         <button onClick={()=>setStep("email")} className="text-sm text-neutral-600 hover:text-black inline-flex items-center gap-2">
@@ -199,22 +200,22 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
         </button>
         <div className="text-sm text-neutral-600">Nouvelle adresse détectée: <span className="font-medium text-neutral-900">{email}</span></div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <input className="h-14 rounded-[18px] border border-neutral-200 px-4 text-[15px]" placeholder="Prénom" value={firstName} onChange={e=>setFirstName(e.target.value)} />
-          <input className="h-14 rounded-[18px] border border-neutral-200 px-4 text-[15px]" placeholder="Nom" value={lastName} onChange={e=>setLastName(e.target.value)} />
+          <input className="h-14 rounded-[18px] bg-white px-4 text-[15px] outline-none" style={{border: "1px solid rgba(0,0,0,0.08)", color: "#111"}} placeholder="Prénom" value={firstName} onChange={e=>setFirstName(e.target.value)} />
+          <input className="h-14 rounded-[18px] bg-white px-4 text-[15px] outline-none" style={{border: "1px solid rgba(0,0,0,0.08)", color: "#111"}} placeholder="Nom" value={lastName} onChange={e=>setLastName(e.target.value)} />
         </div>
-        <div className="w-full h-14 rounded-[18px] border border-neutral-200 bg-white flex items-center px-4">
+        <div className="w-full h-14 rounded-[18px] bg-white flex items-center px-4" style={{border: "1px solid rgba(0,0,0,0.08)"}}>
           <button type="button" onClick={()=>setShowPwd(s=>!s)} className="text-neutral-500">
             {showPwd ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
           </button>
-          <input type={showPwd?"text":"password"} value={pwd} onChange={e=>setPwd(e.target.value)} className="ml-3 w-full bg-transparent outline-none text-[15px] placeholder:text-neutral-400" placeholder="Mot de passe (min. 6)" />
+          <input type={showPwd?"text":"password"} value={pwd} onChange={e=>setPwd(e.target.value)} className="ml-3 w-full bg-transparent outline-none text-[15px]" placeholder="Mot de passe (min. 6)" style={{color: "#111"}} />
         </div>
-        <div className="w-full h-14 rounded-[18px] border border-neutral-200 bg-white flex items-center px-4">
+        <div className="w-full h-14 rounded-[18px] bg-white flex items-center px-4" style={{border: "1px solid rgba(0,0,0,0.08)"}}>
           <button type="button" onClick={()=>setShowPwd2(s=>!s)} className="text-neutral-500">
             {showPwd2 ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
           </button>
-          <input type={showPwd2?"text":"password"} value={pwd2} onChange={e=>setPwd2(e.target.value)} className="ml-3 w-full bg-transparent outline-none text-[15px] placeholder:text-neutral-400" placeholder="Confirmer le mot de passe" />
+          <input type={showPwd2?"text":"password"} value={pwd2} onChange={e=>setPwd2(e.target.value)} className="ml-3 w-full bg-transparent outline-none text-[15px]" placeholder="Confirmer le mot de passe" style={{color: "#111"}} />
         </div>
-        <button onClick={onRegister} disabled={!firstName || !lastName || !pwd || !pwd2 || loading} className="w-full h-14 rounded-full bg-black text-white text-[15px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+        <button onClick={onRegister} disabled={!canSubmit} className="w-full h-14 rounded-full text-white text-[15px] flex items-center justify-center gap-2" style={{backgroundColor: canSubmit ? "#000" : "#d1d1d1", cursor: canSubmit ? "pointer" : "not-allowed"}}>
           {loading && <Loader2 className="w-4 h-4 animate-spin"/>}
           <span>Créer mon compte</span>
         </button>

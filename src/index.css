@@ -25,6 +25,21 @@ body {
   min-height: 100%;
 }
 
+/* Placeholder styles - disparaît complètement dès qu'on tape */
+input::placeholder {
+  color: #a3a3a3;
+  opacity: 1;
+  transition: opacity 0.15s ease;
+}
+
+input:focus::placeholder {
+  opacity: 0;
+}
+
+input:not(:placeholder-shown)::placeholder {
+  opacity: 0;
+}
+
 /* Utility classes similaires à Tailwind */
 .mx-auto { margin-left: auto; margin-right: auto; }
 .max-w-6xl { max-width: 72rem; }
