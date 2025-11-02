@@ -314,4 +314,23 @@ button:focus {
   .md\:mx-auto { margin-left: auto; margin-right: auto; }
   .md\:text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
   .md\:py-3\.5 { padding-top: 0.875rem; padding-bottom: 0.875rem; }
+  .md\:pl-6 { padding-left: 1.5rem; }
 }
+
+/* Additional utility classes for ProfilePage */
+.divide-y > * + * { border-top-width: 1px; }
+.divide-neutral-200 > * + * { border-top-color: rgb(229 229 229); }
+.border-neutral-300 { border-color: rgb(212 212 212); }
+.focus\:ring-blue-500\/20:focus { box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2); }
+.pl-\[22px\] { padding-left: 22px; }
+.col-span-2 { grid-column: span 2 / span 2; }
+.sm\:col-span-2 { grid-column: span 2 / span 2; }
+.h-11 { height: 2.75rem; }
+.bottom-5 { bottom: 1.25rem; }
+.bottom-20 { bottom: 5rem; }
+.z-40 { z-index: 40; }
+.text-\[18px\] { font-size: 18px; }
+.text-\[13px\] { font-size: 13px; }
+.py-0\.5 { padding-top: 0.125rem; padding-bottom: 0.125rem; }
+.disabled\:opacity-60:disabled { opacity: 0.6; }
+.disabled\:opacity-70:disabled { opacity: 0.7; }
