@@ -49,7 +49,7 @@ const Header = memo(() => {
       <img
         src="/icons/connection .png"
         alt="Illustration de connexion"
-        style={{ width: "48px", height: "auto" }}
+        style={{ width: "96px", height: "auto" }}
       />
       <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-center">Ravi de t'alter‑voir</h1>
       <p className="-mt-2 text-base text-neutral-500 text-center">Se connecter ou créer un compte</p>
