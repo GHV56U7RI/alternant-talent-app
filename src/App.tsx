@@ -335,7 +335,7 @@ interface TitleRowProps {
 
 const TitleRow = memo<TitleRowProps>(({ id, Icon, title, suffix, isOpen, onClick }) => {
   return (
-    <li>
+    <li style={{ listStyle: "none" }}>
       <button
         id={`${id}-title`}
         type="button"
@@ -461,7 +461,7 @@ function ProfilePage({ onClose, user: initialUser }) {
 
         {/* Sections FAQ */}
         <nav aria-label="Sections du profil" className="mt-6">
-          <ul className="divide-y divide-neutral-200">
+          <ul className="divide-y divide-neutral-200" style={{ listStyle: "none", padding: 0 }}>
             <TitleRow
               id="perso"
               Icon={User}
@@ -695,7 +695,8 @@ function ProfilePage({ onClose, user: initialUser }) {
         onClick={onClickEditSave}
         disabled={saving}
         data-testid="edit-save"
-        className="fixed bottom-5 right-4 z-40 inline-flex h-11 items-center gap-2 rounded-full bg-[#2663eb] px-4 text-[13px] text-white focus:outline-none focus:ring-4 focus:ring-[#2663eb]/30 disabled:opacity-70"
+        className="fixed bottom-5 right-4 z-40 inline-flex h-11 items-center gap-2 rounded-full bg-[#2663eb] px-4 text-[13px] text-white disabled:opacity-70"
+        style={{ outline: "none", border: "none", boxShadow: "none" }}
       >
         {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Pencil className="h-4 w-4" />}
         {saving ? "Enregistrement…" : edit ? "Enregistrer" : "Éditer"}
