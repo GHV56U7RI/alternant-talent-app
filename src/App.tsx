@@ -404,11 +404,14 @@ function ProfilePage({ onClose, user: initialUser }) {
     privacy: false,
   });
 
-  function toggle(key: keyof typeof open) {
-    setOpen((o) => ({ ...o, [key]: !o[key] }));
-  }
+  const togglePerso = useCallback(() => setOpen((o) => ({ ...o, perso: !o.perso })), []);
+  const toggleDocs = useCallback(() => setOpen((o) => ({ ...o, docs: !o.docs })), []);
+  const toggleApps = useCallback(() => setOpen((o) => ({ ...o, apps: !o.apps })), []);
+  const toggleFav = useCallback(() => setOpen((o) => ({ ...o, fav: !o.fav })), []);
+  const toggleAlerts = useCallback(() => setOpen((o) => ({ ...o, alerts: !o.alerts })), []);
+  const togglePrivacy = useCallback(() => setOpen((o) => ({ ...o, privacy: !o.privacy })), []);
 
-  async function onClickEditSave() {
+  const onClickEditSave = useCallback(async () => {
     if (!edit) { setEdit(true); return; }
     try {
       setSaving(true);
@@ -419,7 +422,7 @@ function ProfilePage({ onClose, user: initialUser }) {
     } finally {
       setSaving(false);
     }
-  }
+  }, [edit]);
 
   // Smoke tests simples
   useEffect(() => {
@@ -463,7 +466,7 @@ function ProfilePage({ onClose, user: initialUser }) {
               Icon={User}
               title="Informations personnelles"
               isOpen={open.perso}
-              onClick={() => toggle("perso")}
+              onClick={togglePerso}
             />
             {open.perso && (
               <li id="perso-panel" className="pb-3" role="region" aria-labelledby="perso-title">
@@ -562,7 +565,7 @@ function ProfilePage({ onClose, user: initialUser }) {
               Icon={FileText}
               title="CV & documents"
               isOpen={open.docs}
-              onClick={() => toggle("docs")}
+              onClick={toggleDocs}
             />
             {open.docs && (
               <li id="docs-panel" className="pb-3" role="region" aria-labelledby="docs-title">
@@ -591,7 +594,7 @@ function ProfilePage({ onClose, user: initialUser }) {
               title="Candidatures (résumé)"
               suffix={applications}
               isOpen={open.apps}
-              onClick={() => toggle("apps")}
+              onClick={toggleApps}
             />
             {open.apps && (
               <li id="apps-panel" className="pb-3" role="region" aria-labelledby="apps-title">
@@ -607,7 +610,7 @@ function ProfilePage({ onClose, user: initialUser }) {
               title="Favoris"
               suffix={favorites}
               isOpen={open.fav}
-              onClick={() => toggle("fav")}
+              onClick={toggleFav}
             />
             {open.fav && (
               <li id="fav-panel" className="pb-3" role="region" aria-labelledby="fav-title">
@@ -625,7 +628,7 @@ function ProfilePage({ onClose, user: initialUser }) {
               title="Alertes d'emploi"
               suffix={alerts}
               isOpen={open.alerts}
-              onClick={() => toggle("alerts")}
+              onClick={toggleAlerts}
             />
             {open.alerts && (
               <li id="alerts-panel" className="pb-3" role="region" aria-labelledby="alerts-title">
@@ -642,7 +645,7 @@ function ProfilePage({ onClose, user: initialUser }) {
               Icon={Lock}
               title="Confidentialité"
               isOpen={open.privacy}
-              onClick={() => toggle("privacy")}
+              onClick={togglePrivacy}
             />
             {open.privacy && (
               <li id="privacy-panel" className="pb-3" role="region" aria-labelledby="privacy-title">
