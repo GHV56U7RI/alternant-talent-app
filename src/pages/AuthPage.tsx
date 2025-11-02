@@ -1,12 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, memo } from "react";
 import { ShieldCheck, Mail, Eye, EyeOff, ChevronDown, ChevronUp, ArrowLeft, Apple, Github, Loader2, Send } from "lucide-react";
 
 /*
-  Auth Email First — Lucide Style Match (v5)
-  - Respecte exactement le style bouton bleu + icônes (comme ta photo 2)
-  - Même largeur et hauteur pour l'input e‑mail et le bouton (56px arrondi)
-  - Pas d'effet flou en disabled (garde le bleu, baisse légère d'opacité)
-  - SSO: Google (G officiel inline), Apple, GitHub avec icônes Lucide/inline
+  Auth Email First — Lucide Style Match (v6 - Focus Fix)
+  - Sous-composants sortis au niveau module et memo-ïsés
+  - Pas de remount à chaque frappe
+  - type="button" + preventBlur sur tous les boutons/icônes
 */
 
 function GoogleLogo(){
@@ -40,6 +39,302 @@ async function apiRegister({email,password,firstName,lastName}:{email:string,pas
   return res.json();
 }
 
+const preventBlur = (e: React.MouseEvent) => e.preventDefault();
+
+// ==================== SOUS-COMPOSANTS SORTIS AU NIVEAU MODULE ====================
+
+const Header = memo(() => {
+  return (
+    <div className="flex flex-col items-center gap-6">
+      <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-center">Ravi de t'alter‑voir</h1>
+      <p className="-mt-2 text-base text-neutral-500 text-center">Se connecter ou créer un compte</p>
+    </div>
+  );
+});
+
+const Separator = memo(() => {
+  return (
+    <div className="relative my-6">
+      <div className="h-px bg-neutral-200" />
+      <span className="absolute -translate-x-1/2 left-1/2 -top-3 bg-white px-3 text-sm text-neutral-500">ou</span>
+    </div>
+  );
+});
+
+const GoogleButton = memo(() => {
+  return (
+    <button type="button" className="w-full h-14 rounded-full bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-3 text-[15px]" style={{border: "1px solid rgba(0,0,0,0.08)"}} onMouseDown={preventBlur} onClick={()=>alert("TODO: OAuth Google")}>
+      <GoogleLogo />
+      <span>Continuer avec Google</span>
+    </button>
+  );
+});
+
+interface OtherOptionsProps {
+  otherSSO: boolean;
+  setOtherSSO: (v: boolean | ((prev: boolean) => boolean)) => void;
+}
+
+const OtherOptions = memo<OtherOptionsProps>(({ otherSSO, setOtherSSO }) => {
+  return (
+    <>
+      <button type="button" onClick={()=>setOtherSSO(v=>!v)} onMouseDown={preventBlur} className="w-full h-14 rounded-full bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2 text-[15px]" style={{border: "1px solid rgba(0,0,0,0.08)"}}>
+        {otherSSO ? <ChevronUp className="w-4 h-4 text-neutral-600"/> : <ChevronDown className="w-4 h-4 text-neutral-600"/>}
+        <span>Voir d'autres options</span>
+      </button>
+      {otherSSO && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+          <button type="button" className="h-14 rounded-full bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2" style={{border: "1px solid rgba(0,0,0,0.08)"}} onMouseDown={preventBlur}>
+            <Apple className="w-5 h-5 text-neutral-900"/> <span>Apple</span>
+          </button>
+          <button type="button" className="h-14 rounded-full bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2" style={{border: "1px solid rgba(0,0,0,0.08)"}} onMouseDown={preventBlur}>
+            <Github className="w-5 h-5 text-neutral-900"/> <span>GitHub</span>
+          </button>
+        </div>
+      )}
+    </>
+  );
+});
+
+interface EmailStepProps {
+  email: string;
+  setEmail: (v: string) => void;
+  canContinueEmail: boolean;
+  loading: boolean;
+  onContinue: () => void;
+}
+
+const EmailStep = memo<EmailStepProps>(({ email, setEmail, canContinueEmail, loading, onContinue }) => {
+  return (
+    <div className="mt-6">
+      <Separator />
+      <label htmlFor="email" className="sr-only">Adresse e‑mail</label>
+      <div className="w-full h-14 rounded-[18px] bg-neutral-100/70 flex items-center px-4" style={{border: "1px solid rgba(0,0,0,0.06)"}}>
+        <Mail className="w-5 h-5 text-neutral-500"/>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          inputMode="email"
+          spellCheck={false}
+          autoFocus
+          value={email}
+          onChange={e=>setEmail(e.target.value)}
+          className="ml-3 w-full text-[15px]"
+          placeholder="Entrez l'adresse e‑mail"
+          style={{
+            color: "#111",
+            background: "transparent",
+            outline: 0,
+            border: 0,
+            boxShadow: "none",
+            WebkitAppearance: "none",
+            MozAppearance: "none",
+            appearance: "none"
+          }}
+          onKeyDown={(e)=>{ if(e.key==='Enter'){ onContinue(); }}}
+        />
+      </div>
+      <button
+        type="button"
+        onClick={onContinue}
+        disabled={!canContinueEmail || loading}
+        className="mt-4 w-full h-14 rounded-full text-white text-[15px] font-semibold inline-flex items-center justify-center gap-2 transition transform hover:-translate-y-[1px] active:translate-y-0 focus:outline-none disabled:cursor-not-allowed"
+        style={{ background: "linear-gradient(180deg, #3d6fff 0%, #2e63f2 55%, #2557e4 100%)", border: "1px solid #1f4fd1", boxShadow: "0 10px 22px rgba(37,87,228,.28), inset 0 1px 0 rgba(255,255,255,.35)" }}
+      >
+        {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : <Send className="w-4 h-4 -ml-1"/>}
+        <span>Continuer</span>
+      </button>
+    </div>
+  );
+});
+
+interface LoginStepProps {
+  email: string;
+  pwd: string;
+  setPwd: (v: string) => void;
+  showPwd: boolean;
+  setShowPwd: (v: boolean | ((prev: boolean) => boolean)) => void;
+  loading: boolean;
+  setStep: (step: "email"|"login"|"register"|"done") => void;
+  onLogin: () => void;
+}
+
+const LoginStep = memo<LoginStepProps>(({ email, pwd, setPwd, showPwd, setShowPwd, loading, setStep, onLogin }) => {
+  return (
+    <div className="mt-6 space-y-3">
+      <button type="button" onClick={()=>setStep("email")} onMouseDown={preventBlur} className="text-sm text-neutral-600 hover:text-black inline-flex items-center gap-2" style={{background: "none", border: "none", padding: 0}}>
+        <ArrowLeft className="w-4 h-4"/> Changer d'adresse
+      </button>
+      <div className="text-sm text-neutral-600">Adresse reconnue: <span className="font-medium text-neutral-900">{email}</span></div>
+      <div className="w-full h-14 rounded-[18px] bg-white flex items-center px-4" style={{border: "1px solid rgba(0,0,0,0.08)"}}>
+        <button type="button" onMouseDown={preventBlur} onClick={()=>setShowPwd(s=>!s)} className="text-neutral-500" style={{background: "none", border: "none", padding: 0, display: "flex", alignItems: "center", cursor: "pointer"}}>
+          {showPwd ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
+        </button>
+        <input
+          name="password"
+          type={showPwd?"text":"password"}
+          autoComplete="current-password"
+          spellCheck={false}
+          autoFocus
+          value={pwd}
+          onChange={e=>setPwd(e.target.value)}
+          className="ml-3 w-full text-[15px]"
+          placeholder="Mot de passe"
+          style={{
+            color: "#111",
+            background: "transparent",
+            outline: 0,
+            border: 0,
+            boxShadow: "none",
+            WebkitAppearance: "none",
+            MozAppearance: "none",
+            appearance: "none"
+          }}
+          onKeyDown={(e)=>{ if(e.key==='Enter'){ onLogin(); }}}
+        />
+      </div>
+      <div className="flex items-center justify-between">
+        <a className="text-sm text-neutral-600 hover:text-black" href="#">Mot de passe oublié ?</a>
+      </div>
+      <button type="button" onClick={onLogin} disabled={!pwd || loading} className="w-full h-14 rounded-full bg-black text-white text-[15px] flex items-center justify-center gap-2" style={{opacity: (!pwd || loading) ? 0.4 : 1, cursor: (!pwd || loading) ? "not-allowed" : "pointer"}}>
+        {loading && <Loader2 className="w-4 h-4 animate-spin"/>}
+        <span>Se connecter</span>
+      </button>
+    </div>
+  );
+});
+
+interface RegisterStepProps {
+  email: string;
+  firstName: string;
+  setFirstName: (v: string) => void;
+  lastName: string;
+  setLastName: (v: string) => void;
+  pwd: string;
+  setPwd: (v: string) => void;
+  pwd2: string;
+  setPwd2: (v: string) => void;
+  showPwd: boolean;
+  setShowPwd: (v: boolean | ((prev: boolean) => boolean)) => void;
+  showPwd2: boolean;
+  setShowPwd2: (v: boolean | ((prev: boolean) => boolean)) => void;
+  loading: boolean;
+  canSubmit: boolean;
+  setStep: (step: "email"|"login"|"register"|"done") => void;
+  onRegister: () => void;
+}
+
+const RegisterStep = memo<RegisterStepProps>(({ email, firstName, setFirstName, lastName, setLastName, pwd, setPwd, pwd2, setPwd2, showPwd, setShowPwd, showPwd2, setShowPwd2, loading, canSubmit, setStep, onRegister }) => {
+  return (
+    <div className="mt-6 space-y-3">
+      <button type="button" onClick={()=>setStep("email")} onMouseDown={preventBlur} className="text-sm text-neutral-600 hover:text-black inline-flex items-center gap-2" style={{background: "none", border: "none", padding: 0}}>
+        <ArrowLeft className="w-4 h-4"/> Changer d'adresse
+      </button>
+      <div className="text-sm text-neutral-600">Nouvelle adresse détectée: <span className="font-medium text-neutral-900">{email}</span></div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <input
+          name="firstName"
+          type="text"
+          autoComplete="given-name"
+          spellCheck={false}
+          className="h-14 rounded-[18px] px-4 text-[15px]"
+          style={{
+            border: "1px solid rgba(0,0,0,0.08)",
+            color: "#111",
+            background: "white",
+            outline: 0,
+            boxShadow: "none",
+            WebkitAppearance: "none",
+            MozAppearance: "none",
+            appearance: "none"
+          }}
+          placeholder="Prénom"
+          value={firstName}
+          onChange={e=>setFirstName(e.target.value)}
+        />
+        <input
+          name="lastName"
+          type="text"
+          autoComplete="family-name"
+          spellCheck={false}
+          className="h-14 rounded-[18px] px-4 text-[15px]"
+          style={{
+            border: "1px solid rgba(0,0,0,0.08)",
+            color: "#111",
+            background: "white",
+            outline: 0,
+            boxShadow: "none",
+            WebkitAppearance: "none",
+            MozAppearance: "none",
+            appearance: "none"
+          }}
+          placeholder="Nom"
+          value={lastName}
+          onChange={e=>setLastName(e.target.value)}
+        />
+      </div>
+      <div className="w-full h-14 rounded-[18px] bg-white flex items-center px-4" style={{border: "1px solid rgba(0,0,0,0.08)"}}>
+        <button type="button" onMouseDown={preventBlur} onClick={()=>setShowPwd(s=>!s)} className="text-neutral-500" style={{background: "none", border: "none", padding: 0, display: "flex", alignItems: "center", cursor: "pointer"}}>
+          {showPwd ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
+        </button>
+        <input
+          name="new-password"
+          type={showPwd?"text":"password"}
+          autoComplete="new-password"
+          spellCheck={false}
+          value={pwd}
+          onChange={e=>setPwd(e.target.value)}
+          className="ml-3 w-full text-[15px]"
+          placeholder="Mot de passe (min. 6)"
+          style={{
+            color: "#111",
+            background: "transparent",
+            outline: 0,
+            border: 0,
+            boxShadow: "none",
+            WebkitAppearance: "none",
+            MozAppearance: "none",
+            appearance: "none"
+          }}
+        />
+      </div>
+      <div className="w-full h-14 rounded-[18px] bg-white flex items-center px-4" style={{border: "1px solid rgba(0,0,0,0.08)"}}>
+        <button type="button" onMouseDown={preventBlur} onClick={()=>setShowPwd2(s=>!s)} className="text-neutral-500" style={{background: "none", border: "none", padding: 0, display: "flex", alignItems: "center", cursor: "pointer"}}>
+          {showPwd2 ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
+        </button>
+        <input
+          name="confirm-password"
+          type={showPwd2?"text":"password"}
+          autoComplete="new-password"
+          spellCheck={false}
+          value={pwd2}
+          onChange={e=>setPwd2(e.target.value)}
+          className="ml-3 w-full text-[15px]"
+          placeholder="Confirmer le mot de passe"
+          style={{
+            color: "#111",
+            background: "transparent",
+            outline: 0,
+            border: 0,
+            boxShadow: "none",
+            WebkitAppearance: "none",
+            MozAppearance: "none",
+            appearance: "none"
+          }}
+        />
+      </div>
+      <button type="button" onClick={onRegister} disabled={!canSubmit} className="w-full h-14 rounded-full text-white text-[15px] flex items-center justify-center gap-2" style={{backgroundColor: canSubmit ? "#000" : "#d1d1d1", cursor: canSubmit ? "pointer" : "not-allowed"}}>
+        {loading && <Loader2 className="w-4 h-4 animate-spin"/>}
+        <span>Créer mon compte</span>
+      </button>
+    </div>
+  );
+});
+
+// ==================== COMPOSANT PRINCIPAL ====================
+
 interface AuthEmailFirstProps {
   onBack: () => void;
   onAuthSuccess: (user: any) => void;
@@ -59,9 +354,7 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
   const [msg, setMsg] = useState("");
 
   const canContinueEmail = /.+@.+\..+/.test(email);
-
-  // Fonction pour empêcher le vol de focus au clic sur les icônes/boutons
-  const preventBlur = (e: React.MouseEvent) => e.preventDefault();
+  const canSubmit = firstName && lastName && pwd && pwd2 && !loading;
 
   async function onContinue(){
     setMsg("");
@@ -74,19 +367,19 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
     catch(e:any){ setMsg(e.message || "Erreur réseau"); }
     finally{ setLoading(false); }
   }
+
   async function onLogin(){
     setLoading(true); setMsg("");
     try{
       await apiLogin({email,password:pwd});
       setStep("done");
       setMsg("Connexion réussie. Redirection…");
-
-      // Connexion réussie - créer l'utilisateur et appeler onAuthSuccess
       const user = { email, nom: "User", prenom: "Test" };
       localStorage.setItem('user', JSON.stringify(user));
       setTimeout(() => onAuthSuccess(user), 1000);
     }catch(e:any){ setMsg(e.message||"Échec de connexion"); }finally{ setLoading(false);}
   }
+
   async function onRegister(){
     setLoading(true); setMsg("");
     try{
@@ -94,263 +387,16 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
       await apiRegister({email,password:pwd,firstName,lastName});
       setStep("done");
       setMsg("Compte créé ! Vérifie ta boîte mail.");
-
-      // Inscription réussie - créer l'utilisateur et appeler onAuthSuccess
       const user = { email, nom: lastName, prenom: firstName };
       localStorage.setItem('user', JSON.stringify(user));
       setTimeout(() => onAuthSuccess(user), 1000);
     }catch(e:any){ setMsg(e.message||"Échec de l'inscription"); }finally{ setLoading(false);}
   }
 
-  function Header(){
-    return (
-      <div className="flex flex-col items-center gap-6">
-        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-center">Ravi de t'alter‑voir</h1>
-        <p className="-mt-2 text-base text-neutral-500 text-center">Se connecter ou créer un compte</p>
-      </div>
-    );
-  }
-  function Separator(){
-    return (
-      <div className="relative my-6">
-        <div className="h-px bg-neutral-200" />
-        <span className="absolute -translate-x-1/2 left-1/2 -top-3 bg-white px-3 text-sm text-neutral-500">ou</span>
-      </div>
-    );
-  }
-
-  function GoogleButton(){
-    return (
-      <button type="button" className="w-full h-14 rounded-full bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-3 text-[15px]" style={{border: "1px solid rgba(0,0,0,0.08)"}} onMouseDown={preventBlur} onClick={()=>alert("TODO: OAuth Google")}>
-        <GoogleLogo />
-        <span>Continuer avec Google</span>
-      </button>
-    );
-  }
-  function OtherOptions(){
-    return (
-      <>
-        <button type="button" onClick={()=>setOtherSSO(v=>!v)} onMouseDown={preventBlur} className="w-full h-14 rounded-full bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2 text-[15px]" style={{border: "1px solid rgba(0,0,0,0.08)"}}>
-          {otherSSO ? <ChevronUp className="w-4 h-4 text-neutral-600"/> : <ChevronDown className="w-4 h-4 text-neutral-600"/>}
-          <span>Voir d'autres options</span>
-        </button>
-        {otherSSO && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-            <button type="button" className="h-14 rounded-full bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2" style={{border: "1px solid rgba(0,0,0,0.08)"}} onMouseDown={preventBlur}>
-              <Apple className="w-5 h-5 text-neutral-900"/> <span>Apple</span>
-            </button>
-            <button type="button" className="h-14 rounded-full bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2" style={{border: "1px solid rgba(0,0,0,0.08)"}} onMouseDown={preventBlur}>
-              <Github className="w-5 h-5 text-neutral-900"/> <span>GitHub</span>
-            </button>
-          </div>
-        )}
-      </>
-    );
-  }
-
-  function EmailStep(){
-    return (
-      <div className="mt-6">
-        <Separator />
-        <label htmlFor="email" className="sr-only">Adresse e‑mail</label>
-        <div className="w-full h-14 rounded-[18px] bg-neutral-100/70 flex items-center px-4" style={{border: "1px solid rgba(0,0,0,0.06)"}}>
-          <Mail className="w-5 h-5 text-neutral-500"/>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            inputMode="email"
-            spellCheck={false}
-            autoFocus
-            value={email}
-            onChange={e=>setEmail(e.target.value)}
-            className="ml-3 w-full text-[15px]"
-            placeholder="Entrez l'adresse e‑mail"
-            style={{
-              color: "#111",
-              background: "transparent",
-              outline: 0,
-              border: 0,
-              boxShadow: "none",
-              WebkitAppearance: "none",
-              MozAppearance: "none",
-              appearance: "none"
-            }}
-            onKeyDown={(e)=>{ if(e.key==='Enter'){ onContinue(); }}}
-          />
-        </div>
-        <button
-          type="button"
-          onClick={onContinue}
-          disabled={!canContinueEmail || loading}
-          className="mt-4 w-full h-14 rounded-full text-white text-[15px] font-semibold inline-flex items-center justify-center gap-2 transition transform hover:-translate-y-[1px] active:translate-y-0 focus:outline-none disabled:cursor-not-allowed"
-          style={{ background: "linear-gradient(180deg, #3d6fff 0%, #2e63f2 55%, #2557e4 100%)", border: "1px solid #1f4fd1", boxShadow: "0 10px 22px rgba(37,87,228,.28), inset 0 1px 0 rgba(255,255,255,.35)" }}
-        >
-          {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : <Send className="w-4 h-4 -ml-1"/>}
-          <span>Continuer</span>
-        </button>
-      </div>
-    );
-  }
-
-  function LoginStep(){
-    return (
-      <div className="mt-6 space-y-3">
-        <button type="button" onClick={()=>setStep("email")} onMouseDown={preventBlur} className="text-sm text-neutral-600 hover:text-black inline-flex items-center gap-2" style={{background: "none", border: "none", padding: 0}}>
-          <ArrowLeft className="w-4 h-4"/> Changer d'adresse
-        </button>
-        <div className="text-sm text-neutral-600">Adresse reconnue: <span className="font-medium text-neutral-900">{email}</span></div>
-        <div className="w-full h-14 rounded-[18px] bg-white flex items-center px-4" style={{border: "1px solid rgba(0,0,0,0.08)"}}>
-          <button type="button" onMouseDown={preventBlur} onClick={()=>setShowPwd(s=>!s)} className="text-neutral-500" style={{background: "none", border: "none", padding: 0, display: "flex", alignItems: "center", cursor: "pointer"}}>
-            {showPwd ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
-          </button>
-          <input
-            name="password"
-            type={showPwd?"text":"password"}
-            autoComplete="current-password"
-            spellCheck={false}
-            autoFocus
-            value={pwd}
-            onChange={e=>setPwd(e.target.value)}
-            className="ml-3 w-full text-[15px]"
-            placeholder="Mot de passe"
-            style={{
-              color: "#111",
-              background: "transparent",
-              outline: 0,
-              border: 0,
-              boxShadow: "none",
-              WebkitAppearance: "none",
-              MozAppearance: "none",
-              appearance: "none"
-            }}
-            onKeyDown={(e)=>{ if(e.key==='Enter'){ onLogin(); }}}
-          />
-        </div>
-        <div className="flex items-center justify-between">
-          <a className="text-sm text-neutral-600 hover:text-black" href="#">Mot de passe oublié ?</a>
-        </div>
-        <button type="button" onClick={onLogin} disabled={!pwd || loading} className="w-full h-14 rounded-full bg-black text-white text-[15px] flex items-center justify-center gap-2" style={{opacity: (!pwd || loading) ? 0.4 : 1, cursor: (!pwd || loading) ? "not-allowed" : "pointer"}}>
-          {loading && <Loader2 className="w-4 h-4 animate-spin"/>}
-          <span>Se connecter</span>
-        </button>
-      </div>
-    );
-  }
-
-  function RegisterStep(){
-    const canSubmit = firstName && lastName && pwd && pwd2 && !loading;
-    return (
-      <div className="mt-6 space-y-3">
-        <button type="button" onClick={()=>setStep("email")} onMouseDown={preventBlur} className="text-sm text-neutral-600 hover:text-black inline-flex items-center gap-2" style={{background: "none", border: "none", padding: 0}}>
-          <ArrowLeft className="w-4 h-4"/> Changer d'adresse
-        </button>
-        <div className="text-sm text-neutral-600">Nouvelle adresse détectée: <span className="font-medium text-neutral-900">{email}</span></div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <input
-            name="firstName"
-            type="text"
-            autoComplete="given-name"
-            spellCheck={false}
-            className="h-14 rounded-[18px] px-4 text-[15px]"
-            style={{
-              border: "1px solid rgba(0,0,0,0.08)",
-              color: "#111",
-              background: "white",
-              outline: 0,
-              boxShadow: "none",
-              WebkitAppearance: "none",
-              MozAppearance: "none",
-              appearance: "none"
-            }}
-            placeholder="Prénom"
-            value={firstName}
-            onChange={e=>setFirstName(e.target.value)}
-          />
-          <input
-            name="lastName"
-            type="text"
-            autoComplete="family-name"
-            spellCheck={false}
-            className="h-14 rounded-[18px] px-4 text-[15px]"
-            style={{
-              border: "1px solid rgba(0,0,0,0.08)",
-              color: "#111",
-              background: "white",
-              outline: 0,
-              boxShadow: "none",
-              WebkitAppearance: "none",
-              MozAppearance: "none",
-              appearance: "none"
-            }}
-            placeholder="Nom"
-            value={lastName}
-            onChange={e=>setLastName(e.target.value)}
-          />
-        </div>
-        <div className="w-full h-14 rounded-[18px] bg-white flex items-center px-4" style={{border: "1px solid rgba(0,0,0,0.08)"}}>
-          <button type="button" onMouseDown={preventBlur} onClick={()=>setShowPwd(s=>!s)} className="text-neutral-500" style={{background: "none", border: "none", padding: 0, display: "flex", alignItems: "center", cursor: "pointer"}}>
-            {showPwd ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
-          </button>
-          <input
-            name="new-password"
-            type={showPwd?"text":"password"}
-            autoComplete="new-password"
-            spellCheck={false}
-            value={pwd}
-            onChange={e=>setPwd(e.target.value)}
-            className="ml-3 w-full text-[15px]"
-            placeholder="Mot de passe (min. 6)"
-            style={{
-              color: "#111",
-              background: "transparent",
-              outline: 0,
-              border: 0,
-              boxShadow: "none",
-              WebkitAppearance: "none",
-              MozAppearance: "none",
-              appearance: "none"
-            }}
-          />
-        </div>
-        <div className="w-full h-14 rounded-[18px] bg-white flex items-center px-4" style={{border: "1px solid rgba(0,0,0,0.08)"}}>
-          <button type="button" onMouseDown={preventBlur} onClick={()=>setShowPwd2(s=>!s)} className="text-neutral-500" style={{background: "none", border: "none", padding: 0, display: "flex", alignItems: "center", cursor: "pointer"}}>
-            {showPwd2 ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
-          </button>
-          <input
-            name="confirm-password"
-            type={showPwd2?"text":"password"}
-            autoComplete="new-password"
-            spellCheck={false}
-            value={pwd2}
-            onChange={e=>setPwd2(e.target.value)}
-            className="ml-3 w-full text-[15px]"
-            placeholder="Confirmer le mot de passe"
-            style={{
-              color: "#111",
-              background: "transparent",
-              outline: 0,
-              border: 0,
-              boxShadow: "none",
-              WebkitAppearance: "none",
-              MozAppearance: "none",
-              appearance: "none"
-            }}
-          />
-        </div>
-        <button type="button" onClick={onRegister} disabled={!canSubmit} className="w-full h-14 rounded-full text-white text-[15px] flex items-center justify-center gap-2" style={{backgroundColor: canSubmit ? "#000" : "#d1d1d1", cursor: canSubmit ? "pointer" : "not-allowed"}}>
-          {loading && <Loader2 className="w-4 h-4 animate-spin"/>}
-          <span>Créer mon compte</span>
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-white text-neutral-900 flex items-center justify-center p-4 relative">
-      {/* Bouton retour en position absolue */}
       <button
+        type="button"
         onClick={onBack}
         className="absolute top-4 left-4 sm:top-6 sm:left-6 text-sm text-neutral-600 hover:text-black inline-flex items-center gap-2 transition-colors"
         style={{background: "none", border: "none", padding: 0, cursor: "pointer"}}
@@ -364,12 +410,12 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
         <div className="mt-8">
           <div className="flex flex-col gap-3">
             <GoogleButton />
-            <OtherOptions />
+            <OtherOptions otherSSO={otherSSO} setOtherSSO={setOtherSSO} />
           </div>
 
-          {step === "email" && <EmailStep />}
-          {step === "login" && <LoginStep />}
-          {step === "register" && <RegisterStep />}
+          {step === "email" && <EmailStep email={email} setEmail={setEmail} canContinueEmail={canContinueEmail} loading={loading} onContinue={onContinue} />}
+          {step === "login" && <LoginStep email={email} pwd={pwd} setPwd={setPwd} showPwd={showPwd} setShowPwd={setShowPwd} loading={loading} setStep={setStep} onLogin={onLogin} />}
+          {step === "register" && <RegisterStep email={email} firstName={firstName} setFirstName={setFirstName} lastName={lastName} setLastName={setLastName} pwd={pwd} setPwd={setPwd} pwd2={pwd2} setPwd2={setPwd2} showPwd={showPwd} setShowPwd={setShowPwd} showPwd2={showPwd2} setShowPwd2={setShowPwd2} loading={loading} canSubmit={canSubmit} setStep={setStep} onRegister={onRegister} />}
           {step === "done" && (
             <div className="mt-6 rounded-2xl border border-neutral-200 p-4 bg-neutral-50 flex items-start gap-3">
               <ShieldCheck className="w-5 h-5 mt-0.5"/>
