@@ -439,12 +439,12 @@ function ProfilePage({ onClose, user: initialUser }) {
         {/* Header centré */}
         <section className="px-6 py-8">
           <div className="flex w-full flex-col items-center text-center">
-            <div
-              aria-label="Avatar"
-              className="flex h-20 w-20 items-center justify-center rounded-2xl bg-neutral-900 text-white text-2xl font-semibold shadow-sm"
-            >
-              {initials}
-            </div>
+            <img
+              src="/icons/profil.png"
+              alt="Avatar"
+              className="h-20 w-20 rounded-2xl shadow-sm"
+              style={{ objectFit: "cover" }}
+            />
 
             <div className="mt-4">
               <div className="text-[18px] font-semibold">
@@ -695,8 +695,13 @@ function ProfilePage({ onClose, user: initialUser }) {
         onClick={onClickEditSave}
         disabled={saving}
         data-testid="edit-save"
-        className="fixed bottom-5 right-4 z-40 inline-flex h-11 items-center gap-2 rounded-full bg-[#2663eb] px-4 text-[13px] text-white disabled:opacity-70"
-        style={{ outline: "none", border: "none", boxShadow: "none" }}
+        className="fixed bottom-5 right-4 z-40 inline-flex h-11 items-center gap-2 rounded-full px-4 text-[13px] text-white disabled:opacity-70"
+        style={{
+          outline: "none",
+          border: "none",
+          boxShadow: "none",
+          backgroundColor: "#2663eb"
+        }}
       >
         {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Pencil className="h-4 w-4" />}
         {saving ? "Enregistrement…" : edit ? "Enregistrer" : "Éditer"}
