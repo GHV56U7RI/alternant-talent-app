@@ -47,7 +47,7 @@ const Header = memo(() => {
   return (
     <div className="flex flex-col items-center gap-6">
       <img
-        src="/icons/illutration.png"
+        src="/icons/connection .png"
         alt="Illustration de connexion"
         className="w-64 h-auto"
       />
