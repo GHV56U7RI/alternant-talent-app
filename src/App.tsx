@@ -344,6 +344,7 @@ const TitleRow = memo<TitleRowProps>(({ id, Icon, title, suffix, isOpen, onClick
         aria-controls={`${id}-panel`}
         onClick={onClick}
         data-testid={`title-${id}`}
+        style={{ background: "none", border: "none", padding: "0.75rem 0" }}
       >
         <span className="inline-flex items-center gap-2 min-w-0">
           {Icon ? (
@@ -460,7 +461,7 @@ function ProfilePage({ onClose, user: initialUser }) {
 
         {/* Sections FAQ */}
         <nav aria-label="Sections du profil" className="mt-6">
-          <ul className="divide-y divide-neutral-200 border-y border-neutral-200">
+          <ul className="divide-y divide-neutral-200">
             <TitleRow
               id="perso"
               Icon={User}
