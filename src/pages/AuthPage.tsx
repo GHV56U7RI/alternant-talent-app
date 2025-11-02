@@ -46,6 +46,11 @@ const preventBlur = (e: React.MouseEvent) => e.preventDefault();
 const Header = memo(() => {
   return (
     <div className="flex flex-col items-center gap-6">
+      <img
+        src="/icons/illutration.png"
+        alt="Illustration de connexion"
+        className="w-64 h-auto"
+      />
       <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-center">Ravi de t'alter‑voir</h1>
       <p className="-mt-2 text-base text-neutral-500 text-center">Se connecter ou créer un compte</p>
     </div>
