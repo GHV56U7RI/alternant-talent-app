@@ -600,15 +600,12 @@ export default function App() {
 
       <section className="mx-auto max-w-6xl px-4 mt-5 search-section" id="search">
         {/* Illustration responsive - desktop et mobile */}
-        <picture>
-          <source media="(max-width: 640px)" srcSet="/icons/Image PNG 2.png" />
-          <img
-            src="/icons/Image PNG.png"
-            alt="Illustration alternance"
-            className="hero-illustration"
-            loading="eager"
-          />
-        </picture>
+        <img
+          src={isMobile ? "/icons/Image PNG 2.png" : "/icons/Image PNG.png"}
+          alt="Illustration alternance"
+          className="hero-illustration"
+          loading="eager"
+        />
 
         <div className="search-wrap">
           <div className="input-with-icon">
