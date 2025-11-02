@@ -1,795 +1,300 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Mail, Lock, User, Building2, MapPin, Phone } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from "react";
+import { ShieldCheck, Mail, Eye, EyeOff, ChevronDown, ChevronUp, ArrowLeft, Apple, Github, Loader2, Send } from "lucide-react";
 
-interface AuthPageProps {
+/*
+  Page d'authentification « email d'abord » — Alternance & Talent
+  • Détecte automatiquement si l'email existe -> connexion (mot de passe)
+    sinon -> création de compte (nom + mot de passe)
+  • Bouton SSO Google + options additionnelles (Apple, GitHub) masquées par défaut
+  • Design compact, mobile‑first, arrondis façon screenshot Mobbin
+
+  ⚙️ Intégration backend:
+    - /api/auth/check-email    { email }        => { exists: boolean }
+    - /api/auth/login          { email, password }
+    - /api/auth/register       { email, password, firstName, lastName }
+
+  👉 En attendant votre backend, laissez MOCK=true pour une démo 100% front.
+     Règle démo: tous les emails finissant par "@demo.com" EXISTENT déjà.
+*/
+
+const MOCK = true;
+
+async function apiCheckEmail(email: string){
+  if(MOCK){
+    await new Promise(r=>setTimeout(r, 500));
+    return { exists: email.trim().toLowerCase().endsWith("@demo.com") };
+  }
+  const res = await fetch("/api/auth/check-email",{ method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({email})});
+  if(!res.ok) throw new Error("check-email failed");
+  return res.json();
+}
+
+async function apiLogin({email,password}: {email: string, password: string}){
+  if(MOCK){
+    await new Promise(r=>setTimeout(r, 700));
+    if(password === "password") return { ok:true };
+    throw new Error("Mot de passe incorrect");
+  }
+  const res = await fetch("/api/auth/login",{ method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({email,password})});
+  if(!res.ok) throw new Error("login failed");
+  return res.json();
+}
+
+async function apiRegister({email,password,firstName,lastName}: {email: string, password: string, firstName: string, lastName: string}){
+  if(MOCK){
+    await new Promise(r=>setTimeout(r, 800));
+    if(password.length < 6) throw new Error("Mot de passe trop court (min. 6)");
+    return { ok:true };
+  }
+  const res = await fetch("/api/auth/register",{ method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({email,password,firstName,lastName})});
+  if(!res.ok) throw new Error("register failed");
+  return res.json();
+}
+
+function GoogleLogo(){
+  return (
+    <svg aria-hidden viewBox="0 0 48 48" className="w-5 h-5">
+      <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.043 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.651-.389-3.917z"/>
+      <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.043 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
+      <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.197l-6.191-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.62-3.319-11.283-7.946l-6.53 5.027C9.49 39.556 16.227 44 24 44z"/>
+      <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.095 5.565l.003-.002 6.191 5.238C36.965 40.645 44 36 44 24c0-1.341-.138-2.651-.389-3.917z"/>
+    </svg>
+  );
+}
+
+interface AuthEmailFirstProps {
   onBack: () => void;
   onAuthSuccess: (user: any) => void;
 }
 
-export default function AuthPage({ onBack, onAuthSuccess }: AuthPageProps) {
-  const [step, setStep] = useState<'email' | 'login' | 'register'>('email');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [formData, setFormData] = useState({
-    nom: '',
-    prenom: '',
-    entreprise: '',
-    ville: '',
-    telephone: ''
-  });
+export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirstProps){
+  const [step, setStep] = useState("email"); // 'email' | 'login' | 'register' | 'done'
+  const [email, setEmail] = useState("");
+  const [pwd, setPwd] = useState("");
+  const [pwd2, setPwd2] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
+  const [showPwd2, setShowPwd2] = useState(false);
+  const [otherSSO, setOtherSSO] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [msg, setMsg] = useState("");
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Simuler vérification si email existe
-    const emailExists = false; // À remplacer par vraie vérification
-    setStep(emailExists ? 'login' : 'register');
-  };
+  const canContinueEmail = /.+@.+\..+/.test(email);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Simuler connexion
-    const user = {
-      email,
-      nom: 'User',
-      prenom: 'Test'
-    };
-    localStorage.setItem('user', JSON.stringify(user));
-    onAuthSuccess(user);
-  };
+  async function onContinue(){
+    setMsg("");
+    if(!canContinueEmail) return setMsg("Entre une adresse e‑mail valide");
+    setLoading(true);
+    try{
+      const { exists } = await apiCheckEmail(email);
+      if(exists){
+        setStep("login");
+      }else{
+        setStep("register");
+      }
+    }catch(e: any){ setMsg(e.message || "Erreur réseau"); }
+    finally{ setLoading(false); }
+  }
 
-  const handleRegister = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Simuler inscription
-    const user = {
-      email,
-      ...formData
-    };
-    localStorage.setItem('user', JSON.stringify(user));
-    onAuthSuccess(user);
-  };
+  async function onLogin(){
+    setLoading(true); setMsg("");
+    try{
+      await apiLogin({email, password: pwd});
+      setStep("done");
+      setMsg("Connexion réussie. Redirection…");
 
-  const handleSocialAuth = (provider: string) => {
-    console.log(`Auth with ${provider}`);
-    // Simuler connexion sociale
-    const user = {
-      email: `user@${provider}.com`,
-      nom: 'Social',
-      prenom: 'User'
-    };
-    localStorage.setItem('user', JSON.stringify(user));
-    onAuthSuccess(user);
-  };
+      // Connexion réussie - créer l'utilisateur et appeler onAuthSuccess
+      const user = { email, nom: "User", prenom: "Test" };
+      localStorage.setItem('user', JSON.stringify(user));
+      setTimeout(() => onAuthSuccess(user), 1000);
+    }
+    catch(e: any){ setMsg(e.message || "Échec de connexion"); }
+    finally{ setLoading(false); }
+  }
+
+  async function onRegister(){
+    setLoading(true); setMsg("");
+    try{
+      if(pwd !== pwd2) throw new Error("Les mots de passe ne correspondent pas");
+      await apiRegister({email, password: pwd, firstName, lastName});
+      setStep("done");
+      setMsg("Compte créé ! Vérifie ta boîte mail.");
+
+      // Inscription réussie - créer l'utilisateur et appeler onAuthSuccess
+      const user = { email, nom: lastName, prenom: firstName };
+      localStorage.setItem('user', JSON.stringify(user));
+      setTimeout(() => onAuthSuccess(user), 1000);
+    }catch(e: any){ setMsg(e.message || "Échec de l'inscription"); }
+    finally{ setLoading(false); }
+  }
+
+  function Header(){
+    return (
+      <div className="flex flex-col items-center gap-6">
+        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-center">Ravi de t'alter‑voir</h1>
+        <p className="-mt-2 text-base text-neutral-500 text-center">Se connecter ou créer un compte</p>
+      </div>
+    );
+  }
+
+  function Separator(){
+    return (
+      <div className="relative my-6">
+        <div className="h-px bg-neutral-200" />
+        <span className="absolute -translate-x-1/2 left-1/2 -top-3 bg-white px-3 text-sm text-neutral-500">ou</span>
+      </div>
+    );
+  }
+
+  function GoogleButton(){
+    return (
+      <button className="w-full h-12 rounded-full border border-neutral-200 bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-3 text-[15px]" onClick={()=>alert("TODO: OAuth Google")}>
+        <GoogleLogo />
+        <span>Continuer avec Google</span>
+      </button>
+    );
+  }
+
+  function OtherOptions(){
+    return (
+      <>
+        <button onClick={()=>setOtherSSO(v=>!v)} className="w-full h-12 rounded-full border border-neutral-200 bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2 text-[15px]">
+          {otherSSO ? <ChevronUp className="w-4 h-4"/> : <ChevronDown className="w-4 h-4"/>}
+          <span>Voir d'autres options</span>
+        </button>
+        {otherSSO && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+            <button className="h-12 rounded-full border border-neutral-200 bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2" onClick={()=>alert("TODO: Apple OAuth")}>
+              <Apple className="w-5 h-5"/> <span>Apple</span>
+            </button>
+            <button className="h-12 rounded-full border border-neutral-200 bg-white hover:bg-neutral-50 transition flex items-center justify-center gap-2" onClick={()=>alert("TODO: GitHub OAuth")}>
+              <Github className="w-5 h-5"/> <span>GitHub</span>
+            </button>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  function EmailStep(){
+    return (
+      <div className="mt-6">
+        <Separator />
+        <label htmlFor="email" className="sr-only">Adresse e‑mail</label>
+        <div className="w-full h-12 rounded-2xl border border-neutral-200 bg-neutral-100/70 flex items-center px-4">
+          <Mail className="w-5 h-5 text-neutral-500"/>
+          <input id="email" type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} className="ml-3 w-full bg-transparent outline-none text-[15px] placeholder:text-neutral-400" placeholder="Entrez l'adresse e‑mail" onKeyDown={(e)=>{ if(e.key==='Enter'){ onContinue(); }}}/>
+        </div>
+        <button
+          onClick={onContinue}
+          disabled={!canContinueEmail || loading}
+          className="mt-4 w-full h-11 rounded-full text-white text-[15px] font-semibold inline-flex items-center justify-center gap-2 transition transform hover:-translate-y-[1px] active:translate-y-0 focus:outline-none focus-visible:ring-4 focus-visible:ring-[#2663eb]/30 disabled:cursor-not-allowed shadow-[inset_0_1px_0_rgba(255,255,255,.35),_0_6px_16px_rgba(38,99,235,.28)] hover:shadow-[inset_0_1.5px_0_rgba(255,255,255,.45),_0_10px_24px_rgba(38,99,235,.34)]"
+          style={{ background: 'linear-gradient(180deg, #2e6ffa 0%, #2663eb 70%)', border: '1px solid #1f4fd1' }}
+        >
+          {loading ? <Loader2 className="w-4 h-4 animate-spin"/> : <Send className="w-4 h-4 -ml-1"/>}
+          <span>Continuer</span>
+        </button>
+      </div>
+    );
+  }
+
+  function LoginStep(){
+    return (
+      <div className="mt-6 space-y-3">
+        <button onClick={()=>setStep("email")} className="text-sm text-neutral-600 hover:text-black inline-flex items-center gap-2">
+          <ArrowLeft className="w-4 h-4"/> Changer d'adresse
+        </button>
+        <div className="text-sm text-neutral-600">Adresse reconnue: <span className="font-medium text-neutral-900">{email}</span></div>
+        <div className="w-full h-12 rounded-2xl border border-neutral-200 bg-white flex items-center px-4">
+          <button type="button" onClick={()=>setShowPwd(s=>!s)} className="text-neutral-500">
+            {showPwd ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
+          </button>
+          <input type={showPwd?"text":"password"} value={pwd} onChange={e=>setPwd(e.target.value)} className="ml-3 w-full bg-transparent outline-none text-[15px] placeholder:text-neutral-400" placeholder="Mot de passe" onKeyDown={(e)=>{ if(e.key==='Enter'){ onLogin(); }}}/>
+        </div>
+        <div className="flex items-center justify-between">
+          <a className="text-sm text-neutral-600 hover:text-black" href="#">Mot de passe oublié ?</a>
+        </div>
+        <button onClick={onLogin} disabled={!pwd || loading} className="w-full h-12 rounded-full bg-black text-white text-[15px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+          {loading && <Loader2 className="w-4 h-4 animate-spin"/>}
+          <span>Se connecter</span>
+        </button>
+      </div>
+    );
+  }
+
+  function RegisterStep(){
+    return (
+      <div className="mt-6 space-y-3">
+        <button onClick={()=>setStep("email")} className="text-sm text-neutral-600 hover:text-black inline-flex items-center gap-2">
+          <ArrowLeft className="w-4 h-4"/> Changer d'adresse
+        </button>
+        <div className="text-sm text-neutral-600">Nouvelle adresse détectée: <span className="font-medium text-neutral-900">{email}</span></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <input className="h-12 rounded-2xl border border-neutral-200 px-4 text-[15px]" placeholder="Prénom" value={firstName} onChange={e=>setFirstName(e.target.value)} />
+          <input className="h-12 rounded-2xl border border-neutral-200 px-4 text-[15px]" placeholder="Nom" value={lastName} onChange={e=>setLastName(e.target.value)} />
+        </div>
+        <div className="w-full h-12 rounded-2xl border border-neutral-200 bg-white flex items-center px-4">
+          <button type="button" onClick={()=>setShowPwd(s=>!s)} className="text-neutral-500">
+            {showPwd ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
+          </button>
+          <input type={showPwd?"text":"password"} value={pwd} onChange={e=>setPwd(e.target.value)} className="ml-3 w-full bg-transparent outline-none text-[15px] placeholder:text-neutral-400" placeholder="Mot de passe (min. 6)" />
+        </div>
+        <div className="w-full h-12 rounded-2xl border border-neutral-200 bg-white flex items-center px-4">
+          <button type="button" onClick={()=>setShowPwd2(s=>!s)} className="text-neutral-500">
+            {showPwd2 ? <EyeOff className="w-5 h-5"/> : <Eye className="w-5 h-5"/>}
+          </button>
+          <input type={showPwd2?"text":"password"} value={pwd2} onChange={e=>setPwd2(e.target.value)} className="ml-3 w-full bg-transparent outline-none text-[15px] placeholder:text-neutral-400" placeholder="Confirmer le mot de passe" />
+        </div>
+        <button onClick={onRegister} disabled={!firstName || !lastName || !pwd || !pwd2 || loading} className="w-full h-12 rounded-full bg-black text-white text-[15px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+          {loading && <Loader2 className="w-4 h-4 animate-spin"/>}
+          <span>Créer mon compte</span>
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px'
-    }}>
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(20px)',
-        borderRadius: '24px',
-        padding: '40px',
-        maxWidth: '480px',
-        width: '100%',
-        boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
-      }}>
-        {/* Bouton retour */}
+    <div className="min-h-screen bg-white text-neutral-900 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Bouton retour en haut à gauche */}
         <button
           onClick={onBack}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            color: '#667eea',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: '500',
-            marginBottom: '24px',
-            padding: 0
-          }}
+          className="mb-4 text-sm text-neutral-600 hover:text-black inline-flex items-center gap-2"
         >
-          <ArrowLeft size={20} />
-          Retour
+          <ArrowLeft className="w-4 h-4"/> Retour
         </button>
 
-        {/* En-tête */}
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <h1 style={{
-            fontSize: '28px',
-            fontWeight: '700',
-            color: '#1a1a1a',
-            marginBottom: '8px'
-          }}>
-            {step === 'email' && 'Bienvenue'}
-            {step === 'login' && 'Content de vous revoir !'}
-            {step === 'register' && 'Créez votre compte'}
-          </h1>
-          <p style={{ color: '#666', fontSize: '14px' }}>
-            {step === 'email' && 'Entrez votre email pour continuer'}
-            {step === 'login' && 'Connectez-vous pour continuer'}
-            {step === 'register' && 'Complétez vos informations'}
+        <Header />
+
+        {/* Bloc SSO + Email flow */}
+        <div className="mt-8">
+          <div className="flex flex-col gap-3">
+            <GoogleButton />
+            <OtherOptions />
+          </div>
+
+          {step === "email" && <EmailStep />}
+          {step === "login" && <LoginStep />}
+          {step === "register" && <RegisterStep />}
+          {step === "done" && (
+            <div className="mt-6 rounded-2xl border border-neutral-200 p-4 bg-neutral-50 flex items-start gap-3">
+              <ShieldCheck className="w-5 h-5 mt-0.5"/>
+              <div className="text-sm">
+                <div className="font-medium">Tout est bon.</div>
+                <div>Tu vas être redirigé. Ferme cet onglet si rien ne se passe.</div>
+              </div>
+            </div>
+          )}
+
+          {msg && (
+            <div aria-live="polite" className="mt-4 text-[14px] text-center text-red-600">{msg}</div>
+          )}
+
+          <p className="mt-8 text-xs text-center text-neutral-500 leading-relaxed">
+            En continuant, vous acceptez les <a className="underline hover:text-neutral-800" href="#">conditions d'utilisation</a> et la <a className="underline hover:text-neutral-800" href="#">politique de confidentialité</a> d'Alternance & Talent.
           </p>
         </div>
-
-        {/* Étape 1: Email */}
-        {step === 'email' && (
-          <>
-            <form onSubmit={handleEmailSubmit}>
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: '#333',
-                  marginBottom: '8px'
-                }}>
-                  Adresse email
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <Mail
-                    size={20}
-                    style={{
-                      position: 'absolute',
-                      left: '12px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      color: '#999'
-                    }}
-                  />
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="vous@exemple.com"
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '12px 12px 12px 44px',
-                      border: '2px solid #e0e0e0',
-                      borderRadius: '12px',
-                      fontSize: '14px',
-                      outline: 'none',
-                      transition: 'border-color 0.2s',
-                      boxSizing: 'border-box'
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                    onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                style={{
-                  width: '100%',
-                  padding: '14px',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '12px',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  marginBottom: '24px',
-                  transition: 'transform 0.2s, box-shadow 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 8px 20px rgba(102, 126, 234, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                Continuer
-              </button>
-            </form>
-
-            {/* Séparateur */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              margin: '24px 0',
-              gap: '12px'
-            }}>
-              <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }} />
-              <span style={{ color: '#999', fontSize: '12px' }}>OU</span>
-              <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }} />
-            </div>
-
-            {/* Boutons sociaux */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <button
-                onClick={() => handleSocialAuth('google')}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  background: 'white',
-                  border: '2px solid #e0e0e0',
-                  borderRadius: '12px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#667eea';
-                  e.currentTarget.style.background = '#f8f9ff';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = '#e0e0e0';
-                  e.currentTarget.style.background = 'white';
-                }}
-              >
-                <svg width="18" height="18" viewBox="0 0 18 18">
-                  <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
-                  <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
-                  <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
-                  <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58z"/>
-                </svg>
-                Continuer avec Google
-              </button>
-
-              <button
-                onClick={() => handleSocialAuth('apple')}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  background: 'white',
-                  border: '2px solid #e0e0e0',
-                  borderRadius: '12px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#667eea';
-                  e.currentTarget.style.background = '#f8f9ff';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = '#e0e0e0';
-                  e.currentTarget.style.background = 'white';
-                }}
-              >
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
-                  <path d="M14.94 5.19A4.38 4.38 0 0 0 16 2.25 4.44 4.44 0 0 0 13.5 3.75a4.17 4.17 0 0 0-1.06 2.96 3.75 3.75 0 0 0 2.5-1.52zM12 18c1.5 0 2.17-.88 3.96-.88 1.81 0 2.16.86 3.75.86 1.56 0 2.72-1.72 3.74-3.41a10.6 10.6 0 0 0 1.5-5.42 4.58 4.58 0 0 0-2.93-4.33 4.86 4.86 0 0 0-2.2-.52c-1.66 0-2.9.88-3.86.88-.96 0-2.32-.84-3.87-.84A5.16 5.16 0 0 0 8 6.19 6.51 6.51 0 0 0 9.56 12c.64 1.42 1.81 3.41 3.19 3.41z"/>
-                </svg>
-                Continuer avec Apple
-              </button>
-
-              <button
-                onClick={() => handleSocialAuth('github')}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  background: 'white',
-                  border: '2px solid #e0e0e0',
-                  borderRadius: '12px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#667eea';
-                  e.currentTarget.style.background = '#f8f9ff';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = '#e0e0e0';
-                  e.currentTarget.style.background = 'white';
-                }}
-              >
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
-                  <path d="M9 0a9 9 0 0 0-2.844 17.535c.45.082.614-.195.614-.433 0-.214-.008-.78-.012-1.53-2.504.544-3.032-1.207-3.032-1.207-.41-1.04-1-1.316-1-1.316-.816-.558.062-.547.062-.547.902.064 1.377.926 1.377.926.802 1.375 2.104.978 2.616.748.082-.582.314-.978.572-1.203-1.996-.227-4.096-998-4.096-4.445 0-.982.35-1.785.926-2.414-.093-.228-.401-1.143.088-2.382 0 0 .754-.242 2.47.921a8.594 8.594 0 0 1 2.25-.303 8.6 8.6 0 0 1 2.25.303c1.715-1.163 2.468-.921 2.468-.921.49 1.239.182 2.154.089 2.382.577.63.925 1.432.925 2.414 0 3.456-2.104 4.215-4.106 4.437.323.279.612.828.612 1.669 0 1.204-.011 2.174-.011 2.469 0 .24.162.52.617.432A9 9 0 0 0 9 0z"/>
-                </svg>
-                Continuer avec GitHub
-              </button>
-            </div>
-          </>
-        )}
-
-        {/* Étape 2: Login */}
-        {step === 'login' && (
-          <form onSubmit={handleLogin}>
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#333',
-                marginBottom: '8px'
-              }}>
-                Adresse email
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Mail
-                  size={20}
-                  style={{
-                    position: 'absolute',
-                    left: '12px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: '#999'
-                  }}
-                />
-                <input
-                  type="email"
-                  value={email}
-                  disabled
-                  style={{
-                    width: '100%',
-                    padding: '12px 12px 12px 44px',
-                    border: '2px solid #e0e0e0',
-                    borderRadius: '12px',
-                    fontSize: '14px',
-                    background: '#f5f5f5',
-                    color: '#666',
-                    boxSizing: 'border-box'
-                  }}
-                />
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#333',
-                marginBottom: '8px'
-              }}>
-                Mot de passe
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Lock
-                  size={20}
-                  style={{
-                    position: 'absolute',
-                    left: '12px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: '#999'
-                  }}
-                />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Entrez votre mot de passe"
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '12px 12px 12px 44px',
-                    border: '2px solid #e0e0e0',
-                    borderRadius: '12px',
-                    fontSize: '14px',
-                    outline: 'none',
-                    transition: 'border-color 0.2s',
-                    boxSizing: 'border-box'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                  onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              style={{
-                width: '100%',
-                padding: '14px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'transform 0.2s, box-shadow 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 8px 20px rgba(102, 126, 234, 0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
-            >
-              Se connecter
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setStep('email')}
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: 'none',
-                border: 'none',
-                color: '#667eea',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                marginTop: '12px'
-              }}
-            >
-              Utiliser un autre email
-            </button>
-          </form>
-        )}
-
-        {/* Étape 3: Register */}
-        {step === 'register' && (
-          <form onSubmit={handleRegister}>
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#333',
-                marginBottom: '8px'
-              }}>
-                Adresse email
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Mail
-                  size={20}
-                  style={{
-                    position: 'absolute',
-                    left: '12px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: '#999'
-                  }}
-                />
-                <input
-                  type="email"
-                  value={email}
-                  disabled
-                  style={{
-                    width: '100%',
-                    padding: '12px 12px 12px 44px',
-                    border: '2px solid #e0e0e0',
-                    borderRadius: '12px',
-                    fontSize: '14px',
-                    background: '#f5f5f5',
-                    color: '#666',
-                    boxSizing: 'border-box'
-                  }}
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-              <div>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: '#333',
-                  marginBottom: '8px'
-                }}>
-                  Prénom
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <User
-                    size={20}
-                    style={{
-                      position: 'absolute',
-                      left: '12px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      color: '#999'
-                    }}
-                  />
-                  <input
-                    type="text"
-                    value={formData.prenom}
-                    onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
-                    placeholder="Jean"
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '12px 12px 12px 44px',
-                      border: '2px solid #e0e0e0',
-                      borderRadius: '12px',
-                      fontSize: '14px',
-                      outline: 'none',
-                      transition: 'border-color 0.2s',
-                      boxSizing: 'border-box'
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                    onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: '#333',
-                  marginBottom: '8px'
-                }}>
-                  Nom
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <User
-                    size={20}
-                    style={{
-                      position: 'absolute',
-                      left: '12px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      color: '#999'
-                    }}
-                  />
-                  <input
-                    type="text"
-                    value={formData.nom}
-                    onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-                    placeholder="Dupont"
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '12px 12px 12px 44px',
-                      border: '2px solid #e0e0e0',
-                      borderRadius: '12px',
-                      fontSize: '14px',
-                      outline: 'none',
-                      transition: 'border-color 0.2s',
-                      boxSizing: 'border-box'
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                    onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#333',
-                marginBottom: '8px'
-              }}>
-                Entreprise
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Building2
-                  size={20}
-                  style={{
-                    position: 'absolute',
-                    left: '12px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: '#999'
-                  }}
-                />
-                <input
-                  type="text"
-                  value={formData.entreprise}
-                  onChange={(e) => setFormData({ ...formData, entreprise: e.target.value })}
-                  placeholder="Mon Entreprise"
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '12px 12px 12px 44px',
-                    border: '2px solid #e0e0e0',
-                    borderRadius: '12px',
-                    fontSize: '14px',
-                    outline: 'none',
-                    transition: 'border-color 0.2s',
-                    boxSizing: 'border-box'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                  onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
-                />
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>
-              <div>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: '#333',
-                  marginBottom: '8px'
-                }}>
-                  Ville
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <MapPin
-                    size={20}
-                    style={{
-                      position: 'absolute',
-                      left: '12px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      color: '#999'
-                    }}
-                  />
-                  <input
-                    type="text"
-                    value={formData.ville}
-                    onChange={(e) => setFormData({ ...formData, ville: e.target.value })}
-                    placeholder="Paris"
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '12px 12px 12px 44px',
-                      border: '2px solid #e0e0e0',
-                      borderRadius: '12px',
-                      fontSize: '14px',
-                      outline: 'none',
-                      transition: 'border-color 0.2s',
-                      boxSizing: 'border-box'
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                    onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label style={{
-                  display: 'block',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  color: '#333',
-                  marginBottom: '8px'
-                }}>
-                  Téléphone
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <Phone
-                    size={20}
-                    style={{
-                      position: 'absolute',
-                      left: '12px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      color: '#999'
-                    }}
-                  />
-                  <input
-                    type="tel"
-                    value={formData.telephone}
-                    onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
-                    placeholder="06 12 34 56 78"
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '12px 12px 12px 44px',
-                      border: '2px solid #e0e0e0',
-                      borderRadius: '12px',
-                      fontSize: '14px',
-                      outline: 'none',
-                      transition: 'border-color 0.2s',
-                      boxSizing: 'border-box'
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                    onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{
-                display: 'block',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#333',
-                marginBottom: '8px'
-              }}>
-                Mot de passe
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Lock
-                  size={20}
-                  style={{
-                    position: 'absolute',
-                    left: '12px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: '#999'
-                  }}
-                />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Créez un mot de passe"
-                  required
-                  minLength={8}
-                  style={{
-                    width: '100%',
-                    padding: '12px 12px 12px 44px',
-                    border: '2px solid #e0e0e0',
-                    borderRadius: '12px',
-                    fontSize: '14px',
-                    outline: 'none',
-                    transition: 'border-color 0.2s',
-                    boxSizing: 'border-box'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                  onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              style={{
-                width: '100%',
-                padding: '14px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '12px',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'transform 0.2s, box-shadow 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 8px 20px rgba(102, 126, 234, 0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
-            >
-              Créer mon compte
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setStep('email')}
-              style={{
-                width: '100%',
-                padding: '12px',
-                background: 'none',
-                border: 'none',
-                color: '#667eea',
-                fontSize: '14px',
-                fontWeight: '500',
-                cursor: 'pointer',
-                marginTop: '12px'
-              }}
-            >
-              Utiliser un autre email
-            </button>
-          </form>
-        )}
       </div>
     </div>
   );
