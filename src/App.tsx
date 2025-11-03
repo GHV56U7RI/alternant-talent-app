@@ -25,11 +25,23 @@ import AuthPage from "./pages/AuthPage";
 function useScrollShrink(threshold = 8) {
   const [shrunk, setShrunk] = useState(false);
   useEffect(() => {
-    const onScroll = () => setShrunk(window.scrollY > threshold);
+    console.log('[Header] useEffect mounted, adding scroll listener');
+    const onScroll = () => {
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      const newShrunk = scrollY > threshold;
+      console.log('[Header] Scroll detected! Y:', scrollY, 'Threshold:', threshold, 'Shrunk:', newShrunk);
+      setShrunk(newShrunk);
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
+    document.addEventListener("scroll", onScroll, { passive: true });
+    onScroll(); // Initial call
+    console.log('[Header] Scroll listener added, initial scroll Y:', window.pageYOffset);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("scroll", onScroll);
+    };
   }, [threshold]);
+  console.log('[Header] Render - shrunk state:', shrunk);
   return shrunk;
 }
 
