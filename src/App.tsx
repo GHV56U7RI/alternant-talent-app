@@ -1069,7 +1069,7 @@ export default function App() {
         </div>
       </section>
 
-      <main className="mx-auto max-w-6xl px-4 mt-8 md:mt-32 pb-8 split-area" id="jobs-list">
+      <main className="mx-auto max-w-6xl px-4 mt-8 md:mt-48 pb-8 split-area" id="jobs-list">
         <div className="list-scroll">
           <div className="space-y-3">
             {loading && <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)' }}>Chargement...</div>}
