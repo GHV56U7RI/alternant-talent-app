@@ -935,7 +935,7 @@ export default function App() {
         .see-bottom-right{ position:absolute; right:12px; bottom:10px; display:inline-flex; align-items:center; gap:6px; font-weight:700; font-size:13px; padding:0; border:0; background:transparent; color:#2d6cf7; border-radius:0; box-shadow:none; cursor:pointer; }
         .icon-btn{ width:var(--likeS); height:var(--likeS); display:flex; align-items:center; justify-content:center; background:#fff; border:1px solid var(--sep); border-radius:12px; cursor:pointer; }
         .heart-liked{ background:var(--redBg); border-color:rgba(179,38,30,.35); }
-        .split-area{ display:grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap:18px; align-items:start; }
+        .split-area{ display:grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap:40px; align-items:start; }
         .list-scroll{ grid-column: span 7 / span 7; height: var(--splitH); overflow-y:auto; padding-right:4px; }
         .detail-col{ grid-column: span 5 / span 5; position:relative; }
         .detail-sticky{ position:sticky; top: var(--stickyTop); }
