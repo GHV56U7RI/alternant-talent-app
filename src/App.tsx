@@ -782,7 +782,7 @@ export default function App() {
     const mq = window.matchMedia('(max-width: 640px)');
     const onChange = () => {
       setIsMobile(mq.matches);
-      setDisplayCount(mq.matches ? 12 : 15);
+      setDisplayCount(mq.matches ? 12 : 99999);
     };
     onChange();
     if (mq.addEventListener) mq.addEventListener('change', onChange);
@@ -1136,13 +1136,13 @@ export default function App() {
             })}
           </div>
 
-          {/* Bouton Voir plus */}
-          {!loading && displayCount < visibleJobs.length && (
+          {/* Bouton Voir plus - uniquement sur mobile */}
+          {isMobile && !loading && displayCount < visibleJobs.length && (
             <button
               onClick={async () => {
                 setLoadingMore(true);
                 await new Promise(r => setTimeout(r, 500));
-                setDisplayCount(prev => prev + (isMobile ? 12 : 15));
+                setDisplayCount(prev => prev + 12);
                 setLoadingMore(false);
               }}
               disabled={loadingMore}
