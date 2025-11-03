@@ -750,7 +750,7 @@ export default function App() {
 
   // Jobs
   const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const selectedJob = useMemo(() => jobs.find(j => j.id === selectedId) || jobs[0], [selectedId, jobs]);
   const [liked, setLiked] = useState({});
@@ -758,11 +758,12 @@ export default function App() {
   const [showProfile, setShowProfile] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [displayCount, setDisplayCount] = useState(12);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        setLoading(true);
         const response = await fetch('/api/jobs?limit=20000');
         const data = await response.json();
         if (data.jobs && data.jobs.length > 0) {
@@ -771,8 +772,6 @@ export default function App() {
         }
       } catch (error) {
         console.error('Erreur chargement jobs:', error);
-      } finally {
-        setLoading(false);
       }
     };
     fetchJobs();
@@ -781,7 +780,10 @@ export default function App() {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 640px)');
-    const onChange = () => setIsMobile(mq.matches);
+    const onChange = () => {
+      setIsMobile(mq.matches);
+      setDisplayCount(mq.matches ? 12 : 15);
+    };
     onChange();
     if (mq.addEventListener) mq.addEventListener('change', onChange);
     else mq.addListener(onChange);
@@ -1069,7 +1071,7 @@ export default function App() {
           <div className="space-y-3">
             {loading && <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)' }}>Chargement...</div>}
             {!loading && visibleJobs.length === 0 && <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)' }}>Aucune offre</div>}
-            {visibleJobs.map((job, idx) => {
+            {visibleJobs.slice(0, displayCount).map((job, idx) => {
               const isLiked = !!liked[job.id];
               const isSelected = job.id === selectedId;
               const isFirst = idx === 0;
@@ -1133,6 +1135,39 @@ export default function App() {
               );
             })}
           </div>
+
+          {/* Bouton Voir plus */}
+          {!loading && displayCount < visibleJobs.length && (
+            <button
+              onClick={async () => {
+                setLoadingMore(true);
+                await new Promise(r => setTimeout(r, 500));
+                setDisplayCount(prev => prev + (isMobile ? 12 : 15));
+                setLoadingMore(false);
+              }}
+              disabled={loadingMore}
+              className="w-full mt-4 h-12 rounded-lg text-sm font-semibold transition-colors"
+              style={{
+                background: loadingMore ? '#f5f5f5' : '#2663eb',
+                color: loadingMore ? '#737373' : '#fff',
+                border: 'none',
+                cursor: loadingMore ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              {loadingMore ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Chargement...</span>
+                </>
+              ) : (
+                <span>Voir plus d'offres</span>
+              )}
+            </button>
+          )}
         </div>
 
         {selectedJob && (
