@@ -788,6 +788,37 @@ export default function App() {
     return () => { if (mq.removeEventListener) mq.removeEventListener('change', onChange); else mq.removeListener(onChange); };
   }, []);
 
+  // Gestion de l'historique pour la navigation mobile
+  useEffect(() => {
+    // Initialiser l'état de l'historique avec la liste des annonces
+    if (!window.history.state || !window.history.state.tab) {
+      window.history.replaceState(
+        { tab: 'annonces' },
+        '',
+        window.location.pathname + window.location.search
+      );
+    }
+
+    const handlePopState = (event) => {
+      if (event.state) {
+        if (event.state.tab === 'annonces') {
+          setActiveTab('annonces');
+        } else if (event.state.tab === 'infos') {
+          setActiveTab('infos');
+          if (event.state.selectedId) {
+            setSelectedId(event.state.selectedId);
+          }
+        }
+      } else {
+        // Par défaut, revenir à la liste des annonces
+        setActiveTab('annonces');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   const [qDraft, setQDraft] = useState("");
   const [cityDraft, setCityDraft] = useState("");
   const [q, setQ] = useState("");
@@ -805,7 +836,15 @@ export default function App() {
   const handleVoir = (id) => {
     setSelectedId(id);
     setShowFavs(false);
-    if (isMobile) setActiveTab('infos');
+    if (isMobile) {
+      setActiveTab('infos');
+      // Ajouter une entrée dans l'historique pour permettre le retour
+      window.history.pushState(
+        { tab: 'infos', selectedId: id },
+        '',
+        window.location.pathname + window.location.search
+      );
+    }
     setTimeout(() => { if (detailRef.current && window.innerWidth >= 641) detailRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 0);
   };
   const handleShare = async () => {
@@ -978,11 +1017,9 @@ export default function App() {
         <HeaderNotConnected onLoginClick={handleLoginClick} />
       )}
 
-      {!user && (
-        <section className="mx-auto max-w-6xl px-4 mt-0">
-          <LightActionHero onPrimaryClick={scrollToSearch} />
-        </section>
-      )}
+      <section className="mx-auto max-w-6xl px-4 mt-0">
+        <LightActionHero onPrimaryClick={scrollToSearch} />
+      </section>
 
       <section className="mx-auto max-w-6xl px-4 mt-5 search-section" id="search">
         {/* Illustration responsive - desktop et mobile */}
