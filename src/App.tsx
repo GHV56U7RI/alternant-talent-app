@@ -900,7 +900,7 @@ export default function App() {
           --flowCream:#F5F6F7;
           --ctaBlue:#2663eb; --ctaBlueDark:#1f4fd1; --actionBlue:#2d6cf7; --hoverBg:#F7F7F8;
           --searchBg:#EAF2FF; --searchBorder: rgba(45,108,247,.38);
-          --searchSectionTop: 28px; --searchSectionBottom: 22px; --searchMax: 640px;
+          --searchSectionTop: 28px; --searchSectionBottom: 120px; --searchMax: 640px;
         }
         .card{ background:var(--panel); border:1px solid var(--sep); border-radius:var(--radiusSoft); position:relative; transition: background .15s ease, border-color .15s ease, box-shadow .15s ease; }
         .card:hover{ background: var(--hoverBg); }
@@ -1069,7 +1069,7 @@ export default function App() {
         </div>
       </section>
 
-      <main className="mx-auto max-w-6xl px-4 mt-8 md:mt-48 pb-8 split-area" id="jobs-list">
+      <main className="mx-auto max-w-6xl px-4 mt-8 md:mt-12 pb-8 split-area" id="jobs-list">
         <div className="list-scroll">
           <div className="space-y-3">
             {loading && <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)' }}>Chargement...</div>}
