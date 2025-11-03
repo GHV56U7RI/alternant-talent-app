@@ -49,7 +49,7 @@ const Header = memo(() => {
       <img
         src="/icons/connection .png"
         alt="Illustration de connexion"
-        style={{ width: "288px", height: "auto" }}
+        style={{ width: "100%", maxWidth: "288px", height: "auto" }}
       />
       <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-center">Ravi de t'alter‑voir</h1>
       <p className="-mt-2 text-base text-neutral-500 text-center">Se connecter ou créer un compte</p>
@@ -399,7 +399,7 @@ export default function AuthEmailFirst({ onBack, onAuthSuccess }: AuthEmailFirst
   }
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900 flex items-center justify-center p-4 relative">
+    <div className="min-h-screen bg-white text-neutral-900 flex items-center justify-center px-4 py-4 relative" style={{ overflowX: "hidden", width: "100vw", boxSizing: "border-box" }}>
       <button
         type="button"
         onClick={onBack}
