@@ -55,7 +55,7 @@ Thumbs.db
 credentials.json
 
 # Development/testing files
-scripts/
+# scripts/  # Commented out - needed for build
 tools/
 data/
 proxy-ft/
