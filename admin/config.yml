@@ -2,8 +2,11 @@ backend:
   name: git-gateway
   branch: main
 
-media_folder: "public/uploads"
-public_folder: "/uploads"
+# Configuration pour les images du blog
+# Les images seront stockées dans public/images/blog
+# et accessibles via /images/blog dans l'application
+media_folder: "public/images/blog"
+public_folder: "/images/blog"
 
 publish_mode: editorial_workflow
 

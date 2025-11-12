@@ -215,10 +215,10 @@ export default function ArticlePage() {
       {user ? (
         <HeaderConnected
           user={user}
-          onProfileClick={() => navigate("/")}
-          onFavorisClick={() => navigate("/")}
+          onProfileClick={() => { navigate("/"); window.scrollTo(0, 0); }}
+          onFavorisClick={() => { navigate("/"); window.scrollTo(0, 0); }}
           onAnalyticsClick={() => setShowAnalytics(true)}
-          onSettingsClick={() => navigate("/")}
+          onSettingsClick={() => { navigate("/"); window.scrollTo(0, 0); }}
           onHelpClick={() => navigate("/aide")}
           onLogout={handleLogout}
         />

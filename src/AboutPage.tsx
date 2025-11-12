@@ -437,11 +437,11 @@ export default function AboutPage() {
       {user ? (
         <HeaderConnected
           user={user}
-          onProfileClick={() => navigate("/")}
-          onFavorisClick={() => navigate("/")}
-          onAnalyticsClick={() => navigate("/")}
-          onSettingsClick={() => navigate("/")}
-          onHelpClick={() => navigate("/")}
+          onProfileClick={() => { navigate("/"); window.scrollTo(0, 0); }}
+          onFavorisClick={() => { navigate("/"); window.scrollTo(0, 0); }}
+          onAnalyticsClick={() => { navigate("/"); window.scrollTo(0, 0); }}
+          onSettingsClick={() => { navigate("/"); window.scrollTo(0, 0); }}
+          onHelpClick={() => navigate("/aide")}
           onLogout={handleLogout}
         />
       ) : (
