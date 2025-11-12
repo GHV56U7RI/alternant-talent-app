@@ -1,11 +1,11 @@
 # Backend configuration
-# Pour le développement local, utilisez 'test-repo'
-# Pour la production avec Netlify, utilisez 'git-gateway'
+# En développement local : utilise le proxy local (lancez 'npm run proxy' dans un autre terminal)
+# En production : utilise git-gateway avec Netlify
+local_backend: true
+
 backend:
-  name: test-repo
-  # Décommentez les lignes suivantes pour la production:
-  # name: git-gateway
-  # branch: main
+  name: git-gateway
+  branch: main
 
 # Configuration pour les médias du blog
 # Images et fichiers audio seront stockés dans public/images/blog

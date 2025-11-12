@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "proxy": "npx decap-server",
     "prebuild": "node ./scripts/generate-blog-index.mjs",
     "build": "vite build",
     "preview": "vite preview",
@@ -27,9 +28,11 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
+    "decap-server": "^3.4.0",
     "eslint": "^9.34.0",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.3.0",
+    "netlify-cms-proxy-server": "^1.3.24",
     "typescript": "^5.6.3",
     "vite": "^5.4.11",
     "vitest": "^1.6.1"
