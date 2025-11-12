@@ -1,6 +1,11 @@
+# Backend configuration
+# Pour le développement local, utilisez 'test-repo'
+# Pour la production avec Netlify, utilisez 'git-gateway'
 backend:
-  name: git-gateway
-  branch: main
+  name: test-repo
+  # Décommentez les lignes suivantes pour la production:
+  # name: git-gateway
+  # branch: main
 
 # Configuration pour les médias du blog
 # Images et fichiers audio seront stockés dans public/images/blog
@@ -8,7 +13,8 @@ backend:
 media_folder: "public/images/blog"
 public_folder: "/images/blog"
 
-publish_mode: editorial_workflow
+# Mode de publication (décommentez pour production avec workflow)
+# publish_mode: editorial_workflow
 
 collections:
   - name: "posts"
