@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "proxy": "npx decap-server",
-    "prebuild": "node ./scripts/generate-blog-index.mjs",
+    "prebuild": "node ./scripts/copy-admin.mjs && node ./scripts/generate-blog-index.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint .",

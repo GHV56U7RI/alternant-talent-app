@@ -8,6 +8,11 @@
   Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=()
   Content-Security-Policy: default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data: https:; font-src 'self' data:; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://router.project-osrm.org https://nominatim.openstreetmap.org https://overpass-api.de https://img.logo.dev https://www.google.com; form-action 'self'; upgrade-insecure-requests
 
+/admin/*
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  ! Content-Security-Policy
+
 /index.html
   Cache-Control: no-cache, must-revalidate
 

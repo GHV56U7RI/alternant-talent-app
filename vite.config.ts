@@ -17,7 +17,8 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: 'dist',
-    emptyOutDir: true,
-  }
+    outDir: 'public',
+    emptyOutDir: false, // Don't delete existing static files in public
+  },
+  publicDir: 'static' // Use a different folder for static assets
 })

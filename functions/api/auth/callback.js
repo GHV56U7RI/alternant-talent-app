@@ -1,6 +1,9 @@
 /**
  * Cloudflare Pages Function pour le callback OAuth GitHub
  * Route: /api/auth/callback
+ *
+ * Ce callback implémente le format exact attendu par Decap CMS
+ * en s'inspirant de netlify-cms-github-oauth-provider
  */
 
 export async function onRequestGet(context) {
@@ -35,15 +38,14 @@ export async function onRequestGet(context) {
       return new Response(`OAuth Error: ${tokenData.error_description}`, { status: 400 });
     }
 
-    // Retourner le token au CMS via postMessage
     const token = tokenData.access_token;
-    const provider = 'github';
 
+    // HTML avec le script exact de netlify-cms-github-oauth-provider
     return new Response(`
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Authenticating...</title>
+  <title>Authorization successful</title>
   <meta charset="utf-8">
   <style>
     body {
@@ -62,63 +64,51 @@ export async function onRequestGet(context) {
       border-radius: 8px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
+    .success {
+      color: #22c55e;
+      font-size: 48px;
+      margin-bottom: 1rem;
+    }
   </style>
 </head>
 <body>
   <div class="message">
-    <h2>✓ Authentication successful!</h2>
-    <p>This window will close automatically...</p>
+    <div class="success">✓</div>
+    <h2>Authorization successful</h2>
+    <p>You can close this window.</p>
   </div>
   <script>
+    // Script exact de netlify-cms-github-oauth-provider
     (function() {
-      const token = ${JSON.stringify(token)};
-      const provider = 'github';
+      function recieveMessage(e) {
+        console.log('Received message:', e);
+        if (e.data && e.data.type === 'authorizing') {
+          window.addEventListener('message', recieveMessage, false);
 
-      // Format exact attendu par Decap CMS v3
-      const message = 'authorization:' + provider + ':success:' + JSON.stringify({
-        token: token,
-        provider: provider
-      });
+          // Envoyer le token au parent (Decap CMS)
+          const data = {
+            token: ${JSON.stringify(token)},
+            provider: 'github'
+          };
 
-      // Fonction pour envoyer le message
-      function postMessageToParent() {
-        if (!window.opener) {
-          console.error('No window.opener found');
-          return;
-        }
+          window.opener.postMessage(
+            'authorization:github:success:' + JSON.stringify(data),
+            e.origin
+          );
 
-        try {
-          // Envoyer le message dans le format Decap CMS
-          window.opener.postMessage(message, window.location.origin);
-
-          // Aussi essayer avec wildcard pour compatibilité
-          window.opener.postMessage(message, '*');
-
-          console.log('Message sent to parent:', message);
-        } catch (e) {
-          console.error('Error sending postMessage:', e);
+          // Aussi envoyer le format alternatif
+          window.opener.postMessage(data, e.origin);
         }
       }
 
-      // Attendre que la page soit complètement chargée
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', postMessageToParent);
-      } else {
-        postMessageToParent();
-      }
+      window.addEventListener('message', recieveMessage, false);
 
-      // Réessayer plusieurs fois pour garantir la réception
-      setTimeout(postMessageToParent, 100);
-      setTimeout(postMessageToParent, 500);
-      setTimeout(postMessageToParent, 1000);
+      // Notifier qu'on est prêt
+      window.opener.postMessage('authorizing:github', '*');
 
-      // Fermer la fenêtre après 3 secondes
+      // Auto-fermeture après 3 secondes
       setTimeout(function() {
-        try {
-          window.close();
-        } catch (e) {
-          console.log('Could not close window automatically');
-        }
+        window.close();
       }, 3000);
     })();
   </script>
