@@ -13,9 +13,7 @@ backend:
 media_folder: "public/images/blog"
 public_folder: "/images/blog"
 
-# Utilise la bibliothèque de médias personnalisée pour l'upload local
-media_library:
-  name: local-upload
+# PAS de media_library configurée - le local_backend gère les uploads
 
 # Mode de publication (décommentez pour production avec workflow)
 # publish_mode: editorial_workflow
