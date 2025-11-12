@@ -57,7 +57,8 @@ credentials.json
 # Development/testing files
 # scripts/  # Commented out - needed for build
 tools/
-data/
+/data/
+!public/data/
 proxy-ft/
 workers/
 
