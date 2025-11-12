@@ -1,8 +1,8 @@
 {
   "remote": {
-    "status": "ok",
-    "http": 200,
-    "preview": "{\"jobs\":[{\"identifier\":{\"id\":\"6906172bb399ad89dc17769e\",\"partner_label\":\"offres_emploi_lba\",\"partner_job_id\":\"6906172bb399ad89dc17769e\"},\"workplace\":{\"siret\":\"84071710200015\",\"brand\":null,\"legal_name\"",
-    "duration_s": 1
+    "status": "skipped",
+    "http": 0,
+    "preview": "",
+    "duration_s": 0
   }
 }

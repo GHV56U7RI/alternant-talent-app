@@ -1,0 +1,30 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "public/uploads"
+public_folder: "/uploads"
+
+publish_mode: editorial_workflow
+
+collections:
+  - name: "posts"
+    label: "Articles"
+    folder: "content/posts"
+    create: true
+    extension: "mdx"
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { label: "Titre", name: "title", widget: "string" }
+      - { label: "Slug", name: "slug", widget: "string" }
+      - { label: "Résumé", name: "excerpt", widget: "text" }
+      - { label: "Date", name: "date", widget: "datetime", format: "YYYY-MM-DD" }
+      - { label: "Catégorie", name: "category", widget: "select", options: ["alternance", "securite", "produit", "societe"] }
+      - { label: "Temps de lecture (min)", name: "readTime", widget: "number", min: 1 }
+      - { label: "Image de couverture", name: "cover", widget: "image", required: false }
+      - { label: "Audio (URL)", name: "audioUrl", widget: "string", required: false }
+      - { label: "Tags", name: "tags", widget: "list", required: false }
+      - { label: "Auteur", name: "author", widget: "string", required: false }
+      - { label: "Statut", name: "status", widget: "select", options: ["draft", "published"], default: "draft" }
+      - { label: "À la Une", name: "featured", widget: "boolean", default: false }
+      - { label: "Contenu", name: "body", widget: "markdown" }

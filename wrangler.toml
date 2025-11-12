@@ -6,3 +6,16 @@ pages_build_output_dir = "public"
 binding = "DB"                        # accessible via env.DB dans le code
 database_name = "alternance_db"
 database_id = "c6fcd041-953d-42dc-96d5-8c17a881fe04"  # ton ID existant
+
+[vars]
+# API Keys - Adzuna
+ADZUNA_APP_ID = "0db63270"
+ADZUNA_APP_KEY = "d15a8808965974c88ff20e4a0b4faee9"
+
+# API Key - Jooble
+JOOBLE_KEY = "9ad45f9a-dab4-4071-8213-55453bbfcd42"
+
+# API Keys - La Bonne Alternance (LBA)
+REMOTE_API_BASE = "https://labonnealternance.apprentissage.beta.gouv.fr/api/V1/jobs"
+REMOTE_API_CALLER = "alternant-talent"
+REMOTE_API_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJfaWQiOiI2OGNmNmNkNjgxZGY5MmFiYTc2MDNhODUiLCJhcGlfa2V5IjoiT1piZmNSdlNoeXkzWFBiaHF3REJ6aGFqRVdTQ3V6bFlFNU9raVVlZS9IST0iLCJvcmdhbmlzYXRpb24iOiJJbmNvbm51ZSIsImVtYWlsIjoiYWx0ZXJuYW50LnRhbGVudC5wLTk4YmRAb3V0bG9vay5jb20iLCJpc3MiOiJhcGkiLCJpYXQiOjE3NjIyNTg2NTksImV4cCI6MTc4OTk2MDQwOH0.y2H_c8m1nBquQcexTaM-I2Gu6rNkRCCwhR70opi95bc"

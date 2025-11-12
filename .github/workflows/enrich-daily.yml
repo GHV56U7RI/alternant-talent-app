@@ -1,0 +1,127 @@
+name: Enrichir les offres quotidiennement
+
+on:
+  schedule:
+    # Tous les jours à 2h du matin (Paris)
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Permet de lancer manuellement
+    inputs:
+      limit:
+        description: 'Nombre max d offres à enrichir'
+        required: false
+        default: '100'
+
+jobs:
+  enrich:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          # Démarrer Ollama en arrière-plan
+          nohup ollama serve > ollama.log 2>&1 &
+          sleep 5
+          # Télécharger le modèle
+          ollama pull llama3.2
+
+      - name: Install dependencies
+        run: |
+          cd enrichment-service
+          npm install
+
+      - name: Start enrichment service
+        run: |
+          cd enrichment-service
+          nohup npm start > enrichment.log 2>&1 &
+          sleep 5
+          # Vérifier que le service est démarré
+          curl http://localhost:3002/health || (cat enrichment.log && exit 1)
+
+      - name: Fetch jobs from APIs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          # Appeler l'endpoint pour rafraîchir les jobs depuis les APIs
+          curl -X GET "https://alternant-talent.pages.dev/api/jobs?refresh=true&limit=1000"
+          echo "Jobs fetched from APIs"
+
+      - name: Export jobs from Cloudflare D1
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          DATABASE_ID: ${{ secrets.DATABASE_ID }}
+        run: |
+          # Exporter les jobs depuis D1 (requiert wrangler)
+          npm install -g wrangler
+          echo "$CLOUDFLARE_API_TOKEN" | wrangler login --api-token
+          wrangler d1 execute alternant-talent-db --command "SELECT * FROM jobs WHERE enriched_at IS NULL LIMIT ${{ github.event.inputs.limit || 100 }}" --json > jobs-to-enrich.json
+          cat jobs-to-enrich.json
+
+      - name: Enrich jobs with Ollama
+        run: |
+          # Enrichir les jobs avec le service local
+          curl -X POST http://localhost:3002/enrich/batch \
+            -H "Content-Type: application/json" \
+            -d @jobs-to-enrich.json \
+            -o enriched-jobs.json
+
+          echo "Enrichment completed"
+          cat enriched-jobs.json | jq '.total'
+
+      - name: Update D1 database with enriched data
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          DATABASE_ID: ${{ secrets.DATABASE_ID }}
+        run: |
+          # Créer un script SQL pour mettre à jour la DB
+          node -e "
+            const fs = require('fs');
+            const enriched = JSON.parse(fs.readFileSync('enriched-jobs.json'));
+            const jobs = enriched.jobs || [];
+
+            const sqls = jobs.map(job => {
+              const e = job.enriched;
+              if (!e) return '';
+
+              return \`UPDATE jobs SET
+                enriched_niveau_etudes = '\${e.niveau_etudes || ''}',
+                enriched_domaine = '\${e.domaine || ''}',
+                enriched_competences = '\${JSON.stringify(e.competences || [])}',
+                enriched_type_contrat = '\${e.type_contrat || ''}',
+                enriched_duree_estimee = '\${e.duree_estimee || ''}',
+                enriched_teletravail = \${e.teletravail ? 1 : 0},
+                enriched_salaire_estime = '\${e.salaire_estime || ''}',
+                enriched_tags = '\${JSON.stringify(e.tags || [])}',
+                enriched_at = datetime('now')
+              WHERE id = '\${job.id}';\`;
+            }).filter(Boolean).join('\\n');
+
+            fs.writeFileSync('update-enriched.sql', sqls);
+          "
+
+          # Exécuter les updates
+          wrangler d1 execute alternant-talent-db --file=update-enriched.sql
+
+      - name: Cleanup
+        if: always()
+        run: |
+          # Arrêter les services
+          pkill -f "ollama serve" || true
+          pkill -f "npm start" || true
+
+      - name: Notify completion
+        run: |
+          echo "✅ Enrichissement terminé avec succès"
+          echo "📊 Statistiques:"
+          cat enriched-jobs.json | jq '.stats'

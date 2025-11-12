@@ -1,18 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  ChevronRight as ChevronRightIcon,
-  Trash2 as TrashIcon,
-  Clock,
-  Shield,
-  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
   User,
   Settings,
   HelpCircle,
   Heart,
   BarChart3,
   Cookie as CookieIcon,
-  X,
 } from "lucide-react";
 import AuthPage from "./pages/AuthPage";
 
@@ -45,18 +41,6 @@ function SquareDotLogo({ name, size = 40 }) {
       <div style={{ width: r * 2, height: r * 2, borderRadius: '50%', background: color }} />
     </div>
   );
-}
-
-function fmtDateFR(iso: string) {
-  try {
-    return new Date(iso).toLocaleDateString("fr-FR", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    });
-  } catch {
-    return iso;
-  }
 }
 
 /********************* HEADER NON-CONNECTÉ ************************/
@@ -292,10 +276,85 @@ function HeaderConnected({ user, onProfileClick, onFavorisClick, onAnalyticsClic
   );
 }
 
-export default function PrivacyPage() {
+/********************* CTA JOIN ************************/
+function CTAJoin() {
+  const navigate = useNavigate();
+
+  return (
+    <section id="cta" style={{ paddingTop: '2rem', paddingBottom: '4rem' }} data-testid="cta-section">
+      <div style={{ maxWidth: '52ch', margin: '0 auto' }}>
+        <div style={{
+          position: 'relative',
+          borderRadius: '28px',
+          background: 'linear-gradient(to right, #60a5fa, #3b82f6, #2563eb)',
+          padding: '0.125rem',
+          boxShadow: '0 10px 30px rgba(59,130,246,.35)'
+        }}>
+          <div style={{
+            borderRadius: '28px',
+            background: 'rgba(255,255,255,0.1)',
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)',
+            padding: '1.5rem 2rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '1rem'
+          }}>
+            <div style={{ textAlign: 'left', color: 'white' }}>
+              <h3 style={{
+                fontSize: '1.25rem',
+                fontWeight: '600',
+                letterSpacing: '-0.025em',
+                margin: 0
+              }}>
+                Rejoignez Mon alternance talent aujourd&apos;hui
+              </h3>
+              <p style={{
+                color: 'rgba(255,255,255,0.8)',
+                fontSize: '0.75rem',
+                marginTop: '0.125rem',
+                marginBottom: 0
+              }}>
+                Inscrivez-vous et trouvez votre alternance
+              </p>
+            </div>
+            <button
+              onClick={() => navigate("/")}
+              style={{
+                marginLeft: '1.5rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '9999px',
+                border: '1px solid rgba(255,255,255,0.7)',
+                padding: '0.5rem 1.25rem',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                color: 'white',
+                background: 'transparent',
+                cursor: 'pointer',
+                transition: 'background 0.2s ease'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+            >
+              Choisir
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// Page À propos avec header et footer
+export default function AboutPage() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [showAuthPage, setShowAuthPage] = useState(false);
+  const [showMore, setShowMore] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -336,40 +395,16 @@ export default function PrivacyPage() {
 
   const handleAuthSuccess = (userData) => { setUser(userData); setShowAuthPage(false); };
 
-  const LAST_UPDATED = "2025-10-05";
-
   if (showAuthPage) return <AuthPage onBack={() => setShowAuthPage(false)} onAuthSuccess={handleAuthSuccess} />;
 
   return (
-    <div className="min-h-screen" style={{ background: "linear-gradient(180deg, #fafafa 0%, #FFFFFF 80%)", color: "var(--text)" }}>
+    <div className="min-h-screen" style={{ background: "#FFFFFF", color: "var(--text)" }}>
       <style>{`
         :root{
           --bg:#FFFFFF; --panel:#FFFFFF; --text:#0F0F10; --muted:#6F6B65;
           --border:#ECEBEA; --borderStrong:#E6E5E3; --sep:#E6E5E3;
           --pill:#f7f6f4;
         }
-
-        /* ===== Page Content ===== */
-        .wrap{ max-width:56rem; margin:0 auto; padding:64px 16px 64px; }
-        h1{ font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Helvetica Neue", Helvetica, Arial, "Segoe UI", Roboto, sans-serif; font-size:34px; line-height:1; font-weight:800; letter-spacing:-0.01em; color:#171717; text-align:center; }
-        .lede{ color:#3F3D39; opacity:.9; font-size:14px; margin-top:10px; text-align:center; }
-        .meta{ display:flex; align-items:center; justify-content:center; gap:8px; color:#6F6B65; font-size:13px; margin-top:14px; text-align:center; }
-
-        .section{ margin-top:22px; padding:18px; border:1px solid var(--border); border-radius:10px; background:var(--panel); }
-        .section h2{ font-size:18px; line-height:1.3; margin:0 0 6px; }
-        .section p, .section li{ color:#3F3D39; font-size:14px; }
-        .section ul{ padding-left:0; margin:10px 0; }
-        .section li{ margin-left:18px; }
-        .align-list{ margin-left:18px; }
-        .note{ background:var(--pill); border:1px solid var(--borderStrong); border-radius:8px; padding:10px 12px; color:#6F6B65; font-size:13px; }
-
-        .inline-link{ color:#111; text-decoration:underline; text-underline-offset:2px; }
-        .cta-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:18px; }
-        .btn-ghost{ background:#fff; border:1px solid var(--border); border-radius:9999px; padding:8px 12px; font-weight:600; font-size:13px; display:inline-flex; align-items:center; gap:8px; white-space:nowrap; cursor:pointer; color:#6F6B65; text-decoration:none; }
-        .btn-ghost:hover{ background:#f9f9f9; color:#3F3D39; }
-        .btn-ghost:visited{ color:#6F6B65; }
-        .btn-ghost svg{ color:#6F6B65; }
-        .btn-ghost:hover svg{ color:#3F3D39; }
 
         /* ===== Cookie bar (sobre) ===== */
         .cookie-bar{ position:fixed; left:0; right:0; bottom:0; z-index:60; color:#111; background:#fff; border-top:1px solid var(--border); }
@@ -390,14 +425,7 @@ export default function PrivacyPage() {
         .footer-bottom{ margin-top:16px; padding-top:12px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; color:#6F6B65; font-size:12px; }
         .footer-bottom .footer-link{ display:inline-block; padding:0; margin-left:12px; }
 
-        @media (min-width: 768px){
-          h1{ font-size:40px; }
-          .lede{ font-size:16px; }
-        }
-
         @media (max-width: 640px){
-          .wrap{ padding:16px 12px 28px; }
-          .section{ padding:14px; }
           .cookie-inner{ flex-direction:column; align-items:stretch; gap:8px; }
           .footer-grid{ grid-template-columns: 1fr 1fr; gap:16px; }
           .footer-inner{ padding:16px 12px; }
@@ -421,147 +449,151 @@ export default function PrivacyPage() {
       )}
 
       {/* ===== Content ===== */}
-      <main className="wrap" id="content">
-        <h1>Confidentialité</h1>
-        <p className="lede">Cette politique décrit comment nous collectons, utilisons et protégeons tes données personnelles sur mon alternance talent.</p>
-        <div className="meta"><Clock className="w-4 h-4"/><span>Dernière mise à jour&nbsp;: {fmtDateFR(LAST_UPDATED)}</span></div>
-
-        <section className="section" id="principes">
-          <h2>Principes & engagement</h2>
-          <p>Nous nous engageons à respecter ta vie privée et à traiter tes données de façon transparente, sécurisée et conforme au RGPD.</p>
-          <ul>
-            <li>Nous ne collectons que les données strictement nécessaires au fonctionnement du service.</li>
-            <li>Nous ne vendons jamais tes données à des tiers.</li>
-            <li>Tu gardes le contrôle : tu peux accéder, rectifier ou supprimer tes données à tout moment.</li>
-          </ul>
-        </section>
-
-        <section className="section" id="donnees-collectees">
-          <h2>Données collectées</h2>
-          <p>Selon ton utilisation du service (candidat, recruteur, visiteur), nous pouvons collecter :</p>
-          <ul>
-            <li><strong>Informations de compte</strong> : nom, prénom, adresse e-mail, mot de passe (haché), téléphone.</li>
-            <li><strong>Profil candidat</strong> : CV, lettre de motivation, parcours académique, expériences, compétences, localisation préférée.</li>
-            <li><strong>Profil recruteur</strong> : nom de l'entreprise, SIRET, secteur d'activité, offres publiées.</li>
-            <li><strong>Données d'usage</strong> : connexions, recherches, candidatures envoyées, interactions avec les offres.</li>
-            <li><strong>Données techniques</strong> : adresse IP, navigateur, appareil, cookies (selon tes préférences).</li>
-          </ul>
-        </section>
-
-        <section className="section" id="finalites">
-          <h2>Finalités du traitement</h2>
-          <p>Nous utilisons tes données pour :</p>
-          <ul>
-            <li>Fournir et améliorer le service (matching, recommandations, notifications).</li>
-            <li>Gérer ton compte, tes candidatures et tes offres.</li>
-            <li>Assurer la sécurité (détection de fraude, modération).</li>
-            <li>Communiquer avec toi (support, mise à jour du service, newsletters si tu as consenti).</li>
-            <li>Mesurer l'audience et les performances (analytique agrégée et anonymisée).</li>
-            <li>Respecter nos obligations légales (comptabilité, réponse aux autorités).</li>
-          </ul>
-        </section>
-
-        <section className="section" id="bases-legales">
-          <h2>Bases légales</h2>
-          <ul>
-            <li><strong>Exécution du contrat</strong> : nécessaire pour fournir le service demandé.</li>
-            <li><strong>Consentement</strong> : pour les cookies non essentiels, newsletters, etc.</li>
-            <li><strong>Intérêt légitime</strong> : amélioration du service, sécurité, analytique.</li>
-            <li><strong>Obligation légale</strong> : conservation fiscale, réponse aux demandes judiciaires.</li>
-          </ul>
-        </section>
-
-        <section className="section" id="partage">
-          <h2>Partage & destinataires</h2>
-          <p>Tes données peuvent être partagées dans les cas suivants :</p>
-          <ul>
-            <li><strong>Entre candidats et recruteurs</strong> : lors d'une candidature, le recruteur accède aux informations du profil partagé (CV, lettre).</li>
-            <li><strong>Prestataires techniques</strong> : hébergement (UE), e-mail transactionnel, analytique (avec anonymisation si possible).</li>
-            <li><strong>Autorités légales</strong> : si requis par la loi ou pour protéger nos droits.</li>
-          </ul>
-          <div className="note" style={{ marginTop: 10 }}>
-            <Shield className="inline-block align-text-top w-4 h-4" aria-hidden />
-            <span className="ml-2">Nous ne vendons ni ne louons tes données à des fins de marketing ou de monétisation par segments d'audience.</span>
+      <div style={{ minHeight: '100vh', background: 'white', color: '#171717', textAlign: 'center', padding: '4rem 1.5rem' }}>
+        {/* Hero */}
+        <section style={{ maxWidth: '48rem', margin: '0 auto 4rem' }}>
+          <h1 style={{ fontSize: '2.25rem', fontWeight: '600', letterSpacing: '-0.025em', lineHeight: '1.1' }}>
+            L'alternance, enfin simple et précise.
+          </h1>
+          <p style={{ maxWidth: '60ch', margin: '1.25rem auto 0', fontSize: '15px', lineHeight: '1.6', color: 'rgba(0,0,0,0.7)' }}>
+            Mon alternance talent met en avant des opportunités fiables et claires, juste l'essentiel, au bon moment.
+          </p>
+          <div style={{ marginTop: '2rem', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
+            <a
+              href="#offres"
+              onClick={(e) => { e.preventDefault(); navigate("/"); }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 1.25rem',
+                color: 'white',
+                fontWeight: '600',
+                fontSize: '0.875rem',
+                borderRadius: '9999px',
+                textDecoration: 'none',
+                cursor: 'pointer',
+                userSelect: 'none',
+                background: "linear-gradient(180deg, #2e6ffa 0%, #2663eb 70%)",
+                border: "1px solid #1f4fd1",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,.35), 0 6px 16px rgba(38,99,235,.28)",
+                transition: "transform .08s ease, box-shadow .2s ease, filter .2s ease",
+              }}
+            >
+              Voir les offres
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+                style={{ marginLeft: '0.25rem' }}
+              >
+                <path
+                  d="M10 6l6 6-6 6"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M4 12h11"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </a>
           </div>
         </section>
 
-        <section className="section" id="conservation">
-          <h2>Durée de conservation</h2>
-          <ul>
-            <li><strong>Compte actif</strong> : tant que le compte existe et est utilisé.</li>
-            <li><strong>Compte inactif</strong> : suppression automatique après 3 ans sans activité (avec notification préalable).</li>
-            <li><strong>Données de candidature</strong> : conservées 2 ans après la dernière interaction, sauf demande de suppression.</li>
-            <li><strong>Obligations légales</strong> : certaines données (factures, logs de sécurité) peuvent être conservées plus longtemps si la loi l'exige.</li>
-          </ul>
-        </section>
+        {/* Corps du texte avec texte masqué et flèche plus proche */}
+        <section style={{ maxWidth: '48rem', margin: '0 auto', fontSize: '16px', lineHeight: '1.6', color: 'rgba(0,0,0,0.8)', position: 'relative' }}>
+          <div
+            style={{
+              position: 'relative',
+              overflow: 'hidden',
+              transition: 'all 700ms ease-in-out',
+              maxHeight: showMore ? '3000px' : '260px'
+            }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <p>
+                Tout commence simplement. Dès la première visite, on comprend tout de suite où aller, quoi faire, et comment avancer. L'expérience est claire, naturelle, sans détour.
+              </p>
+              <p>
+                Puis vient la rapidité : les offres apparaissent au bon moment, comme si elles vous attendaient déjà. Vous n'avez plus à chercher longtemps, tout semble fluide, pensé pour votre rythme.
+              </p>
+              <p>
+                Au fil du temps, Mon alternance talent apprend à cerner ce qui vous correspond. Des alertes précises, jamais trop tôt ni trop tard, qui tombent juste quand il faut. Chaque notification devient une vraie opportunité.
+              </p>
+              <p>
+                Et derrière chaque action, la discrétion. Vos choix vous appartiennent. Vos données ne circulent pas, elles restent là, à leur place, entre de bonnes mains.
+              </p>
+              <p>
+                Cette vision, c'est celle d'un outil qui s'efface pour vous laisser avancer. Un compagnon invisible qui simplifie vos démarches et vous fait gagner du temps. Ici, pas de surcharge, pas de distraction : seulement ce qui compte.
+              </p>
+              <p>
+                L'approche est différente. Pas de bruit inutile, pas de doublons. Les informations sont nettes, à jour, fiables. Tout est pensé pour aller à l'essentiel et vous aider à saisir les vraies opportunités.
+              </p>
+              <p>
+                Pourquoi Mon alternance talent ? Parce que c'est un espace de confiance. Chaque offre est repérée avec soin, triée avec attention, et présentée avec simplicité. Rien de superflu, juste ce dont vous avez besoin pour avancer sereinement.
+              </p>
+              <p>
+                Derrière tout cela, il y a une promesse : vous faire gagner du temps sans jamais perdre votre liberté. Vous donner accès à ce qui est fiable, clair et pertinent. Et vous accompagner, sans bruit, vers la bonne opportunité.
+              </p>
+            </div>
+            {!showMore && (
+              <div style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                width: '100%',
+                height: '6rem',
+                background: 'linear-gradient(to top, white, rgba(255,255,255,0.8), transparent)'
+              }}></div>
+            )}
+          </div>
 
-        <section className="section" id="securite">
-          <h2>Sécurité</h2>
-          <p>Nous mettons en œuvre des mesures techniques et organisationnelles pour protéger tes données :</p>
-          <ul>
-            <li>Chiffrement des données sensibles (HTTPS, mots de passe hachés).</li>
-            <li>Contrôle d'accès strict (authentification, journalisation).</li>
-            <li>Surveillance des incidents et plan de réponse.</li>
-            <li>Audits réguliers et mises à jour de sécurité.</li>
-          </ul>
-          <div className="note" style={{ marginTop: 10 }}>
-            <AlertTriangle className="inline-block align-text-top w-4 h-4" aria-hidden />
-            <span className="ml-2">Aucun système n'est totalement infaillible. En cas de violation de données, nous t'informerons dans les délais légaux.</span>
+          {/* Bouton plus proche du texte */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
+            <button
+              type="button"
+              onClick={() => setShowMore(!showMore)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                color: '#2563eb',
+                fontWeight: '500',
+                transition: 'all 0.2s',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1rem'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.color = '#1e40af'}
+              onMouseLeave={(e) => e.currentTarget.style.color = '#2563eb'}
+            >
+              {showMore ? (
+                <>
+                  <ChevronUp style={{ width: '1.25rem', height: '1.25rem' }} /> Masquer
+                </>
+              ) : (
+                <>
+                  <ChevronDown style={{ width: '1.25rem', height: '1.25rem' }} /> Lire la suite
+                </>
+              )}
+            </button>
           </div>
         </section>
 
-        <section className="section" id="droits">
-          <h2>Tes droits (RGPD)</h2>
-          <p>Tu disposes des droits suivants :</p>
-          <ul>
-            <li><strong>Accès</strong> : obtenir une copie de tes données.</li>
-            <li><strong>Rectification</strong> : corriger des données inexactes.</li>
-            <li><strong>Effacement</strong> : demander la suppression de tes données (sous réserve d'obligations légales).</li>
-            <li><strong>Portabilité</strong> : récupérer tes données dans un format structuré.</li>
-            <li><strong>Opposition</strong> : t'opposer à certains traitements (marketing, profilage).</li>
-            <li><strong>Limitation</strong> : demander la limitation temporaire du traitement.</li>
-            <li><strong>Retrait du consentement</strong> : pour les traitements basés sur le consentement (cookies, newsletter).</li>
-          </ul>
-          <div className="cta-row">
-            <Link className="btn-ghost" to="/contact">Exercer un droit <ChevronRightIcon className="w-4 h-4"/></Link>
-            <button className="btn-ghost">Demander la suppression <TrashIcon className="w-4 h-4"/></button>
-          </div>
-        </section>
-
-        <section className="section" id="cookies">
-          <h2>Cookies & traceurs</h2>
-          <p>Nous utilisons des cookies pour améliorer ton expérience :</p>
-          <ul>
-            <li><strong>Cookies essentiels</strong> : authentification, préférences (pas de consentement requis).</li>
-            <li><strong>Cookies d'analyse</strong> : mesure d'audience (avec consentement).</li>
-            <li><strong>Cookies de personnalisation</strong> : recommandations, sauvegarde de recherches (avec consentement).</li>
-          </ul>
-          <p>Tu peux gérer tes préférences à tout moment via ton navigateur ou notre interface.</p>
-        </section>
-
-        <section className="section" id="mineurs">
-          <h2>Mineurs</h2>
-          <p>Le service est accessible aux personnes de 16 ans et plus (âge minimum légal pour consentir au traitement de données en France). Si tu as moins de 16 ans, demande l'autorisation de tes parents avant de créer un compte.</p>
-        </section>
-
-        <section className="section" id="modifications">
-          <h2>Modifications de la politique</h2>
-          <p>Nous pouvons mettre à jour cette politique pour refléter des évolutions du service ou des obligations légales. En cas de changement significatif, nous t'informerons par e-mail ou via une notification sur le site.</p>
-        </section>
-
-        <section className="section" id="contact">
-          <h2>Contact & réclamation</h2>
-          <p>Pour toute question sur cette politique ou pour exercer tes droits :</p>
-          <ul>
-            <li>Email : <a className="inline-link" href="mailto:confidentialite@monalternancetalent.com">confidentialite@monalternancetalent.com</a></li>
-            <li>Formulaire : <Link className="inline-link" to="/contact">Page contact</Link></li>
-          </ul>
-          <p>Tu peux également déposer une réclamation auprès de la CNIL (autorité française de protection des données) si tu estimes que tes droits ne sont pas respectés.</p>
-          <div className="cta-row">
-            <a className="btn-ghost" href="https://www.cnil.fr" target="_blank" rel="noopener noreferrer">Contacter la CNIL <ChevronRightIcon className="w-4 h-4"/></a>
-          </div>
-        </section>
-      </main>
+        {/* Nouveau CTA bleu */}
+        <CTAJoin />
+      </div>
 
       {/* ===== Cookie banner ===== */}
       {cookieChoice === "" && (

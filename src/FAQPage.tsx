@@ -410,9 +410,9 @@ export default function FAQPage() {
             </div>
             <div>
               <div className="footer-title">Légal</div>
-              <Link className="footer-link" to="/confidentialite">Confidentialité</Link>
+              <Link className="footer-link" to="/cgu">CGU</Link>
               <a className="footer-link" href="#">Cookies</a>
-              <Link className="footer-link" to="/conditions">Conditions</Link>
+              <Link className="footer-link" to="/confidentialite">Confidentialité</Link>
             </div>
           </div>
           <div className="footer-bottom">

@@ -36,11 +36,23 @@ async function initializeDB(env) {
         contract TEXT,
         source TEXT DEFAULT 'd1',
         logo_domain TEXT,
-        logo_url TEXT
+        logo_url TEXT,
+        enriched_niveau_etudes TEXT,
+        enriched_domaine TEXT,
+        enriched_competences TEXT,
+        enriched_type_contrat TEXT,
+        enriched_duree_estimee TEXT,
+        enriched_teletravail INTEGER DEFAULT 0,
+        enriched_salaire_estime TEXT,
+        enriched_tags TEXT,
+        enriched_at TEXT
       )
     `).run();
     await env.DB.prepare(`
       CREATE INDEX IF NOT EXISTS idx_jobs_search ON jobs(title, company, location, tags)
+    `).run();
+    await env.DB.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_jobs_enriched ON jobs(enriched_domaine, enriched_niveau_etudes, enriched_teletravail)
     `).run();
     console.log('Base de données initialisée');
   } catch (error) {
@@ -52,12 +64,15 @@ export async function onRequest({ request, env }) {
   const url = new URL(request.url);
   const q = url.searchParams.get('q') || '';
   const location = url.searchParams.get('location') || '';
+  const niveau = url.searchParams.get('niveau') || '';
+  const domaine = url.searchParams.get('domaine') || '';
+  const teletravail = url.searchParams.get('teletravail') || '';
   const limit = Math.min(parseInt(url.searchParams.get('limit')||'20000',10), 20000);
   const offset = Math.max(parseInt(url.searchParams.get('offset')||'0',10), 0);
   const world = isTrue(url.searchParams.get('world') || '0');
   const forceRefresh = isTrue(url.searchParams.get('refresh') || '0');
 
-  console.log('GET /api/jobs', { q, location, limit, offset, world, forceRefresh });
+  console.log('GET /api/jobs', { q, location, niveau, domaine, teletravail, limit, offset, world, forceRefresh });
 
   try {
     // 0. Initialiser la DB si nécessaire
@@ -103,7 +118,7 @@ export async function onRequest({ request, env }) {
     }
 
     // 4. Récupérer depuis la DB
-    const jobs = await fetchJobsFromDB({ q, location, limit, offset, world, env });
+    const jobs = await fetchJobsFromDB({ q, location, niveau, domaine, teletravail, limit, offset, world, env });
 
     return new Response(JSON.stringify({
       count: jobs.length,
@@ -228,7 +243,7 @@ async function refreshJobsFromAPIs(env) {
       const directCareersJobs = await fetchDirectCareersJobs({
         query: 'alternance',
         location: 'France',
-        limit: 100, // 100 plus grandes entreprises
+        limit: 700, // 634 entreprises avec bureaux en France
         env
       });
       allJobs.push(...directCareersJobs);
@@ -391,18 +406,33 @@ async function cleanExpiredJobs(env) {
 }
 
 // Récupérer les jobs depuis la DB
-async function fetchJobsFromDB({ q, location, limit, offset, world, env }) {
+async function fetchJobsFromDB({ q, location, limit, offset, world, env, niveau, domaine, teletravail }) {
   const clauses = [];
   const params = [];
 
   if (q) {
-    clauses.push(`(title LIKE ? OR company LIKE ? OR location LIKE ? OR tags LIKE ?)`);
-    params.push(like(q), like(q), like(q), like(q));
+    clauses.push(`(title LIKE ? OR company LIKE ? OR location LIKE ? OR tags LIKE ? OR enriched_competences LIKE ?)`);
+    params.push(like(q), like(q), like(q), like(q), like(q));
   }
 
   if (location) {
     clauses.push(`location LIKE ?`);
     params.push(like(location));
+  }
+
+  // Nouveaux filtres enrichis
+  if (niveau) {
+    clauses.push(`enriched_niveau_etudes = ?`);
+    params.push(niveau);
+  }
+
+  if (domaine) {
+    clauses.push(`enriched_domaine LIKE ?`);
+    params.push(like(domaine));
+  }
+
+  if (teletravail === 'true' || teletravail === '1') {
+    clauses.push(`enriched_teletravail = 1`);
   }
 
   // Filtre France supprimé pour afficher toutes les villes de France
@@ -413,7 +443,10 @@ async function fetchJobsFromDB({ q, location, limit, offset, world, env }) {
   const rs = await env.DB.prepare(
     `SELECT id,title,company,location,tags,url,source,posted,logo_domain,logo_url,
             COALESCE(created_at, posted_at) as publishedAt,
-            COALESCE(created_at, posted_at, posted) as sort_date
+            COALESCE(created_at, posted_at, posted) as sort_date,
+            enriched_niveau_etudes, enriched_domaine, enriched_competences,
+            enriched_type_contrat, enriched_duree_estimee, enriched_teletravail,
+            enriched_salaire_estime, enriched_tags, enriched_at
      FROM jobs
      ${where}
      ORDER BY
@@ -429,9 +462,24 @@ async function fetchJobsFromDB({ q, location, limit, offset, world, env }) {
      LIMIT ? OFFSET ?`
   ).bind(...params, limit, offset).all();
 
-  return (rs.results || []).map(r => ({
-    ...r,
-    posted: r.posted || 'Récemment',
-    tags: (() => { try { return JSON.parse(r.tags||'[]'); } catch { return []; } })()
-  }));
+  return (rs.results || []).map(r => {
+    const enriched = r.enriched_niveau_etudes ? {
+      niveau_etudes: r.enriched_niveau_etudes,
+      domaine: r.enriched_domaine,
+      competences: (() => { try { return JSON.parse(r.enriched_competences||'[]'); } catch { return []; } })(),
+      type_contrat: r.enriched_type_contrat,
+      duree_estimee: r.enriched_duree_estimee,
+      teletravail: r.enriched_teletravail === 1,
+      salaire_estime: r.enriched_salaire_estime,
+      tags: (() => { try { return JSON.parse(r.enriched_tags||'[]'); } catch { return []; } })()
+    } : null;
+
+    return {
+      ...r,
+      posted: r.posted || 'Récemment',
+      tags: (() => { try { return JSON.parse(r.tags||'[]'); } catch { return []; } })(),
+      enriched: enriched,
+      enriched_at: r.enriched_at
+    };
+  });
 }

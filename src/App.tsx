@@ -1,4 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Search,
   MapPin,
@@ -18,8 +19,10 @@ import {
   Loader2,
   Pencil,
   ShieldCheck,
+  BarChart3,
 } from "lucide-react";
 import AuthPage from "./pages/AuthPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
 
 /********************* HOOK COMMUN (scroll shrink) ************************/
 function useScrollShrink(threshold = 8) {
@@ -120,7 +123,7 @@ function HeaderNotConnected({ onLoginClick }) {
 }
 
 /********************* HEADER CONNECTÉ ************************/
-function HeaderConnected({ user, onProfileClick, onFavorisClick, onSettingsClick, onHelpClick, onLogout }) {
+function HeaderConnected({ user, onProfileClick, onFavorisClick, onAnalyticsClick, onSettingsClick, onHelpClick, onLogout }) {
   const shrunk = useScrollShrink(8);
   const pillRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -237,6 +240,10 @@ function HeaderConnected({ user, onProfileClick, onFavorisClick, onSettingsClick
             <button className="menu-item" role="menuitem" onClick={() => { setMenuOpen(false); onFavorisClick(); }}>
               <Heart className="menu-icon" />
               <span>Favoris</span>
+            </button>
+            <button className="menu-item" role="menuitem" onClick={() => { setMenuOpen(false); onAnalyticsClick(); }}>
+              <BarChart3 className="menu-icon" />
+              <span>Statistiques</span>
             </button>
             <button className="menu-item" role="menuitem" onClick={() => { setMenuOpen(false); onSettingsClick(); }}>
               <Settings className="menu-icon" />
@@ -743,6 +750,7 @@ export default function App() {
   // Auth
   const [user, setUser] = useState(null);
   const [showAuthPage, setShowAuthPage] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -881,9 +889,10 @@ export default function App() {
   // Auth handlers
   const handleLoginClick = () => setShowAuthPage(true);
   const handleAuthSuccess = (userData) => { setUser(userData); setShowAuthPage(false); };
-  const handleLogout = () => { localStorage.removeItem('user'); setUser(null); setShowProfile(false); setShowFavs(false); setShowSettings(false); setShowHelp(false); };
+  const handleLogout = () => { localStorage.removeItem('user'); setUser(null); setShowProfile(false); setShowFavs(false); setShowSettings(false); setShowHelp(false); setShowAnalytics(false); };
 
   if (showAuthPage) return <AuthPage onBack={() => setShowAuthPage(false)} onAuthSuccess={handleAuthSuccess} />;
+  if (showAnalytics) return <AnalyticsPage onClose={() => setShowAnalytics(false)} />;
   if (showProfile) return <ProfilePage user={user} onClose={() => setShowProfile(false)} />;
   if (showSettings) return <SettingsPage onClose={() => setShowSettings(false)} />;
   if (showHelp) return <HelpPage onClose={() => setShowHelp(false)} />;
@@ -1014,6 +1023,7 @@ export default function App() {
           user={user}
           onProfileClick={() => setShowProfile(true)}
           onFavorisClick={() => { setShowFavs(true); document.getElementById('search')?.scrollIntoView({behavior:'smooth'}); }}
+          onAnalyticsClick={() => setShowAnalytics(true)}
           onSettingsClick={() => setShowSettings(true)}
           onHelpClick={() => setShowHelp(true)}
           onLogout={handleLogout}
@@ -1236,13 +1246,13 @@ export default function App() {
             </div>
             <div>
               <div className="footer-title">Entreprise</div>
-              <a className="footer-link" href="#">À propos</a>
-              <a className="footer-link" href="#">Contact</a>
+              <Link className="footer-link" to="/a-propos">À propos</Link>
+              <Link className="footer-link" to="/contact">Contact</Link>
             </div>
             <div>
               <div className="footer-title">Légal</div>
-              <a className="footer-link" href="#">CGU</a>
-              <a className="footer-link" href="#">Confidentialité</a>
+              <Link className="footer-link" to="/cgu">CGU</Link>
+              <Link className="footer-link" to="/confidentialite">Confidentialité</Link>
             </div>
           </div>
           <div className="footer-bottom">

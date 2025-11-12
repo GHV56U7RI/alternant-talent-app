@@ -1,24 +1,25 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { memo, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
-  Mail,
-  Phone,
-  MapPin,
   Send,
-  Building2,
-  GraduationCap,
-  MessageSquare,
-  ShieldCheck,
-  X,
+  User,
+  Settings,
+  HelpCircle,
+  Heart,
+  BarChart3,
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
+import AuthPage from "./pages/AuthPage";
 
-// ===== Utils =====
+/********************* HOOK COMMUN (scroll shrink) ************************/
 function useScrollShrink(threshold = 8) {
   const [shrunk, setShrunk] = useState(false);
   useEffect(() => {
-    const onScroll = () => setShrunk(window.scrollY > threshold);
+    const onScroll = () => {
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      setShrunk(scrollY > threshold);
+    };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
@@ -26,10 +27,267 @@ function useScrollShrink(threshold = 8) {
   return shrunk;
 }
 
-export default function ContactPage() {
+/********************* UTILS ************************/
+function hash(str) { let h = 0; for (let i = 0; i < str.length; i++) { h = (h << 5) - h + str.charCodeAt(i); h |= 0; } return Math.abs(h); }
+
+const VIBRANT = ["#FF3B3B", "#FF6A00", "#FFB800", "#22C55E", "#10B981", "#06B6D4", "#3B82F6", "#6366F1", "#8B5CF6", "#EC4899", "#F43F5E"];
+
+function SquareDotLogo({ name, size = 40 }) {
+  const idx = hash(name);
+  const color = VIBRANT[idx % VIBRANT.length];
+  const r = Math.round(size * 0.34);
+  return (
+    <div style={{ width: size, height: size, borderRadius: 8, border: '1px solid rgba(0,0,0,.12)', display: 'grid', placeItems: 'center', background: '#fff' }} aria-label={`Logo ${name}`}>
+      <div style={{ width: r * 2, height: r * 2, borderRadius: '50%', background: color }} />
+    </div>
+  );
+}
+
+/********************* HEADER NON-CONNECTÉ ************************/
+function HeaderNotConnected({ onLoginClick }) {
   const shrunk = useScrollShrink(8);
-  const [isLoginOpen, setLoginOpen] = useState(false);
-  const [isSignup, setIsSignup] = useState(false);
+  const pillRef = useRef(null);
+
+  return (
+    <>
+      <style>{`
+        :root{
+          --bg:#FFFFFF; --panel:#FFFFFF; --text:#0F0F10; --muted:#6F6B65;
+          --border:#ECEBEA; --borderStrong:#E6E5E3; --sep:#E6E5E3;
+          --pill:#f7f6f4; --link:#1F2937; --linkHover:#0B1220;
+          --headerPill:rgba(255,255,255,.58);
+          --headerBorder:rgba(0,0,0,.06);
+          --flowCream:#F5F5F5;
+          --headerTop: 28px;
+          --headerBottomOffset: 56px;
+          --siteBg: linear-gradient(180deg, #fafafa 0%, #FFFFFF 70%);
+          --authBlue:#4285f4;
+          --authBlueDark:#2f6fe6;
+        }
+        @media (max-width:640px){
+          :root{ --headerTop: 22px; --headerBottomOffset: 64px; }
+        }
+
+        html, body { background: var(--siteBg); margin:0; }
+
+        .header-shell{ position:static; background:transparent; border:0; box-shadow:none; }
+        .header-inner{ max-width:72rem; margin:0 auto; display:flex; align-items:center; justify-content:center; padding:0; }
+
+        .brand-badge{ display:inline-flex; align-items:center; justify-content:center; background:#0f0f10; color:#fff; border-radius:10px; height:18px; padding:0 8px; font-weight:700; font-size:10.5px; letter-spacing:.04em; line-height:1; }
+        .brand-sep{ width:1px; height:16px; background:rgba(0,0,0,.15); margin:0 8px; display:inline-block; vertical-align:middle; transition:opacity .18s ease, transform .18s ease; }
+        .header-pill.shrunk .brand-sep{ opacity:1 !important; transform:none !important; width:1px !important; margin:0 8px !important; }
+
+        .brand-text{ display:inline-block; font-weight:400; font-size:13px; letter-spacing:.01em; color:#111; white-space:nowrap; overflow:hidden; max-width:220px; opacity:1; transform:translateY(0) scale(1); transition: opacity .18s ease, transform .18s ease, max-width .22s ease, margin .18s ease; position:relative; z-index:1; }
+        .brand-text.hidden{ opacity:0; transform:translateY(-1px) scale(.97); max-width:0; margin:0; }
+        .brand-text::after{ content:""; position:absolute; left:-10px; right:-10px; top:-6px; bottom:-6px; border-radius:9999px; background:rgba(255,255,255,0); backdrop-filter:none; -webkit-backdrop-filter:none; transition: background .18s ease, backdrop-filter .18s ease; }
+        .brand-text:hover::after{ background:rgba(255,255,255,.25); backdrop-filter: blur(8px) saturate(140%); -webkit-backdrop-filter: blur(8px) saturate(140%); }
+
+        .header-pill{ position:fixed; top: var(--headerTop); left:50%; transform:translateX(-50%); z-index:70; color:#111;
+          background:var(--headerPill);
+          border:1px solid var(--headerBorder);
+          border-radius:9999px; display:flex; align-items:center; gap:10px; white-space:nowrap; overflow:visible;
+          backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%);
+          transition: padding .18s ease, gap .18s ease, top .18s ease, background .18s ease, border-color .18s ease;
+          padding:10px 16px; isolation:isolate;
+          box-shadow:none;
+        }
+        .header-pill.shrunk{ gap:6px; padding:8px 14px; }
+        .header-pill::before, .header-pill::after{ display:none; }
+
+        .auth-actions{ display:inline-flex; align-items:center; gap:8px; margin-left:8px; }
+        .btn-auth{ height:32px; display:inline-flex; align-items:center; justify-content:center; padding:0 12px; border-radius:9999px; font-weight:800; font-size:12.5px; letter-spacing:.01em; cursor:pointer; border:1px solid transparent; text-decoration:none; }
+        .btn-auth--outline{ background:#fff; border:1px solid rgba(0,0,0,.10); color:#111; }
+        .btn-auth--outline:hover{ background:#fff; border-color: rgba(0,0,0,.18); }
+
+        .header-offset{ height: var(--headerBottomOffset); }
+      `}</style>
+
+      <header className="header-shell" role="banner">
+        <div className="header-inner" />
+      </header>
+
+      <div
+        ref={pillRef}
+        className={`header-pill ${shrunk ? "shrunk" : ""}`}
+      >
+        <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span className="brand-badge">mon</span>
+          <span className="brand-sep" aria-hidden></span>
+          <span className={`brand-text ${shrunk ? "hidden" : ""}`}>alternance & talent</span>
+        </Link>
+
+        <div className="auth-actions" role="group" aria-label="Authentification">
+          <button onClick={onLoginClick} className="btn-auth btn-auth--outline" aria-label="Se connecter">
+            Se connecter
+          </button>
+        </div>
+      </div>
+
+      <div className="header-offset" aria-hidden="true" />
+    </>
+  );
+}
+
+/********************* HEADER CONNECTÉ ************************/
+function HeaderConnected({ user, onProfileClick, onFavorisClick, onAnalyticsClick, onSettingsClick, onHelpClick, onLogout }) {
+  const shrunk = useScrollShrink(8);
+  const pillRef = useRef(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    const onClick = (e) => {
+      const pill = pillRef.current;
+      if (pill && !pill.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("click", onClick);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("click", onClick);
+    };
+  }, [menuOpen]);
+
+  return (
+    <>
+      <style>{`
+        :root{
+          --bg:#FFFFFF; --panel:#FFFFFF; --text:#0F0F10; --muted:#6F6B65;
+          --border:#ECEBEA; --borderStrong:#E6E5E3; --sep:#E6E5E3;
+          --pill:#f7f6f4; --link:#1F2937; --linkHover:#0B1220;
+          --headerPill:rgba(255,255,255,.58);
+          --headerBorder:rgba(0,0,0,.06);
+          --flowCream:#F5F5F5;
+          --headerTop: 28px;
+          --headerBottomOffset: 56px;
+          --siteBg: linear-gradient(180deg, #fafafa 0%, #FFFFFF 70%);
+        }
+        @media (max-width:640px){
+          :root{ --headerTop: 22px; --headerBottomOffset: 64px; }
+        }
+
+        html, body { background: var(--siteBg); margin:0; }
+
+        .header-shell{ position:static; background:transparent; border:0; box-shadow:none; }
+        .header-inner{ max-width:72rem; margin:0 auto; display:flex; align-items:center; justify-content:center; padding:0; }
+
+        .brand-badge{ display:inline-flex; align-items:center; justify-content:center; background:#0f0f10; color:#fff; border-radius:10px; height:18px; padding:0 8px; font-weight:700; font-size:10.5px; letter-spacing:.04em; line-height:1; }
+        .brand-sep{ width:1px; height:16px; background:rgba(0,0,0,.15); margin:0 8px; display:inline-block; vertical-align:middle; transition:opacity .18s ease, transform .18s ease; }
+        .header-pill.shrunk .brand-sep{ opacity:1 !important; transform:none !important; width:1px !important; margin:0 8px !important; }
+
+        .brand-text{ display:inline-block; font-weight:400; font-size:13px; letter-spacing:.01em; color:#111; white-space:nowrap; overflow:hidden; max-width:220px; opacity:1; transform:translateY(0) scale(1); transition: opacity .18s ease, transform .18s ease, max-width .22s ease, margin .18s ease; position:relative; z-index:1; }
+        .brand-text.hidden{ opacity:0; transform:translateY(-1px) scale(.97); max-width:0; margin:0; }
+
+        .header-pill{ position:fixed; top: var(--headerTop); left:50%; transform:translateX(-50%); z-index:70; color:#111;
+          background:var(--headerPill);
+          border:1px solid var(--headerBorder);
+          border-radius:9999px; display:flex; align-items:center; gap:10px; white-space:nowrap; overflow:visible;
+          backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%);
+          transition: padding .18s ease, gap .18s ease;
+          padding:10px 16px; isolation:isolate;
+          box-shadow:none;
+        }
+        .header-pill.shrunk{ gap:6px; padding:8px 14px; }
+
+        .btn-icon{ width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border-radius:9999px; background:rgba(0,0,0,.04); border:1px solid rgba(0,0,0,.08); color:#111; cursor:pointer; margin-left:8px; }
+        .btn-icon:hover{ background:rgba(0,0,0,.08); }
+        .btn-icon svg{ width:18px; height:18px; display:block; }
+
+        .profile-menu{ position:absolute; top:100%; right:0; margin-top:8px; width:220px; }
+        .menu-panel{ position:relative; background:var(--headerPill); border:1px solid var(--headerBorder); border-radius:12px;
+          box-shadow: 0 8px 24px rgba(0,0,0,.12);
+          overflow:hidden; transform-origin:top right; backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%);
+        }
+        .menu-panel.hidden{ opacity:0; pointer-events:none; transform:translateY(-6px) scale(0.98); }
+        .menu-panel.show{ opacity:1; transform:translateY(0) scale(1); transition:opacity .18s ease, transform .18s ease; }
+        .menu-item{ display:flex; align-items:center; gap:10px; padding:10px 12px; text-decoration:none; color:#111; font-weight:600; font-size:13px; cursor:pointer; border:none; background:transparent; width:100%; text-align:left; }
+        .menu-item:hover{ background:rgba(0,0,0,.04); }
+        .menu-icon{ width:16px; height:16px; opacity:.95; }
+
+        .site-veil{ position:fixed; inset:0; z-index:60; opacity:1; background:rgba(0,0,0,.02); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: opacity .18s ease; }
+        .site-veil.hidden{ opacity:0; pointer-events:none; }
+        .site-veil.show{ opacity:1; }
+
+        .header-offset{ height: var(--headerBottomOffset); }
+      `}</style>
+
+      <header className="header-shell" role="banner">
+        <div className="header-inner" />
+      </header>
+
+      <div
+        ref={pillRef}
+        className={`header-pill ${shrunk ? "shrunk" : ""}`}
+      >
+        <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span className="brand-badge">mon</span>
+          <span className="brand-sep" aria-hidden></span>
+          <span className={`brand-text ${shrunk ? "hidden" : ""}`}>alternance & talent</span>
+        </Link>
+
+        <button
+          id="btn-profile"
+          type="button"
+          className="btn-icon"
+          aria-label="Profil"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((v) => !v)}
+        >
+          <User />
+        </button>
+
+        <div className="profile-menu" aria-hidden={!menuOpen}>
+          <div className={`menu-panel ${menuOpen ? "show" : "hidden"}`} role="menu" aria-labelledby="btn-profile">
+            <button className="menu-item" role="menuitem" onClick={() => { setMenuOpen(false); onProfileClick(); }}>
+              <User className="menu-icon" />
+              <span>Profil</span>
+            </button>
+            <button className="menu-item" role="menuitem" onClick={() => { setMenuOpen(false); onFavorisClick(); }}>
+              <Heart className="menu-icon" />
+              <span>Favoris</span>
+            </button>
+            <button className="menu-item" role="menuitem" onClick={() => { setMenuOpen(false); onAnalyticsClick(); }}>
+              <BarChart3 className="menu-icon" />
+              <span>Statistiques</span>
+            </button>
+            <button className="menu-item" role="menuitem" onClick={() => { setMenuOpen(false); onSettingsClick(); }}>
+              <Settings className="menu-icon" />
+              <span>Paramètres</span>
+            </button>
+            <button className="menu-item" role="menuitem" onClick={() => { setMenuOpen(false); onHelpClick(); }}>
+              <HelpCircle className="menu-icon" />
+              <span>Aide</span>
+            </button>
+            <div style={{ borderTop: '1px solid rgba(0,0,0,.08)', margin: '4px 0' }} />
+            <button className="menu-item" role="menuitem" onClick={() => { setMenuOpen(false); onLogout(); }}>
+              <span style={{ marginLeft: '26px' }}>Déconnexion</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className={`site-veil ${menuOpen ? "show" : "hidden"}`} onClick={() => setMenuOpen(false)} aria-hidden={!menuOpen} />
+
+      <div className="header-offset" aria-hidden="true" />
+    </>
+  );
+}
+
+export default function ContactPage() {
+  const navigate = useNavigate();
+  const [showAuthPage, setShowAuthPage] = useState(false);
+
+  // User state (check localStorage)
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try { setUser(JSON.parse(storedUser)); } catch { localStorage.removeItem('user'); }
+    }
+  }, []);
 
   // Cookies (réutilisé)
   const [cookieChoice, setCookieChoice] = useState(() => {
@@ -38,8 +296,8 @@ export default function ContactPage() {
   const acceptCookies = () => { try { localStorage.setItem("cookieConsent", "accepted"); } catch {} setCookieChoice("accepted"); };
   const declineCookies = () => { try { localStorage.setItem("cookieConsent", "declined"); } catch {} setCookieChoice("declined"); };
 
-  // Segmented: Étudiant / Recruteur
-  const [role, setRole] = useState<"etudiant" | "recruteur">("etudiant");
+  // Role fixe
+  const [role] = useState<"etudiant" | "recruteur">("etudiant");
 
   // Form state
   const [name, setName] = useState("");
@@ -52,6 +310,7 @@ export default function ContactPage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [showValidationError, setShowValidationError] = useState(false);
 
   // Valeurs sujet par rôle
   const defaultStudent = "Question candidature / CV";
@@ -59,8 +318,8 @@ export default function ContactPage() {
 
   // Pré-fill sujet
   useEffect(() => {
-    if (!subject) setSubject(role === "etudiant" ? defaultStudent : defaultRecruiter);
-  }, [role]);
+    if (!subject) setSubject(defaultStudent);
+  }, []);
 
   // Validation simple
   const problems = useMemo(() => {
@@ -75,10 +334,21 @@ export default function ContactPage() {
 
   const canSubmit = problems.length === 0 && !submitting;
 
+  // Masquer le message de validation quand le formulaire devient valide
+  useEffect(() => {
+    if (canSubmit && showValidationError) {
+      setShowValidationError(false);
+    }
+  }, [canSubmit, showValidationError]);
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (!canSubmit) return;
+    if (!canSubmit) {
+      setShowValidationError(true);
+      return;
+    }
+    setShowValidationError(false);
     setSubmitting(true);
     try {
       const res = await fetch("/api/contact", {
@@ -88,144 +358,195 @@ export default function ContactPage() {
       });
       if (!res.ok) throw new Error("HTTP " + res.status);
       setSuccess(true);
-      setName(""); setEmail(""); setPhone(""); setSubject(role === "etudiant" ? defaultStudent : defaultRecruiter);
+      setName(""); setEmail(""); setPhone(""); setSubject(defaultStudent);
       setMessage(""); setAgree(false);
     } catch {
       setError("Impossible d'envoyer le message. Réessaie dans un instant.");
     } finally { setSubmitting(false); }
   }
 
+  const handleLogout = () => { localStorage.removeItem('user'); setUser(null); };
+  const handleAuthSuccess = (userData) => { setUser(userData); setShowAuthPage(false); };
+
+  if (showAuthPage) return <AuthPage onBack={() => setShowAuthPage(false)} onAuthSuccess={handleAuthSuccess} />;
+
   return (
-    <div className="min-h-screen" style={{ background: "var(--bg)", color: "var(--text)" }}>
-      {/* Styles — IMPORTANT: CSS inline string WITHOUT any backslash escapes */}
+    <div className="min-h-screen" style={{ background: 'var(--bg)', color: 'var(--text)' }}>
+      {/* Styles */}
       <style>{`
-:root{
-  --bg:#FFFFFF; --panel:#FFFFFF; --text:#0F0F10; --muted:#6F6B65; --headerPill:rgba(255,255,255,.55);
-  --border:#ECEBEA; --borderStrong:#E6E5E3; --sep:#E6E5E3; --heroBg:#F5F6F7; --blueText:#1E40AF; --counterBg:#f7f6f4;
-  --redBg:#FFE7E6; --redText:#B3261E; --stickyTop:88px; --radiusSoft:10px; --chipH:30px; --cardPad:14px;
-  /* Remplacement violet -> gris clair */
-  --flowCream:#F3F4F6; /* gris très clair */
-  --flowLavGradStart:#EDEDED; /* gris clair */
-  --flowLavGradEnd:#FAFAFA; /* gris presque blanc */
-}
-.card{ background:transparent; border:0; border-radius:0; }
-.hr{ height:1px; background:var(--border); }
-.btn{ border-radius:10px; font-weight:700; }
-.btn-primary{ background:#2563EB; color:#fff; }
-.btn-outline{ background:#fff; border:1px solid var(--border); color:var(--text); }
-.icon-btn{ width:36px; height:36px; display:flex; align-items:center; justify-content:center; background:#fff; border:1px solid var(--border); border-radius:12px; }
+        :root{
+          --bg:#FFFFFF; --panel:#FFFFFF; --text:#0F0F10; --muted:#6F6B65; --sep:#E6E5E3;
+          --flowCream:#fafafa;
+          --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+          --blue:#2663eb;
+          --blueDark:#1f4fd1;
+        }
+        html, body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; margin:0; background: linear-gradient(180deg, #fafafa 0%, #FFFFFF 80%); }
 
-/* Header */
-.header-shell{ position:static; background:var(--flowCream); }
-.header-pill{ position:fixed; top:8px; left:50%; transform:translateX(-50%); z-index:70; background:var(--headerPill);
-  border:1px solid rgba(255,255,255,.55); backdrop-filter:saturate(180%) blur(8px); -webkit-backdrop-filter:saturate(180%) blur(8px);
-  border-radius:9999px; display:flex; align-items:center; gap:10px; white-space:nowrap; overflow:hidden; transition: padding .18s ease, gap .18s ease; }
-.header-pill.shrunk{ gap:6px; }
-.brand-badge{ display:inline-flex; align-items:center; justify-content:center; background:#0f0f10; color:#fff; border-radius:10px; height:18px; padding:0 8px; font-weight:800; font-size:10.5px; letter-spacing:.04em; line-height:1; }
-.brand-sep{ width:1px; height:16px; background:rgba(0,0,0,.22); margin:0 8px; display:inline-block; vertical-align:middle; transition:opacity .16s ease, transform .16s ease; }
-.brand-text{ text-overflow: ellipsis; font-size:12.5px; transition:max-width .22s ease, opacity .16s ease, transform .16s ease; }
+        .container{ max-width:72rem; margin:0 auto; padding:0 16px; }
+        .card{ background:transparent; border:0; border-radius:0; }
+        .hr{ height:1px; background:var(--sep); }
 
-/* Hero */
-.flow-hero{ position:relative; padding:56px 0 28px; }
-.flow-hero .bg-bleed{ position:absolute; inset:0; left:50%; width:100vw; transform:translateX(-50%);
-  /* Dégradé gris -> blanc (80%) */
-  background:linear-gradient(180deg,var(--flowCream) 0%, #FFFFFF 80%); z-index:0; }
-.flow-wrap{ position:relative; z-index:1; max-width:56rem; margin:0 auto; text-align:center; padding:0 16px; }
+        /* CTA pill */
+        .cta-wrap{ display:flex; flex-direction:column; align-items:center; justify-content:center; margin-bottom:48px; gap:12px; }
+        .form-notice{
+          font-size:12px;
+          color:#6F6B65;
+          text-align:center;
+          display:flex;
+          align-items:center;
+          gap:6px;
+          animation: fadeInUp 0.5s ease-out;
+          opacity:0;
+          animation-fill-mode: forwards;
+        }
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .cta-pill{
+          display:inline-flex; align-items:center; justify-content:center; gap:6px;
+          padding:10px 16px; border-radius:9999px; text-decoration:none; user-select:none;
+          font-weight:600; letter-spacing:.2px; line-height:1; color:#fff; cursor:pointer;
+          appearance:none; -webkit-appearance:none; border:0;
+          background: linear-gradient(180deg, #2e6ffa 0%, var(--blue) 70%);
+          border:1px solid var(--blueDark);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 6px 16px rgba(38,99,235,.28);
+          transition: transform .08s ease, box-shadow .2s ease, filter .2s ease;
+        }
+        .cta-pill:hover{ transform: translateY(-1px); box-shadow: inset 0 1.5px 0 rgba(255,255,255,.45), 0 10px 24px rgba(38,99,235,.34); filter:saturate(1.05); }
+        .cta-pill:active{ transform: translateY(0); box-shadow: inset 0 2px 6px rgba(0,0,0,.18), 0 6px 14px rgba(38,99,235,.25); }
+        .cta-pill:focus-visible{ outline: 3px solid rgba(38,99,235,.45); outline-offset: 3px; }
+        .cta-pill svg{ vertical-align:middle; margin-left:4px; }
+        .cta-pill[disabled]{ opacity:1; filter:none; cursor:not-allowed; pointer-events:none; transform:none; box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 6px 16px rgba(38,99,235,.28); }
+        .cta-wrap{ display:flex; flex-direction:column; align-items:center; justify-content:center; margin-bottom:48px; gap:12px; }
+        .form-notice{
+          font-size:12px;
+          color:#6F6B65;
+          text-align:center;
+          display:flex;
+          align-items:center;
+          gap:6px;
+          animation: fadeInUp 0.5s ease-out;
+          opacity:0;
+          animation-fill-mode: forwards;
+        }
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
 
-/* Segmented */
-.seg{ display:inline-flex; align-items:center; height:var(--chipH); background:#fff; border:0; border-radius:9999px; padding:2px; }
-.seg-item{ height:calc(var(--chipH) - 4px); display:inline-flex; align-items:center; padding:0 10px; border-radius:9999px; font-weight:600; color:#3F3D39; font-size:13px; }
-.seg-item.active{ background:#2B2B2B; color:#fff; }
+        /* Hero */
+        .flow-hero{ position:relative; padding:56px 0 28px; }
+        .flow-hero .bg-bleed{ position:absolute; inset:0; left:50%; width:100vw; transform:translateX(-50%); background:linear-gradient(180deg,var(--flowCream) 0%, #FFFFFF 80%); z-index:0; }
+        .flow-wrap{ position:relative; z-index:1; max-width:56rem; margin:0 auto; text-align:center; padding:0 16px; }
 
-/* Form grid */
-.form-grid{ display:grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap:16px; }
-.col-6{ grid-column: span 6 / span 6; }
-.col-12{ grid-column: span 12 / span 12; }
-.label{ font-size:13px; color:#3F3D39; font-weight:700; margin-bottom:8px; display:block; }
-.input{ width:100%; background:#fff; border:1px solid var(--border); border-radius:12px; padding:12px 14px; font-size:14px; color:var(--text); }
-.textarea{ min-height:140px; resize:vertical; }
-.help{ font-size:12.5px; color:#6F6B65; }
-.error{ color:#B3261E; display:flex; align-items:center; gap:8px; font-size:13px; }
-.success-banner{ display:flex; align-items:flex-start; gap:10px; background:#F0FDF4; border:0; color:#14532D; border-radius:10px; padding:12px; }
+        /* Page title */
+        .page-title{ margin:0; padding:0; font-family: var(--font-sans); font-weight: 700; font-size: 34px; line-height:1.15; letter-spacing: -0.01em; text-align:center; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; }
+        @media (min-width:768px){ .page-title{ font-size: 40px; letter-spacing:-0.012em; } }
 
-/* Info row + slider mobile */
-.info-title{ font-weight:700; color:#1F1E1B; margin-bottom:6px; }
-.info-line{ display:flex; align-items:center; gap:8px; color:#6F6B65; font-size:13px; }
-.info-block{ padding:8px 0; }
-.info-row{ display:flex; justify-content:center; gap:40px; align-items:flex-start; flex-wrap:wrap; }
-.hide-on-mobile{ display:flex; }
-@media (max-width: 640px){
-  .info-row{ display:flex; overflow-x:auto; -webkit-overflow-scrolling:touch; scroll-snap-type:x mandatory; gap:12px; padding-bottom:6px; }
-  .info-block{ min-width:88%; scroll-snap-align:start; }
-  .hide-on-mobile{ display:none; }
-}
+        /* Form */
+        .form-grid{ display:grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap:16px; }
+        .col-6{ grid-column: span 6 / span 6; }
+        .col-12{ grid-column: span 12 / span 12; }
+        .label{ font-size:13px; color:#3F3D39; font-weight:700; margin-bottom:8px; display:block; }
+        .input{ width:100%; box-sizing: border-box; background:#fff; border:1px solid var(--sep); border-radius:12px; padding:12px 14px; font-size:14px; color:var(--text); }
+        .textarea{ min-height:140px; resize:vertical; display:block; }
+        .help{ font-size:12.5px; color:#6F6B65; }
+        .error{ color:#B3261E; display:flex; align-items:center; gap:8px; font-size:13px; }
+        .success-banner{ display:flex; align-items:flex-start; gap:10px; background:#F0FDF4; border:0; color:#14532D; border-radius:10px; padding:12px; }
 
-/* Consent — Desktop: en une ligne, Mobile: retour à la ligne (pas de slide) */
-.consent-row{ display:flex; align-items:flex-start; gap:8px; }
-.consent-row input[type="checkbox"]{ margin-top: 4px; }
-.consent-label{ white-space: nowrap; display:inline-flex; align-items:center; gap:4px; flex:1; }
-.consent-label .footer-link{ display:inline; padding:0; margin:0 2px; text-decoration:underline; }
+        /* Consent */
+        .consent-row{ display:flex; align-items:flex-start; gap:8px; }
+        .consent-row input[type="checkbox"]{ margin-top: 4px; }
+        .consent-label{ white-space: nowrap; display:inline-flex; align-items:center; gap:4px; flex:1; }
+        .consent-label .footer-link{ display:inline; padding:0; margin:0 2px; text-decoration:underline; }
 
-/* Mobile: WRAP proprement, aucune barre de défilement */
-@media (max-width: 640px){
-  .form-grid{ grid-template-columns: repeat(6, minmax(0, 1fr)); gap:14px; }
-  .col-6{ grid-column: span 6 / span 6; }
-  .label{ font-size:13.5px; margin-bottom:6px; }
-  .input{ font-size:16px; padding:12px 14px; }
-  .help{ font-size:12px; }
-  #message + .help{ text-align:right; }
-  .consent-row{ align-items:flex-start; }
-  .consent-label{ white-space: normal !important; display:block; line-height:1.45; }
-}
+        /* Cookie */
+        .cookie-bar{ position:fixed; left:0; right:0; bottom:0; z-index:60; color:#fff; background:rgba(17,17,17,.78); backdrop-filter:saturate(120%) blur(4px); -webkit-backdrop-filter:saturate(120%) blur(4px); border:0; box-shadow:0 -6px 18px rgba(0,0,0,.18); }
+        .cookie-inner{ max-width:72rem; margin:0 auto; padding:8px 12px; display:flex; align-items:center; gap:8px; justify-content:space-between; }
+        .cookie-text{ opacity:.96; font-size:12.5px; }
+        .cookie-actions{ display:flex; align-items:center; gap:8px; }
+        .cookie-accept{ background:#fff; color:#111; border:0; border-radius:9999px; padding:6px 10px; font-weight:700; cursor:pointer; }
+        .cookie-decline{ background:transparent; color:#fff; border:0; padding:6px 8px; text-decoration:underline; cursor:pointer; }
 
-/* Cookie */
-.cookie-bar{ position:fixed; left:0; right:0; bottom:0; z-index:60; color:#fff; background:rgba(17,17,17,.78);
-  backdrop-filter:saturate(120%) blur(4px); -webkit-backdrop-filter:saturate(120%) blur(4px); border:0; box-shadow:0 -6px 18px rgba(0,0,0,.18); }
-.cookie-inner{ max-width:72rem; margin:0 auto; padding:8px 12px; display:flex; align-items:center; gap:8px; justify-content:space-between; }
-.cookie-text{ opacity:.96; font-size:12.5px; }
-.cookie-actions{ display:flex; align-items:center; gap:8px; }
-.cookie-accept{ background:#fff; color:#111; border:0; border-radius:9999px; padding:6px 10px; font-weight:700; }
-.cookie-decline{ background:transparent; color:#fff; border:0; padding:6px 8px; text-decoration:underline; }
+        /* Footer */
+        .footer-shell{ background:#fff; border-top:1px solid var(--sep); }
+        .footer-inner{ max-width:72rem; margin:0 auto; padding:24px 16px; }
+        .footer-grid{ display:grid; grid-template-columns:1.5fr repeat(3,1fr); gap:24px; align-items:flex-start; }
+        .footer-title{ font-weight:700; font-size:14px; color:#1F1E1B; margin-bottom:8px; }
+        .footer-link{ display:block; color:#6F6B65; font-size:13px; padding:4px 0; text-decoration:none; }
+        .footer-link:hover{ color:#1F1E1B; }
+        .footer-brand{ display:flex; align-items:center; gap:8px; color:#1F1E1B; }
+        .footer-bottom{ margin-top:16px; padding-top:12px; border-top:1px solid var(--sep); display:flex; justify-content:space-between; align-items:center; color:#6F6B65; font-size:12px; }
+        .footer-bottom .footer-link{ display:inline-block; padding:0; margin-left:12px; }
 
-/* Footer */
-.footer-shell{ background:#fff; border-top:1px solid var(--border); }
-.footer-inner{ max-width:72rem; margin:0 auto; padding:24px 16px; }
-.footer-grid{ display:grid; grid-template-columns:1.5fr repeat(3,1fr); gap:24px; align-items:flex-start; }
-.footer-title{ font-weight:700; font-size:14px; color:#1F1E1B; margin-bottom:8px; }
-.footer-link{ display:block; color:#6F6B65; font-size:13px; padding:4px 0; text-decoration:none; }
-.footer-link:hover{ color:#1F1E1B; }
-.footer-brand{ display:flex; align-items:center; gap:8px; color:#1F1E1B; }
-.footer-bottom{ margin-top:16px; padding-top:12px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; color:#6F6B65; font-size:12px; }
-.footer-bottom .footer-link{ display:inline-block; padding:0; margin-left:12px; }
+        /* Mobile */
+        @media (max-width: 640px){
+          .container{ max-width:none; width:100vw; margin:0; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+          .flow-hero{ padding:28px 0 10px; }
+          .flow-wrap{ max-width:none; padding: 0 16px; }
+          .page-title{ font-size:36px; }
+          .form-grid{ grid-template-columns: repeat(6, minmax(0, 1fr)); gap:14px; }
+          .col-6{ grid-column: 1 / -1; }
+          .col-12{ grid-column: 1 / -1; }
+          .label{ font-size:13.5px; margin-bottom:6px; }
+          .input{ font-size:16px; padding:12px 14px; }
+          .help{ font-size:12px; }
+          #message + .help{ text-align:right; }
+          .consent-row{ align-items:flex-start; }
+          .consent-label{ white-space: normal !important; display:block; line-height:1.45; }
+          .form-card{ margin-top: 6px; border-radius:0; padding-left: 16px !important; padding-right: 16px !important; }
+          .cookie-inner{ flex-direction:column; align-items:stretch; gap:8px; }
+          .cookie-actions{ justify-content:flex-end; }
+          .footer-grid{ grid-template-columns: 1fr 1fr; gap:16px; }
+          .footer-inner{ padding:16px 12px; }
+          .footer-bottom{ flex-direction:column; align-items:flex-start; gap:8px; }
+        }
       `}</style>
 
       {/* Header */}
-      <header className="header-shell">
-        <div className="mx-auto max-w-6xl px-4 flex items-center justify-between" style={{ paddingTop: shrunk ? 4 : 8, paddingBottom: shrunk ? 4 : 8 }}>
-          <div className={`header-pill ${shrunk ? "shrunk" : ""}`} style={{ padding: shrunk ? "4px 10px" : "6px 12px" }}>
-            <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span className="brand-badge">mon</span>
-              <span className="brand-sep" aria-hidden></span>
-              <span className="brand-text inline-block font-medium whitespace-nowrap overflow-hidden" style={{ color: "var(--text)", maxWidth: shrunk ? 0 : 160, opacity: shrunk ? 0 : 1, transform: shrunk ? "translateY(-1px) scale(0.98)" : "none" }} aria-hidden={shrunk}>alternance & talent</span>
-            </Link>
-            <Link to="/" className="btn btn-outline px-3 py-1 text-sm" style={{ textDecoration: 'none' }}>Offres</Link>
-            <button onClick={() => setLoginOpen(true)} className="btn btn-outline px-3 py-1 text-sm" data-testid="btn-login">Se connecter</button>
-          </div>
-        </div>
-      </header>
+      {user ? (
+        <HeaderConnected
+          user={user}
+          onProfileClick={() => navigate("/")}
+          onFavorisClick={() => navigate("/")}
+          onAnalyticsClick={() => navigate("/")}
+          onSettingsClick={() => navigate("/")}
+          onHelpClick={() => navigate("/")}
+          onLogout={handleLogout}
+        />
+      ) : (
+        <HeaderNotConnected onLoginClick={() => setShowAuthPage(true)} />
+      )}
 
-      {/* HERO */}
-      <section className="mx-auto max-w-6xl px-4 mt-0">
+      {/* HERO avec titre centré */}
+      <section className="container mt-0">
         <div data-testid="contact-hero" className="flow-hero">
           <div className="bg-bleed" aria-hidden />
+          <div className="flow-wrap">
+            <h1 className="page-title">Contact</h1>
+          </div>
         </div>
       </section>
 
-      <div className="mx-auto max-w-6xl px-4 my-4"><div className="hr" /></div>
+      <div className="container my-4"><div className="hr" /></div>
 
       {/* Contenu */}
-      <main className="mx-auto max-w-6xl px-4 pb-12">
-        <section className="card" style={{ padding: 16 }}>
+      <main className="container pb-12">
+        <section className="card form-card" style={{ padding: 16 }}>
           <form onSubmit={onSubmit} noValidate>
             {success && (
               <div className="success-banner" role="status" aria-live="polite">
@@ -273,144 +594,78 @@ export default function ContactPage() {
                 <div className="help" style={{ marginTop: 6 }}>{message.length}/2000</div>
               </div>
 
-              {/* Consent — mobile wrap */}
               <div className="col-12 consent-row">
                 <input id="agree" type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
-                <label htmlFor="agree" className="help consent-label">J'accepte la <a className="footer-link" href="#">politique de confidentialité</a> et le traitement de mes données pour ce contact.</label>
+                <label htmlFor="agree" className="help consent-label">J'accepte la <Link className="footer-link" to="/confidentialite">politique de confidentialité</Link> et le traitement de mes données pour ce contact.</label>
               </div>
             </div>
 
             <div className="hr" style={{ margin: "16px 0" }} />
-            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-              <button className="btn btn-primary px-4 py-2 text-sm inline-flex items-center gap-2" type="submit" disabled={!canSubmit}><Send className="w-4 h-4" /> {submitting ? "Envoi…" : "Envoyer"}</button>
-              {error && <span className="error"><AlertCircle className="w-4 h-4" /> {error}</span>}
+
+            <div className="cta-wrap">
+              <button className="cta-pill" type="submit" aria-label="Envoyer le message">
+                {submitting ? "Envoi…" : "Envoyer"}
+                <Send size={18} aria-hidden="true" focusable="false" />
+              </button>
+              {showValidationError && (
+                <p className="form-notice">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                  Pour envoyer votre message, merci de remplir l'ensemble des informations
+                </p>
+              )}
             </div>
+
+            {error && <div style={{ marginTop: 24 }} className="error"><AlertCircle className="w-4 h-4" /> {error}</div>}
           </form>
         </section>
-
-        <div className="hr" style={{ margin: "20px 0" }} />
-
-        {/* Infos (contacts en ligne + slider mobile) */}
-        <section className="card" style={{ padding: 16 }}>
-          <div className="info-row" role="group" aria-label="Contacts et informations">
-            <div className="info-block">
-              <div className="info-title">Support candidats</div>
-              <div className="info-line"><Mail className="w-4 h-4" /> <a className="footer-link" href="mailto:etudiants@alternance-talent.test">etudiants@alternance-talent.test</a></div>
-              <div className="info-line"><MessageSquare className="w-4 h-4" /> <span>Aide CV, candidatures, suivi</span></div>
-              <div className="info-line"><ShieldCheck className="w-4 h-4" /> <span>Réponse sous 24 h ouvrées</span></div>
-            </div>
-            <div className="info-block">
-              <div className="info-title">Support recruteurs</div>
-              <div className="info-line"><Mail className="w-4 h-4" /> <a className="footer-link" href="mailto:recruteurs@alternance-talent.test">recruteurs@alternance-talent.test</a></div>
-              <div className="info-line"><ShieldCheck className="w-4 h-4" /> <span>Publication & intégration ATS</span></div>
-            </div>
-            <div className="info-block">
-              <div className="info-title">Nos bureaux</div>
-              <div className="info-line"><MapPin className="w-4 h-4" /> <span>Paris & Montréal</span></div>
-              <div className="info-line"><MessageSquare className="w-4 h-4" /> <a className="footer-link" href="#">Centre d'aide</a></div>
-              <div className="info-line"><ShieldCheck className="w-4 h-4" /> <span>Lun–Ven — 9h–18h</span></div>
-            </div>
-          </div>
-        </section>
       </main>
-
-      {/* Login dialog */}
-      {isLoginOpen && (
-        <div className="fixed inset-0 z-[60]" aria-modal role="dialog">
-          <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.3)" }} onClick={() => setLoginOpen(false)} />
-          <div className="absolute inset-0 flex items-center justify-center p-4">
-            <div className="w-full max-w-md card p-6" style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: '12px' }}>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold" style={{ color: "var(--text)" }}>{isSignup ? "Créer un compte" : "Se connecter"}</h2>
-                <button onClick={() => setLoginOpen(false)} aria-label="Fermer" className="p-2 rounded-lg hover:opacity-90"><X className="w-4 h-4" /></button>
-              </div>
-
-              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-                {isSignup && (
-                  <div>
-                    <label className="label" htmlFor="signup-name">Nom complet</label>
-                    <input id="signup-name" className="input" placeholder="Jean Dupont" type="text" required />
-                  </div>
-                )}
-                <div>
-                  <label className="label" htmlFor="login-email">Email</label>
-                  <input id="login-email" className="input" placeholder="email@exemple.com" type="email" required />
-                </div>
-                <div>
-                  <label className="label" htmlFor="login-password">Mot de passe</label>
-                  <input id="login-password" className="input" placeholder="••••••••" type="password" required />
-                </div>
-
-                {!isSignup && (
-                  <div className="text-right">
-                    <a href="#" className="text-sm" style={{ color: 'var(--blueText)' }}>Mot de passe oublié ?</a>
-                  </div>
-                )}
-
-                <button className="btn btn-primary w-full px-4 py-2.5 text-sm" type="submit">
-                  {isSignup ? "Créer mon compte" : "Se connecter"}
-                </button>
-
-                <div className="text-center text-sm" style={{ color: 'var(--muted)' }}>
-                  {isSignup ? (
-                    <>Vous avez déjà un compte ? <button type="button" onClick={() => setIsSignup(false)} style={{ color: 'var(--blueText)', fontWeight: 600 }}>Se connecter</button></>
-                  ) : (
-                    <>Pas encore de compte ? <button type="button" onClick={() => setIsSignup(true)} style={{ color: 'var(--blueText)', fontWeight: 600 }}>Créer un compte</button></>
-                  )}
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Cookies */}
       {cookieChoice === "" && (
         <div className="cookie-bar" role="region" aria-label="Bannière cookies">
           <div className="cookie-inner">
-            <span className="cookie-text text-sm">🍪 Nous utilisons des cookies pour <strong>améliorer ton expérience</strong> — <em>mesures anonymes uniquement</em>.</span>
+            <div className="cookie-text">Nous utilisons des cookies pour améliorer votre expérience.</div>
             <div className="cookie-actions">
-              <button className="cookie-accept" onClick={acceptCookies}>OK</button>
               <button className="cookie-decline" onClick={declineCookies}>Refuser</button>
+              <button className="cookie-accept" onClick={acceptCookies}>Accepter</button>
             </div>
           </div>
         </div>
       )}
 
       {/* Footer */}
-      <footer className="footer-shell" role="contentinfo">
+      <footer className="footer-shell">
         <div className="footer-inner">
           <div className="footer-grid">
-            <div className="footer-brand">
-              <span className="brand-badge">mon</span>
-              <span className="brand-sep" aria-hidden></span>
-              <span className="font-medium">alternance & talent</span>
-            </div>
             <div>
-              <div className="footer-title">Produit</div>
-              <Link className="footer-link" to="/">Rechercher</Link>
-              <Link className="footer-link" to="/">Offres</Link>
-              <a className="footer-link" href="#">Favoris</a>
-              <a className="footer-link" href="#">Estimation salariale</a>
+              <div className="footer-brand"><SquareDotLogo name="A&T" size={24}/> Alternance & Talent</div>
+              <p style={{ color:'#6F6B65', fontSize:13, marginTop:8 }}>Le moteur pour trouver plus vite votre alternance.</p>
             </div>
             <div>
               <div className="footer-title">Ressources</div>
-              <a className="footer-link" href="#">FAQ</a>
-              <Link className="footer-link" to="/aide">Centre d'aide</Link>
+              <Link className="footer-link" to="/faq">FAQ</Link>
+              <a className="footer-link" href="#">Blog</a>
+            </div>
+            <div>
+              <div className="footer-title">Entreprise</div>
+              <Link className="footer-link" to="/a-propos">À propos</Link>
               <Link className="footer-link" to="/contact">Contact</Link>
             </div>
             <div>
               <div className="footer-title">Légal</div>
+              <Link className="footer-link" to="/cgu">CGU</Link>
               <Link className="footer-link" to="/confidentialite">Confidentialité</Link>
-              <a className="footer-link" href="#">Cookies</a>
-              <Link className="footer-link" to="/conditions">Conditions</Link>
             </div>
           </div>
           <div className="footer-bottom">
-            <span>© {new Date().getFullYear()} Alternance & Talent. Tous droits réservés.</span>
+            <div>© {new Date().getFullYear()} Alternance & Talent</div>
             <div>
-              <a className="footer-link" href="#">Statut</a>
-              <a className="footer-link" href="#">Sécurité</a>
+              <a className="footer-link" href="#">Twitter</a>
+              <a className="footer-link" href="#">LinkedIn</a>
             </div>
           </div>
         </div>
@@ -424,18 +679,16 @@ export function __runTests(){
   const results: Array<[string, boolean]> = [];
   const label = document.querySelector('.consent-label');
   const hero = document.querySelector('[data-testid="contact-hero"]');
+  const title = document.querySelector('.page-title');
   const styleText = Array.from(document.querySelectorAll('style')).map(s=>s.textContent||'').join('\n');
 
   results.push(["Consent label présent", !!label]);
-  results.push(["CSS desktop nowrap", /\.consent-label\{[^}]*white-space:\s*nowrap/.test(styleText)]);
-  results.push(["CSS mobile wrap", /@media \(max-width: 640px\)[\s\S]*\.consent-label\{[\s\S]*white-space:\s*normal/.test(styleText)]);
-  results.push(["Checkbox align top", /input\[type="checkbox"\]\{[^}]*margin-top:\s*4px/.test(styleText)]);
-  // Vérifs couleurs: plus de violet, gris présent
-  results.push(["Gris clair appliqué (flowCream)", /--flowCream:\s*#F3F4F6/i.test(styleText)]);
-  results.push(["Plus de violet (aucun #DCCBFF/#CFE5FF/#F4ECFF)", !/(#DCCBFF|#CFE5FF|#F4ECFF)/i.test(styleText)]);
-  // Tests additionnels
   results.push(["Hero présent", !!hero]);
-  results.push(["Dégradé gris→blanc présent", /linear-gradient\(180deg,var\(--flowCream\) 0%, #FFFFFF 80%\)/.test(styleText)]);
+  results.push(["Titre Contact présent", !!title && /Contact/.test(title.textContent||"")]);
+  results.push(["CSS .page-title avec -apple-system", /\.page-title\{[\s\S]*font-family:[^;]*-apple-system/i.test(styleText)]);
+  results.push(["CTA .cta-pill présent", /\.cta-pill\{[\s\S]*background:\s*linear-gradient\(180deg,\s*#2e6ffa 0%,\s*var\(--blue\)\s*70%\)/i.test(styleText)]);
+  results.push(["CTA hover translateY(-1px)", /\.cta-pill:hover\{[\s\S]*transform:\s*translateY\(-1px\)/i.test(styleText)]);
+  results.push(["Container desktop défini", /\.container\{[\s\S]*max-width:\s*72rem/i.test(styleText)]);
 
   console.table(results.map(([t, ok])=>({test:t, ok})));
   return results.every(([,ok])=>ok);
