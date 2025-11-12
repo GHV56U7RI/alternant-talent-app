@@ -18,7 +18,7 @@ public_folder: "/images/blog"
 media_library:
   name: cloudinary
   config:
-    cloud_name: VMYeAezv6OcTfUuX1EG1xShtT4c
+    cloud_name: dz2lmwy6d
     api_key: '635817275736825'
 
 # Mode de publication (décommentez pour production avec workflow)
