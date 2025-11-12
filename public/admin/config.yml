@@ -1,14 +1,20 @@
 # Backend configuration
-# En production : utilise GitHub avec OAuth personnalisé
-# local_backend: true  # Désactivé pour la production
+# Mode local : éditer en local, pusher ensuite
+# Mode production : OAuth avec GitHub (problèmes de cross-origin)
+
+# Pour utiliser le CMS en local :
+# 1. Terminal 1: npm run proxy
+# 2. Terminal 2: npm run dev
+# 3. Accéder à http://localhost:5173/admin
+local_backend: true
 
 backend:
   name: github
   repo: GHV56U7RI/alternant-talent-app
   branch: main
-  # Utiliser notre propre service OAuth sur Cloudflare Worker
-  base_url: https://alternant-talent-github-oauth.alternant-talent-p-98bd.workers.dev
-  auth_endpoint: oauth/auth
+  # OAuth personnalisé (fonctionne pas à cause de window.opener null après redirect)
+  # base_url: https://alternant-talent-github-oauth.alternant-talent-p-98bd.workers.dev
+  # auth_endpoint: oauth/auth
 
 # Configuration pour les médias du blog
 # Images et fichiers audio seront stockés dans public/images/blog
