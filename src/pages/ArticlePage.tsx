@@ -271,8 +271,8 @@ export default function ArticlePage() {
       {/* Carte rectangulaire pâle décorative (pas un bouton) — placée au-dessus de "Lire le résumé généré par l'IA" */}
       <div style={{ marginTop: '2rem', display: 'flex', justifyContent: 'center' }}>
         {post.cover ? (
-          <div style={{ display: 'block', width: '100%', maxWidth: '52ch', margin: '0 auto', borderRadius: '16px', overflow: 'hidden' }} aria-hidden="true" data-testid="hero-pale-card">
-            <img src={post.cover} alt="" style={{ width: '100%', height: 'auto', objectFit: 'cover' }} />
+          <div style={{ display: 'block', width: '100%', maxWidth: '52ch', margin: '0 auto', borderRadius: '16px', overflow: 'hidden', aspectRatio: '16/9' }} aria-hidden="true" data-testid="hero-pale-card">
+            <img src={post.cover} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
         ) : (
           <div

@@ -1,7 +1,7 @@
 # Backend configuration
 # En développement local : utilise le proxy local (lancez 'npm run proxy' dans un autre terminal)
 # En production : utilise git-gateway avec Netlify
-local_backend: true
+# local_backend: true
 
 backend:
   name: git-gateway
