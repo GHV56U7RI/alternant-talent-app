@@ -13,7 +13,13 @@ backend:
 media_folder: "public/images/blog"
 public_folder: "/images/blog"
 
-# PAS de media_library configurée - le local_backend gère les uploads
+# Bibliothèque de médias Cloudinary (gratuit jusqu'à 25GB)
+# Permet l'upload direct depuis l'ordinateur
+media_library:
+  name: cloudinary
+  config:
+    cloud_name: demo
+    api_key: '126474716728491'
 
 # Mode de publication (décommentez pour production avec workflow)
 # publish_mode: editorial_workflow
