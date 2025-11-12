@@ -648,7 +648,8 @@ export default function ContactPage() {
             <div>
               <div className="footer-title">Ressources</div>
               <Link className="footer-link" to="/faq">FAQ</Link>
-              <a className="footer-link" href="#">Blog</a>
+              <Link className="footer-link" to="/blog">Blog</Link>
+              <Link className="footer-link" to="/aide">Centre d'aide</Link>
             </div>
             <div>
               <div className="footer-title">Entreprise</div>

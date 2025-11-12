@@ -579,6 +579,12 @@ export default function TermsPage() {
               <a className="footer-link" href="#">Favoris</a>
             </div>
             <div>
+              <div className="footer-title">Ressources</div>
+              <Link className="footer-link" to="/faq">FAQ</Link>
+              <Link className="footer-link" to="/blog">Blog</Link>
+              <Link className="footer-link" to="/aide">Centre d'aide</Link>
+            </div>
+            <div>
               <div className="footer-title">Entreprise</div>
               <Link className="footer-link" to="/a-propos">À propos</Link>
               <Link className="footer-link" to="/contact">Contact</Link>
