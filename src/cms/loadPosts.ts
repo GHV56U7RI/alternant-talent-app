@@ -1,6 +1,6 @@
 import matter from "gray-matter";
 import type { PostFrontmatter, PostIndexItem } from "./types";
-import searchData from "../data/blog/search.json";
+import searchData from "../../public/data/blog/search.json";
 
 // Charge le composant MDX pour la page article
 export const compModules = import.meta.glob("/content/posts/**/*.mdx");
