@@ -2,8 +2,8 @@ backend:
   name: git-gateway
   branch: main
 
-# Configuration pour les images du blog
-# Les images seront stockées dans public/images/blog
+# Configuration pour les médias du blog
+# Images et fichiers audio seront stockés dans public/images/blog
 # et accessibles via /images/blog dans l'application
 media_folder: "public/images/blog"
 public_folder: "/images/blog"
@@ -25,7 +25,7 @@ collections:
       - { label: "Catégorie", name: "category", widget: "select", options: ["alternance", "securite", "produit", "societe"] }
       - { label: "Temps de lecture (min)", name: "readTime", widget: "number", min: 1 }
       - { label: "Image de couverture", name: "cover", widget: "image", required: false }
-      - { label: "Audio (URL)", name: "audioUrl", widget: "string", required: false }
+      - { label: "Fichier Audio", name: "audioUrl", widget: "file", required: false, media_folder: "public/images/blog/audio", public_folder: "/images/blog/audio" }
       - { label: "Tags", name: "tags", widget: "list", required: false }
       - { label: "Auteur", name: "author", widget: "string", required: false }
       - { label: "Statut", name: "status", widget: "select", options: ["draft", "published"], default: "draft" }
