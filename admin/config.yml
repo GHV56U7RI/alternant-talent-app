@@ -30,8 +30,8 @@ collections:
       - { label: "Date", name: "date", widget: "datetime", format: "YYYY-MM-DD" }
       - { label: "Catégorie", name: "category", widget: "select", options: ["alternance", "securite", "produit", "societe"] }
       - { label: "Temps de lecture (min)", name: "readTime", widget: "number", min: 1 }
-      - { label: "Image de couverture", name: "cover", widget: "image", required: false }
-      - { label: "Fichier Audio", name: "audioUrl", widget: "file", required: false, media_folder: "public/images/blog/audio", public_folder: "/images/blog/audio" }
+      - { label: "Image de couverture", name: "cover", widget: "image", required: false, allow_multiple: false }
+      - { label: "Fichier Audio (MP3/WAV/OGG)", name: "audioUrl", widget: "image", required: false, allow_multiple: false, media_folder: "public/images/blog/audio", public_folder: "/images/blog/audio" }
       - { label: "Tags", name: "tags", widget: "list", required: false }
       - { label: "Auteur", name: "author", widget: "string", required: false }
       - { label: "Statut", name: "status", widget: "select", options: ["draft", "published"], default: "draft" }
