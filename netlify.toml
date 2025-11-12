@@ -13,3 +13,4 @@
 # Activer Netlify Identity pour l'admin
 [context.production]
   command = "npm run build"
+# Deployed on mer. 12 nov. 2025 15:43:36 CET
