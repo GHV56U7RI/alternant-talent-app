@@ -3,6 +3,6 @@
     "status": "ok",
     "http": 200,
     "preview": "{\"jobs\":[{\"identifier\":{\"id\":\"6914c2234d1bae85d2cc08c9\",\"partner_label\":\"offres_emploi_lba\",\"partner_job_id\":\"6914c2234d1bae85d2cc08c9\"},\"workplace\":{\"siret\":\"39034747400020\",\"brand\":null,\"legal_name\"",
-    "duration_s": 5
+    "duration_s": 1
   }
 }
