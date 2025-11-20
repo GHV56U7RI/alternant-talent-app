@@ -1,804 +1,1089 @@
 /**
- * Source: Sites carrières directs des grandes entreprises
- * Récupère les offres d'alternance directement depuis les pages carrières
+ * Source d'offres directement sur les ATS des grandes entreprises.
+ * S'inspire du principe de https://github.com/umur957/hiring-cafe-job-scraper :
+ *   - liste d'entreprises + ATS supportés,
+ *   - récupération des offres via les API publiques (Greenhouse, Lever, SmartRecruiters, Workday),
+ *   - filtrage sur les offres d'alternance françaises,
+ *   - normalisation et déduplication.
+ *
+ * Version améliorée avec:
+ *   - Résolution d'URLs intelligente (patterns ATS)
+ *   - Validation IA 100% gratuite (Ollama → Gemini → Groq)
+ *   - Monitoring et statistiques détaillées
  */
 
-// Liste des 100 plus grandes entreprises françaises avec leurs URLs carrières
-const COMPANIES = [
-  // CAC 40
-  { name: 'LVMH', careers: 'https://careers.lvmh.com/search-jobs', keywords: ['alternance', 'apprentissage'] },
-  { name: 'TotalEnergies', careers: 'https://jobs.totalenergies.com/jobs', keywords: ['alternance', 'apprentice'] },
-  { name: 'Sanofi', careers: 'https://sanofi.wd3.myworkdayjobs.com/SanofiCareers', keywords: ['apprenticeship', 'alternance'] },
-  { name: 'Airbus', careers: 'https://ag.wd3.myworkdayjobs.com/Airbus', keywords: ['apprentice', 'alternance'] },
-  { name: 'L\'Oréal', careers: 'https://careers.loreal.com/global/en/search-results', keywords: ['apprentice', 'alternance'] },
-  { name: 'Schneider Electric', careers: 'https://careers.se.com/jobs', keywords: ['apprentice', 'alternance'] },
-  { name: 'BNP Paribas', careers: 'https://careers.bnpparibas/jobs', keywords: ['alternance', 'apprentissage'] },
-  { name: 'AXA', careers: 'https://careers.axa.com/global/en/search-results', keywords: ['alternance', 'apprentice'] },
-  { name: 'Société Générale', careers: 'https://careers.societegenerale.com/fr/search-jobs', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Crédit Agricole', careers: 'https://www.credit-agricole.jobs/rejoignez-nous', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Orange', careers: 'https://orange.jobs/jobs/search', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Engie', careers: 'https://www.engie.com/carrieres/offres', keywords: ['alternance', 'apprentice'] },
-  { name: 'Saint-Gobain', careers: 'https://www.saint-gobain.com/fr/carrieres/offres', keywords: ['alternance', 'apprentice'] },
-  { name: 'Carrefour', careers: 'https://www.carrefour.com/fr/carrieres/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Danone', careers: 'https://careers.danone.com/global/en/search-results', keywords: ['apprentice', 'alternance'] },
-  { name: 'Pernod Ricard', careers: 'https://careers.pernod-ricard.com/global/en/search-results', keywords: ['apprentice', 'alternance'] },
-  { name: 'Michelin', careers: 'https://recrutement.michelin.fr/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Legrand', careers: 'https://www.legrandgroup.com/fr/carrieres/offres', keywords: ['alternance', 'apprentice'] },
-  { name: 'Thales', careers: 'https://careers.thalesgroup.com/global/en/search-results', keywords: ['apprentice', 'alternance'] },
-  { name: 'Dassault Systèmes', careers: 'https://careers.3ds.com/jobs', keywords: ['apprentice', 'alternance'] },
+import { FreeURLResolver } from './url-resolver-free.js';
+import { FreeAIValidator } from './ai-validator-free.js';
+import { FreeMonitoring } from './monitoring-free.js';
 
-  // SBF 120 & grandes entreprises
-  { name: 'Capgemini', careers: 'https://www.capgemini.com/fr-fr/carrieres/offres-emploi', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Atos', careers: 'https://jobs.atos.net/search-jobs', keywords: ['alternance', 'apprentice'] },
-  { name: 'Sopra Steria', careers: 'https://www.soprasteria.com/fr/carrieres/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Dassault Aviation', careers: 'https://www.dassault-aviation.com/fr/groupe/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Safran', careers: 'https://www.safran-group.com/fr/carrieres/offres', keywords: ['alternance', 'apprentice'] },
-  { name: 'Bouygues', careers: 'https://careers.bouygues.com/fr/search-jobs', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Vinci', careers: 'https://www.vinci.com/vinci.nsf/fr/carrieres/pages/offres.htm', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Eiffage', careers: 'https://www.eiffage.com/carrieres/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Veolia', careers: 'https://www.veolia.com/fr/carrieres/offres', keywords: ['alternance', 'apprentice'] },
-  { name: 'Suez', careers: 'https://www.suez.com/fr/carrieres/offres', keywords: ['alternance', 'apprentice'] },
+const DEFAULT_COMPANIES = [
+  // ✅ VÉRIFIÉ - Doctolib Greenhouse (240 jobs, 81 en France)
+  { name: 'Doctolib', careers: 'https://careers.doctolib.com', greenhouse: { board: 'doctolib' } },
 
-  // Tech & Digital
-  { name: 'Atos', careers: 'https://jobs.atos.net/search-jobs', keywords: ['alternance', 'apprentice'] },
-  { name: 'OVHcloud', careers: 'https://corporate.ovhcloud.com/fr/careers/jobs', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Deezer', careers: 'https://www.deezer.com/fr/company/jobs', keywords: ['internship', 'alternance'] },
-  { name: 'BlaBlaCar', careers: 'https://blog.blablacar.com/careers', keywords: ['internship', 'alternance'] },
-  { name: 'Criteo', careers: 'https://careers.criteo.com/search-jobs', keywords: ['internship', 'apprentice'] },
-  { name: 'Doctolib', careers: 'https://careers.doctolib.com/jobs', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Mirakl', careers: 'https://careers.mirakl.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'Alan', careers: 'https://alan.com/fr/carriere', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Back Market', careers: 'https://www.backmarket.com/fr-fr/careers', keywords: ['alternance', 'apprentice'] },
-  { name: 'Contentsquare', careers: 'https://contentsquare.com/careers/', keywords: ['internship', 'apprentice'] },
+  // ✅ VÉRIFIÉ - Datadog Greenhouse (425 jobs, 81 en France)
+  { name: 'Datadog', careers: 'https://careers.datadoghq.com', greenhouse: { board: 'datadog' } },
 
-  // Retail & E-commerce
-  { name: 'Decathlon', careers: 'https://recrutement.decathlon.fr/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Leroy Merlin', careers: 'https://www.leroymerlin.fr/offres-emploi', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Auchan', careers: 'https://www.auchan-recrute.fr/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Fnac Darty', careers: 'https://www.fnacdarty.com/carriere/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Cdiscount', careers: 'https://recrutement.cdiscount.com/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Boulanger', careers: 'https://www.boulanger.com/info/recrutement', keywords: ['alternance', 'apprentissage'] },
+  // ✅ VÉRIFIÉ - Algolia Greenhouse (28 jobs, 14 en France)
+  { name: 'Algolia', careers: 'https://www.algolia.com/careers', greenhouse: { board: 'algolia' } },
 
-  // Banque & Assurance
-  { name: 'BPCE', careers: 'https://www.groupebpce.com/carrieres/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Crédit Mutuel', careers: 'https://www.creditmutuel.fr/carrieres/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'La Banque Postale', careers: 'https://www.labanquepostale.fr/recrutement/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Allianz', careers: 'https://careers.allianz.com/fr/search-results', keywords: ['alternance', 'apprentice'] },
-  { name: 'Generali', careers: 'https://careers.generali.com/fr/search-results', keywords: ['alternance', 'apprentice'] },
-  { name: 'Axa France', careers: 'https://recrutement.axa.fr/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Groupama', careers: 'https://www.groupama.com/fr/carrieres/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'MAIF', careers: 'https://www.maif.fr/recrutement/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'MACIF', careers: 'https://www.macif.fr/recrutement/offres', keywords: ['alternance', 'apprentissage'] },
+  // ✅ VÉRIFIÉ - Qonto Lever (31 jobs, 22 en France)
+  { name: 'Qonto', careers: 'https://jobs.qonto.com', lever: { company: 'qonto' } },
 
-  // Automobile
-  { name: 'Renault', careers: 'https://www.renaultgroup.com/talents/offres', keywords: ['alternance', 'apprentice'] },
-  { name: 'Stellantis', careers: 'https://www.stellantis.com/fr/carrieres/offres', keywords: ['alternance', 'apprentice'] },
-  { name: 'Valeo', careers: 'https://www.valeo.com/fr/carrieres/offres', keywords: ['alternance', 'apprentice'] },
-  { name: 'Faurecia', careers: 'https://www.forvia.com/fr/carrieres/offres', keywords: ['alternance', 'apprentice'] },
-  { name: 'Plastic Omnium', careers: 'https://www.plasticomnium.com/fr/carrieres/offres', keywords: ['alternance', 'apprentice'] },
-
-  // Aéronautique & Défense
-  { name: 'Naval Group', careers: 'https://www.naval-group.com/fr/carrieres/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Nexter', careers: 'https://www.nexter-group.fr/carrieres/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'MBDA', careers: 'https://www.mbda-systems.com/careers/job-offers', keywords: ['apprentice', 'alternance'] },
-  { name: 'Latécoère', careers: 'https://www.latecoere.aero/fr/carrieres/offres', keywords: ['alternance', 'apprentice'] },
-
-  // Énergie
-  { name: 'EDF', careers: 'https://www.edf.fr/recrutement/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Orano', careers: 'https://www.orano.group/fr/carrieres/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Framatome', careers: 'https://www.framatome.com/fr/carrieres/offres', keywords: ['alternance', 'apprentice'] },
-
-  // Télécoms
-  { name: 'SFR', careers: 'https://www.sfr.fr/recrutement/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Bouygues Telecom', careers: 'https://www.bouyguestelecom.fr/recrutement/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Iliad Free', careers: 'https://www.iliad.fr/carrieres/offres', keywords: ['alternance', 'apprentissage'] },
-
-  // Luxe & Mode
-  { name: 'Hermès', careers: 'https://careers.hermes.com/search-jobs', keywords: ['apprentice', 'alternance'] },
-  { name: 'Kering', careers: 'https://careers.kering.com/global/en/search-results', keywords: ['apprentice', 'alternance'] },
-  { name: 'Chanel', careers: 'https://careers.chanel.com/en_US/search-jobs', keywords: ['apprentice', 'alternance'] },
-  { name: 'Dior', careers: 'https://careers.dior.com/search-jobs', keywords: ['apprentice', 'alternance'] },
-  { name: 'Lacoste', careers: 'https://careers.lacoste.com/search-jobs', keywords: ['alternance', 'apprentice'] },
-
-  // Agroalimentaire
-  { name: 'Lactalis', careers: 'https://www.lactalis.fr/carrieres/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Sodexo', careers: 'https://www.sodexo.com/fr/carrieres/offres', keywords: ['alternance', 'apprentice'] },
-  { name: 'Bonduelle', careers: 'https://www.bonduelle.com/fr/carrieres/offres', keywords: ['alternance', 'apprentice'] },
-  { name: 'Bel', careers: 'https://www.groupe-bel.com/fr/carrieres/offres', keywords: ['alternance', 'apprentice'] },
-  { name: 'Limagrain', careers: 'https://www.limagrain.com/fr/carrieres/offres', keywords: ['alternance', 'apprentice'] },
-
-  // Santé & Pharma
-  { name: 'Servier', careers: 'https://servier.com/fr/carrieres/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Ipsen', careers: 'https://www.ipsen.com/careers/job-offers', keywords: ['apprentice', 'alternance'] },
-  { name: 'Pierre Fabre', careers: 'https://www.pierre-fabre.com/fr/carrieres/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Biocodex', careers: 'https://www.biocodex.com/fr/carrieres/offres', keywords: ['alternance', 'apprentissage'] },
-
-  // Consulting & Services
-  { name: 'Accenture', careers: 'https://www.accenture.com/fr-fr/careers/jobsearch', keywords: ['alternance', 'apprentice'] },
-  { name: 'Deloitte', careers: 'https://careers.deloitte.fr/search-jobs', keywords: ['alternance', 'apprentissage'] },
-  { name: 'PwC', careers: 'https://www.pwc.fr/fr/carrieres/offres.html', keywords: ['alternance', 'apprentissage'] },
-  { name: 'EY', careers: 'https://www.ey.com/fr_fr/careers/search-jobs', keywords: ['alternance', 'apprentissage'] },
-  { name: 'KPMG', careers: 'https://home.kpmg/fr/fr/home/carrieres/offres.html', keywords: ['alternance', 'apprentissage'] },
-  { name: 'CGI', careers: 'https://www.cgi.com/france/fr-fr/carrieres/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Wavestone', careers: 'https://www.wavestone.com/fr/carrieres/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Publicis Sapient', careers: 'https://careers.publicissapient.com/search-jobs', keywords: ['apprentice', 'alternance'] },
-
-  // Médias & Communication
-  { name: 'Publicis Groupe', careers: 'https://www.publicisgroupe.com/fr/carrieres/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Havas', careers: 'https://www.havas.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'TF1', careers: 'https://www.groupetf1.fr/carrieres/offres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'M6', careers: 'https://www.groupem6.fr/carrieres/offres', keywords: ['alternance', 'apprentissage'] },
-
-  // Tech internationales avec bureaux en France
-  { name: 'Google France', careers: 'https://careers.google.com/jobs/results', keywords: ['apprentice', 'internship'] },
-  { name: 'Microsoft France', careers: 'https://careers.microsoft.com/professionals/us/en/search-results', keywords: ['apprentice', 'internship'] },
-  { name: 'Amazon France', careers: 'https://www.amazon.jobs/fr/search', keywords: ['apprentice', 'alternance'] },
-  { name: 'Meta France', careers: 'https://www.metacareers.com/jobs', keywords: ['internship', 'apprentice'] },
-  { name: 'Apple France', careers: 'https://jobs.apple.com/fr-fr/search', keywords: ['apprentice', 'alternance'] },
-  { name: 'IBM France', careers: 'https://www.ibm.com/careers/search', keywords: ['apprentice', 'alternance'] },
-  { name: 'Salesforce', careers: 'https://www.salesforce.com/company/careers/find-a-job/', keywords: ['apprentice', 'internship'] },
-  { name: 'Oracle France', careers: 'https://www.oracle.com/fr/careers/', keywords: ['apprentice', 'alternance'] },
-
-  // Scale-ups & Tech françaises
-  { name: 'Qonto', careers: 'https://qonto.com/fr/careers', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Lydia', careers: 'https://lydia-app.com/careers', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Swile', careers: 'https://www.swile.co/fr-fr/careers', keywords: ['alternance', 'apprentissage'] },
-  { name: 'ManoMano', careers: 'https://careers.manomano.com/', keywords: ['alternance', 'apprentice'] },
-  { name: 'Leboncoin', careers: 'https://emploi.leboncoin.fr/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Vinted', careers: 'https://www.vinted.fr/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Vestiaire Collective', careers: 'https://careers.vestiairecollective.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'PayFit', careers: 'https://payfit.com/fr/careers/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Livestorm', careers: 'https://livestorm.co/careers', keywords: ['internship', 'apprentice'] },
-
-  // Transport & Logistique
-  { name: 'SNCF', careers: 'https://www.sncf.com/fr/groupe/carriere-recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'RATP', careers: 'https://www.ratp.fr/groupe-ratp/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'La Poste', careers: 'https://www.lapostegroupe.com/fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Geodis', careers: 'https://geodis.com/fr/carrieres', keywords: ['alternance', 'apprentice'] },
-  { name: 'Air France-KLM', careers: 'https://www.airfranceklm.com/fr/carriere', keywords: ['alternance', 'apprentice'] },
-  { name: 'Transdev', careers: 'https://www.transdev.com/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-
-  // Retail supplémentaires
-  { name: 'BUT', careers: 'https://www.but.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Conforama', careers: 'https://www.conforama.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Castorama', careers: 'https://www.castorama.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Intermarché', careers: 'https://www.intermarche.com/rejoignez-nous', keywords: ['alternance', 'apprentissage'] },
-  { name: 'E.Leclerc', careers: 'https://www.e-leclerc.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-
-  // Services RH & Recrutement
-  { name: 'Randstad', careers: 'https://www.randstad.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Adecco', careers: 'https://www.adecco.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Manpower', careers: 'https://www.manpower.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-
-  // Hôtellerie & Tourisme
-  { name: 'Accor', careers: 'https://careers.accor.com/', keywords: ['apprentice', 'alternance'] },
-  { name: 'Club Med', careers: 'https://www.clubmedjobs.com/', keywords: ['alternance', 'apprentice'] },
-
-  // Autres grandes entreprises
-  { name: 'Eutelsat', careers: 'https://www.eutelsat.com/fr/careers', keywords: ['apprentice', 'alternance'] },
-  { name: 'Arkema', careers: 'https://www.arkema.com/global/fr/careers/', keywords: ['alternance', 'apprentice'] },
-  { name: 'Nexans', careers: 'https://www.nexans.com/careers/', keywords: ['alternance', 'apprentice'] },
-  { name: 'Imerys', careers: 'https://www.imerys.com/careers', keywords: ['apprentice', 'alternance'] },
-
-  // ===== EXTENSION MASSIVE: 500+ ENTREPRISES SUPPLÉMENTAIRES =====
-
-  // Tech & Digital françaises et internationales (100+)
-  { name: 'Ubisoft', careers: 'https://www.ubisoft.com/fr-fr/company/careers', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Deezer', careers: 'https://www.deezer.com/fr/company/jobs', keywords: ['internship', 'alternance'] },
-  { name: 'Dataiku', careers: 'https://www.dataiku.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Talend', careers: 'https://www.talend.com/careers/', keywords: ['apprentice', 'internship'] },
-  { name: 'Dashlane', careers: 'https://www.dashlane.com/about/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Algolia', careers: 'https://www.algolia.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Shift Technology', careers: 'https://www.shift-technology.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Ledger', careers: 'https://www.ledger.com/join-us', keywords: ['internship', 'alternance'] },
-  { name: 'Murex', careers: 'https://www.murex.com/en/careers', keywords: ['apprentice', 'internship'] },
-  { name: 'Strapi', careers: 'https://strapi.io/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Sendinblue (Brevo)', careers: 'https://www.brevo.com/fr/about/jobs/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Yousign', careers: 'https://yousign.com/fr-fr/carriere', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Welcome to the Jungle', careers: 'https://www.welcometothejungle.com/fr/companies/wttj/jobs', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Blablacar Daily', careers: 'https://blog.blablacar.com/careers', keywords: ['internship', 'alternance'] },
-  { name: 'Meero', careers: 'https://www.meero.com/en/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Believe', careers: 'https://www.believe.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Withings', careers: 'https://www.withings.com/fr/fr/careers', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Sigfox', careers: 'https://www.sigfox.com/careers', keywords: ['apprentice', 'alternance'] },
-  { name: 'Lucca', careers: 'https://www.lucca.fr/a-propos/rejoignez-nous', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Malt', careers: 'https://www.malt.com/about/jobs', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Happn', careers: 'https://www.happn.com/en/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Stuart', careers: 'https://stuart.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Ogury', careers: 'https://ogury.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Aircall', careers: 'https://aircall.io/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Botify', careers: 'https://www.botify.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Doctrine', careers: 'https://www.doctrine.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Side', careers: 'https://www.side.co/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Front', careers: 'https://front.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Spendesk', careers: 'https://www.spendesk.com/en/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Luko', careers: 'https://www.luko.eu/fr/fr/carriere', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Brigad', careers: 'https://www.brigad.co/careers', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Teads', careers: 'https://www.teads.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Busbud', careers: 'https://www.busbud.com/fr/company/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Getaround', careers: 'https://www.getaround.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'JCDecaux', careers: 'https://www.jcdecaux.com/fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Société Générale Securities Services', careers: 'https://careers.societegenerale.com/fr', keywords: ['alternance', 'apprentissage'] },
-  { name: 'ContentSquare', careers: 'https://contentsquare.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'SAP France', careers: 'https://jobs.sap.com/search/', keywords: ['apprentice', 'internship'] },
-  { name: 'Adobe France', careers: 'https://adobe.wd5.myworkdayjobs.com/external_experienced', keywords: ['internship', 'apprentice'] },
-  { name: 'Dell France', careers: 'https://jobs.dell.com/', keywords: ['apprentice', 'internship'] },
-  { name: 'HP France', careers: 'https://jobs.hp.com/', keywords: ['apprentice', 'internship'] },
-  { name: 'Cisco France', careers: 'https://jobs.cisco.com/', keywords: ['apprentice', 'internship'] },
-  { name: 'Intel France', careers: 'https://jobs.intel.com/', keywords: ['apprentice', 'internship'] },
-  { name: 'AMD France', careers: 'https://jobs.amd.com/', keywords: ['apprentice', 'internship'] },
-  { name: 'NVIDIA France', careers: 'https://www.nvidia.com/en-us/about-nvidia/careers/', keywords: ['apprentice', 'internship'] },
-  { name: 'VMware France', careers: 'https://careers.vmware.com/', keywords: ['apprentice', 'internship'] },
-  { name: 'Red Hat France', careers: 'https://www.redhat.com/en/jobs', keywords: ['apprentice', 'internship'] },
-  { name: 'Lenovo France', careers: 'https://jobs.lenovo.com/', keywords: ['apprentice', 'internship'] },
-  { name: 'Fujitsu France', careers: 'https://www.fujitsu.com/global/about/jobs/', keywords: ['apprentice', 'internship'] },
-  { name: 'ServiceNow', careers: 'https://careers.servicenow.com/', keywords: ['apprentice', 'internship'] },
-  { name: 'Workday', careers: 'https://www.workday.com/en-us/company/careers.html', keywords: ['apprentice', 'internship'] },
-  { name: 'Snowflake', careers: 'https://www.snowflake.com/en/careers/', keywords: ['apprentice', 'internship'] },
-  { name: 'Databricks', careers: 'https://www.databricks.com/company/careers', keywords: ['apprentice', 'internship'] },
-  { name: 'MongoDB', careers: 'https://www.mongodb.com/careers', keywords: ['apprentice', 'internship'] },
-  { name: 'Elastic', careers: 'https://www.elastic.co/careers', keywords: ['apprentice', 'internship'] },
-  { name: 'Datadog', careers: 'https://www.datadoghq.com/careers/', keywords: ['apprentice', 'internship'] },
-  { name: 'Stripe', careers: 'https://stripe.com/jobs', keywords: ['internship', 'apprentice'] },
-  { name: 'Square', careers: 'https://careers.squareup.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'Atlassian', careers: 'https://www.atlassian.com/company/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Zoom', careers: 'https://careers.zoom.us/', keywords: ['internship', 'apprentice'] },
-  { name: 'Slack', careers: 'https://slack.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Asana', careers: 'https://asana.com/jobs', keywords: ['internship', 'apprentice'] },
-  { name: 'Notion', careers: 'https://www.notion.so/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Airtable', careers: 'https://airtable.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Monday.com', careers: 'https://monday.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Figma', careers: 'https://www.figma.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Canva', careers: 'https://www.canva.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Miro', careers: 'https://miro.com/careers/', keywords: ['internship', 'apprentice'] },
-
-  // Industrie & Manufacturing (80+)
-  { name: 'Alstom', careers: 'https://www.alstom.com/careers', keywords: ['alternance', 'apprentice'] },
-  { name: 'Liebherr France', careers: 'https://www.liebherr.com/fr/fra/carrieres/carrieres.html', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Caterpillar France', careers: 'https://careers.caterpillar.com/', keywords: ['apprentice', 'internship'] },
-  { name: 'Volvo Group France', careers: 'https://www.volvogroup.com/en/careers.html', keywords: ['apprentice', 'alternance'] },
-  { name: 'Scania France', careers: 'https://www.scania.com/group/en/home/careers.html', keywords: ['apprentice', 'alternance'] },
-  { name: 'MAN Truck & Bus', careers: 'https://www.mantruckandbus.com/en/career.html', keywords: ['apprentice', 'alternance'] },
-  { name: 'Iveco', careers: 'https://www.iveco.com/fra/company/pages/career.aspx', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Daimler Truck', careers: 'https://jobs.daimlertruck.com/', keywords: ['apprentice', 'internship'] },
-  { name: 'Bosch France', careers: 'https://www.bosch.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Continental France', careers: 'https://www.continental.com/fr-fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'ZF France', careers: 'https://jobs.zf.com/search/', keywords: ['apprentice', 'alternance'] },
-  { name: 'Magna France', careers: 'https://www.magna.com/company/careers', keywords: ['apprentice', 'alternance'] },
-  { name: 'Hella France', careers: 'https://www.hella.com/hella-com/en/Career-7068.html', keywords: ['apprentice', 'alternance'] },
-  { name: 'Schaeffler France', careers: 'https://www.schaeffler.com/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'SKF France', careers: 'https://www.skf.com/fr/careers', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Essilor', careers: 'https://www.essilorluxottica.com/fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Seb Groupe', careers: 'https://www.groupeseb.com/fr/rejoignez-nous', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Bic', careers: 'https://www.bic.com/en_us/careers.html', keywords: ['internship', 'apprentice'] },
-  { name: 'Beneteau', careers: 'https://www.beneteau.com/fr/groupe/carriere', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Zodiac Aerospace', careers: 'https://www.safran-group.com/fr/carrieres', keywords: ['alternance', 'apprentice'] },
-  { name: 'Daher', careers: 'https://www.daher.com/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Stelia Aerospace', careers: 'https://www.stelia-aerospace.com/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Figeac Aéro', careers: 'https://www.figeac-aero.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Lisi Aerospace', careers: 'https://www.lisi-aerospace.com/fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Hutchinson', careers: 'https://www.hutchinson.com/fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Mecachrome', careers: 'https://www.mecachrome.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Liebherr Aerospace', careers: 'https://www.liebherr.com/fr/fra/carrieres/carrieres.html', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Satys', careers: 'https://www.satys.com/fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Groupe Gorgé', careers: 'https://www.groupe-gorge.com/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Vinci Energies', careers: 'https://www.vinci-energies.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Spie', careers: 'https://www.spie.com/fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Equans', careers: 'https://www.equans.fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'NGE', careers: 'https://www.nge.fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Rabot Dutilleul', careers: 'https://www.rabotdutilleul.com/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Eurovia', careers: 'https://www.eurovia.fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Colas', careers: 'https://www.colas.com/fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Soluxiance', careers: 'https://www.soluxiance.fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Engie Solutions', careers: 'https://www.engie-solutions.com/fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Enedis', careers: 'https://www.enedis.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'RTE', careers: 'https://www.rte-france.com/emploi-carriere', keywords: ['alternance', 'apprentissage'] },
-  { name: 'GRTgaz', careers: 'https://www.grtgaz.com/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Storengy', careers: 'https://www.storengy.com/fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'GRDF', careers: 'https://www.grdf.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Teréga', careers: 'https://www.terega.fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-
-  // Retail & Distribution (60+)
-  { name: 'Système U', careers: 'https://www.systeme-u.fr/rejoignez-nous', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Cora', careers: 'https://www.cora.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Match', careers: 'https://www.supermarchesmatch.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Monoprix', careers: 'https://www.monoprix.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Franprix', careers: 'https://www.franprix.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Casino', careers: 'https://www.groupe-casino.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Géant Casino', careers: 'https://www.geantcasino.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Leader Price', careers: 'https://www.leaderprice.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Lidl France', careers: 'https://www.lidl.fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Aldi France', careers: 'https://www.aldi.fr/recrutement.html', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Netto', careers: 'https://www.netto.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Picard', careers: 'https://www.picard.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Grand Frais', careers: 'https://www.grandfrais.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Biocoop', careers: 'https://www.biocoop.fr/Rejoignez-Biocoop', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Naturalia', careers: 'https://www.naturalia.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'La Vie Claire', careers: 'https://www.lavieclaire.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Sephora', careers: 'https://www.sephora.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Marionnaud', careers: 'https://www.marionnaud.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Nocibé', careers: 'https://www.nocibe.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Yves Rocher', careers: 'https://www.yves-rocher.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'La Halle', careers: 'https://www.lahalle.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Kiabi', careers: 'https://www.kiabi.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Promod', careers: 'https://www.promod.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Camaïeu', careers: 'https://www.camaieu.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Celio', careers: 'https://www.celio.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Jules', careers: 'https://www.jules.com/fr-fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Brice', careers: 'https://www.brice.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Bizzbee', careers: 'https://www.bizzbee.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Pimkie', careers: 'https://www.pimkie.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Cache-Cache', careers: 'https://www.cache-cache.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Etam', careers: 'https://www.etam.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Undiz', careers: 'https://www.undiz.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Darjeeling', careers: 'https://www.darjeeling.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Orchestra', careers: 'https://www.orchestra.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Jacadi', careers: 'https://www.jacadi.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Tape à l\'Oeil', careers: 'https://www.tape-a-loeil.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Du Pareil Au Même', careers: 'https://www.dpam.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Micromania', careers: 'https://www.micromania.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Game', careers: 'https://www.game.co.uk/careers', keywords: ['apprentice', 'internship'] },
-  { name: 'Nature & Découvertes', careers: 'https://www.natureetdecouvertes.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Cultura', careers: 'https://www.cultura.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Maisons du Monde', careers: 'https://www.maisonsdumonde.com/FR/fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Alinéa', careers: 'https://www.alinea.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Habitat', careers: 'https://www.habitat.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Roche Bobois', careers: 'https://www.roche-bobois.com/fr-FR/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'La Redoute', careers: 'https://www.laredoute.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: '3 Suisses', careers: 'https://www.3suisses.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Vente-privee.com', careers: 'https://www.veepee.com/gr/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Showroomprive', careers: 'https://www.showroomprive.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Zalando', careers: 'https://jobs.zalando.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'Spartoo', careers: 'https://www.spartoo.com/recrutement.php', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Sarenza', careers: 'https://www.sarenza.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-
-  // Banque & Assurance (40+)
-  { name: 'Natixis', careers: 'https://www.natixis.com/natixis/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'CIC', careers: 'https://www.cic.fr/fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'LCL', careers: 'https://www.lcl.fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Banque Populaire', careers: 'https://www.banquepopulaire.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Caisse d\'Épargne', careers: 'https://www.caisse-epargne.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Boursorama', careers: 'https://www.boursorama.com/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Fortuneo', careers: 'https://www.fortuneo.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Hello bank!', careers: 'https://www.hellobank.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Monabanq', careers: 'https://www.monabanq.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Nickel', careers: 'https://nickel.eu/fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'N26', careers: 'https://n26.com/fr-fr/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Revolut', careers: 'https://www.revolut.com/fr-FR/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Shine', careers: 'https://www.shine.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Manager.one', careers: 'https://www.manager.one/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Crédit Foncier', careers: 'https://www.creditfoncier.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'CNP Assurances', careers: 'https://www.cnp.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'AG2R La Mondiale', careers: 'https://www.ag2rlamondiale.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Malakoff Humanis', careers: 'https://www.malakoffhumanis.com/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Harmonie Mutuelle', careers: 'https://www.harmonie-mutuelle.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'MGEN', careers: 'https://www.mgen.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Matmut', careers: 'https://www.matmut.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'GMF', careers: 'https://www.gmf.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'MMA', careers: 'https://www.mma.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Aviva France', careers: 'https://www.aviva.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Swiss Life', careers: 'https://www.swisslife.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Cardif', careers: 'https://www.cardif.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'April', careers: 'https://www.april.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Covéa', careers: 'https://www.covea.eu/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Macif Mutualité', careers: 'https://www.macif.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Maaf', careers: 'https://www.maaf.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Smacl', careers: 'https://www.smacl.com/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Thélem', careers: 'https://www.thelem-assurances.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Gan Assurances', careers: 'https://www.ganassurances.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Pacifica', careers: 'https://www.pacifica.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Allianz Partners', careers: 'https://www.allianz-partners.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Euler Hermes', careers: 'https://www.eulerhermes.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Coface', careers: 'https://www.coface.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Atradius', careers: 'https://atradius.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-
-  // Consulting & Services (50+)
-  { name: 'Mazars', careers: 'https://www.mazars.fr/Accueil/Carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Grant Thornton', careers: 'https://www.grant-thornton.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'BDO France', careers: 'https://www.bdo.fr/fr-fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'RSM France', careers: 'https://www.rsm.global/france/fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'BCG', careers: 'https://careers.bcg.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'McKinsey France', careers: 'https://www.mckinsey.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Bain & Company', careers: 'https://www.bain.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Roland Berger', careers: 'https://www.rolandberger.com/fr/Carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Oliver Wyman', careers: 'https://www.oliverwyman.com/careers.html', keywords: ['internship', 'apprentice'] },
-  { name: 'Simon-Kucher', careers: 'https://www.simon-kucher.com/fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Sia Partners', careers: 'https://careers.sia-partners.com/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Onepoint', careers: 'https://www.groupeonepoint.com/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Ekimetrics', careers: 'https://ekimetrics.com/careers/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Quantmetry', careers: 'https://www.quantmetry.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Artefact', careers: 'https://www.artefact.com/careers/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Solucom', careers: 'https://www.solucom.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'mc2i', careers: 'https://www.mc2i.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Wemanity', careers: 'https://www.wemanity.com/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Devoteam', careers: 'https://fr.devoteam.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Keyrus', careers: 'https://www.keyrus.com/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Business & Decision', careers: 'https://www.businessdecision.com/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Micropole', careers: 'https://www.micropole.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Octo Technology', careers: 'https://www.octo.com/fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Xebia', careers: 'https://xebia.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Eleven Strategy', careers: 'https://eleven-strategy.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Altran', careers: 'https://www.capgemini.com/fr-fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Alten', careers: 'https://www.alten.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Akka Technologies', careers: 'https://www.akka-technologies.com/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Assystem', careers: 'https://www.assystem.com/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Groupe SII', careers: 'https://www.groupe-sii.com/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Altran (Aricent)', careers: 'https://www.capgemini.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Expleo', careers: 'https://expleo.com/global/en/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Ausy', careers: 'https://www.randstaddigital.com/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'CS Group', careers: 'https://www.c-s.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Apside', careers: 'https://www.apside.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Hardis Group', careers: 'https://www.hardis-group.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Inetum', careers: 'https://gfi.world/fr-fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Sword Group', careers: 'https://www.sword-group.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Open', careers: 'https://www.open.global/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Aubay', careers: 'https://www.aubay.com/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Eliad', careers: 'https://www.eliad.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Talan', careers: 'https://talan.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Davidson Consulting', careers: 'https://www.davidson.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Smile', careers: 'https://www.smile.eu/fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Néosoft', careers: 'https://www.neosoft.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Conserto', careers: 'https://www.conserto.pro/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Valtech', careers: 'https://www.valtech.com/fr-fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Publicis Consultants', careers: 'https://www.publicisconsultants.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'IBM Consulting', careers: 'https://www.ibm.com/careers/consulting', keywords: ['apprentice', 'internship'] },
-  { name: 'DXC Technology', careers: 'https://careers.dxc.technology/', keywords: ['apprentice', 'internship'] },
-
-  // Santé & Pharma (40+)
-  { name: 'Biogen', careers: 'https://www.biogen.com/careers.html', keywords: ['internship', 'apprentice'] },
-  { name: 'Gilead', careers: 'https://www.gilead.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Amgen', careers: 'https://www.amgen.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Bristol Myers Squibb', careers: 'https://careers.bms.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'MSD France', careers: 'https://www.msd-france.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'AstraZeneca', careers: 'https://careers.astrazeneca.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'GSK France', careers: 'https://fr.gsk.com/fr-fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Roche France', careers: 'https://www.roche.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Novartis France', careers: 'https://www.novartis.fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Pfizer France', careers: 'https://www.pfizer.fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Janssen France', careers: 'https://www.janssen.com/france/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Eli Lilly France', careers: 'https://www.lilly.fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Takeda France', careers: 'https://www.takeda.com/fr-fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Boehringer Ingelheim', careers: 'https://www.boehringer-ingelheim.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Bayer France', careers: 'https://www.bayer.fr/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Abbvie France', careers: 'https://www.abbvie.fr/carrieres.html', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Novo Nordisk', careers: 'https://www.novonordisk.fr/carrieres.html', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Chiesi France', careers: 'https://www.chiesi.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Stallergenes Greer', careers: 'https://www.stallergenesgreer.com/fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Biomérieux', careers: 'https://www.biomerieux.fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Guerbet', careers: 'https://www.guerbet.com/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'LFB', careers: 'https://www.lfb.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Sanofi Pasteur', careers: 'https://www.sanofipasteur.com/fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Menarini France', careers: 'https://www.menarini.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Biogaran', careers: 'https://www.biogaran.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Zentiva', careers: 'https://www.zentiva.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Teva France', careers: 'https://www.tevapharm.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Mylan', careers: 'https://www.viatris.com/fr-FR/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Sandoz France', careers: 'https://www.sandoz.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Arrow Génériques', careers: 'https://www.arrow-generiques.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Vidal', careers: 'https://www.vidal.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Cegedim', careers: 'https://www.cegedim.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Iqvia', careers: 'https://jobs.iqvia.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'Syneos Health', careers: 'https://www.syneoshealth.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'ICON', careers: 'https://careers.iconplc.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'Parexel', careers: 'https://www.parexel.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'PPD', careers: 'https://www.ppd.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Medtronic France', careers: 'https://www.medtronic.com/fr-fr/carrieres.html', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Boston Scientific', careers: 'https://www.bostonscientific.com/fr-FR/carrieres.html', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Stryker France', careers: 'https://www.stryker.com/us/en/careers.html', keywords: ['internship', 'apprentice'] },
-
-  // Média & Communication (30+)
-  { name: 'France Télévisions', careers: 'https://www.francetelevisions.fr/groupe/rejoignez-nous', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Radio France', careers: 'https://www.radiofrance.fr/groupe/rejoignez-nous', keywords: ['alternance', 'apprentissage'] },
-  { name: 'RTL', careers: 'https://www.rtl.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Europe 1', careers: 'https://www.europe1.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'RMC', careers: 'https://rmc.bfmtv.com/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'BFM TV', careers: 'https://www.bfmtv.com/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Canal+', careers: 'https://www.canalplus.com/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Mediawan', careers: 'https://www.mediawan.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Newen', careers: 'https://www.newen.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Banijay', careers: 'https://www.banijaygroup.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Fremantle', careers: 'https://www.fremantle.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Gaumont', careers: 'https://www.gaumont.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Pathé', careers: 'https://www.pathe.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'EuropaCorp', careers: 'https://www.europacorp.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'StudioCanal', careers: 'https://www.studiocanal.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Le Figaro', careers: 'https://www.lefigaro.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Le Monde', careers: 'https://www.lemonde.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Libération', careers: 'https://www.liberation.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'L\'Express', careers: 'https://www.lexpress.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Le Point', careers: 'https://www.lepoint.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'L\'Obs', careers: 'https://www.nouvelobs.com/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Paris Match', careers: 'https://www.parismatch.com/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Elle', careers: 'https://www.elle.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Marie Claire', careers: 'https://www.marieclaire.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Prisma Media', careers: 'https://www.prismamedia.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Lagardère', careers: 'https://www.lagardere.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Hachette', careers: 'https://www.hachette.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Editis', careers: 'https://www.editis.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Madrigall', careers: 'https://www.madrigall.fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Fnac Livre', careers: 'https://www.fnac.com/recrutement/', keywords: ['alternance', 'apprentissage'] },
-
-  // ===== 210+ NOUVELLES ENTREPRISES POUR ATTEINDRE X5 =====
-
-  // Startups & Scale-ups françaises (50+)
-  { name: 'Blablacar Daily (Comuto)', careers: 'https://blog.blablacar.com/careers', keywords: ['internship', 'alternance'] },
-  { name: 'Ornikar', careers: 'https://www.ornikar.com/carriere', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Gymlib', careers: 'https://www.gymlib.com/fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Shine (Société Générale)', careers: 'https://www.shine.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Pennylane', careers: 'https://www.pennylane.com/fr/carriere', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Spendesk', careers: 'https://www.spendesk.com/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Pigment', careers: 'https://www.gopigment.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Alma', careers: 'https://getalma.eu/careers', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Forest Admin', careers: 'https://www.forestadmin.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Sendinblue (Brevo)', careers: 'https://www.brevo.com/fr/careers/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Molotov TV', careers: 'https://www.molotov.tv/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Devialet', careers: 'https://www.devialet.com/fr-fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Blissim (Birchbox)', careers: 'https://www.blissim.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'ManoMano', careers: 'https://careers.manomano.com/fr', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Cheerz', careers: 'https://www.cheerz.com/fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Clic and Walk', careers: 'https://www.clicandwalk.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'JobTeaser', careers: 'https://www.jobteaser.com/fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Evaneos', careers: 'https://www.evaneos.com/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Drivy (Getaround)', careers: 'https://www.getaround.com/fr/careers', keywords: ['alternance', 'apprentissage'] },
-  { name: 'BeMyApp', careers: 'https://www.bemyapp.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Studapart', careers: 'https://www.studapart.com/fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'OpenClassrooms', careers: 'https://openclassrooms.com/fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: '360Learning', careers: 'https://360learning.com/fr/careers/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Workwell', careers: 'https://www.workwell.io/careers', keywords: ['alternance', 'apprentissage'] },
-  { name: 'SeLoger', careers: 'https://www.seloger.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'PAP (De Particulier à Particulier)', careers: 'https://www.pap.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Meilleurs Agents', careers: 'https://www.meilleursagents.com/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Logic-Immo', careers: 'https://www.logic-immo.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Bien\'ici', careers: 'https://www.bienici.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'ImmoScout24', careers: 'https://www.immoscout24.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Heetch', careers: 'https://www.heetch.com/fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Kapten (Free Now)', careers: 'https://www.free-now.com/fr/careers/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Marcel (Chauffeur Privé)', careers: 'https://www.marcel.cab/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Frichti (Gorillas)', careers: 'https://www.frichti.co/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Gorillas France', careers: 'https://gorillas.io/en/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Cajoo', careers: 'https://www.cajoo.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Epicery', careers: 'https://www.epicery.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Padam Mobility', careers: 'https://www.padam-mobility.com/fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Cityscoot', careers: 'https://www.cityscoot.eu/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Cooltra', careers: 'https://www.cooltra.com/fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Lime France', careers: 'https://www.li.me/fr/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Bolt France', careers: 'https://bolt.eu/fr-fr/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Tier Mobility', careers: 'https://www.tier.app/fr/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Voi Technology', careers: 'https://www.voiscooters.com/fr/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Dott', careers: 'https://ridedott.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Wind Mobility', careers: 'https://www.wind.co/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Zeway', careers: 'https://www.zeway.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Share Now', careers: 'https://www.share-now.com/fr/fr/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Europcar Mobility Group', careers: 'https://www.europcar-mobility-group.com/fr/careers/', keywords: ['alternance', 'apprentissage'] },
-
-  // Tech internationales supplémentaires (30+)
-  { name: 'Twitter (X)', careers: 'https://careers.twitter.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'LinkedIn France', careers: 'https://careers.linkedin.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'Snap France', careers: 'https://www.snap.com/fr-FR/jobs', keywords: ['internship', 'apprentice'] },
-  { name: 'TikTok France', careers: 'https://careers.tiktok.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'Pinterest', careers: 'https://www.pinterestcareers.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'Reddit', careers: 'https://www.redditinc.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Spotify France', careers: 'https://www.lifeatspotify.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'Netflix France', careers: 'https://jobs.netflix.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'Disney+ France', careers: 'https://jobs.disneycareers.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'Twitch France', careers: 'https://www.twitch.tv/jobs/', keywords: ['internship', 'apprentice'] },
-  { name: 'Discord', careers: 'https://discord.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Telegram', careers: 'https://telegram.org/jobs', keywords: ['internship', 'apprentice'] },
-  { name: 'Signal', careers: 'https://signal.org/workworkwork/', keywords: ['internship', 'apprentice'] },
-  { name: 'Dropbox', careers: 'https://www.dropbox.com/jobs', keywords: ['internship', 'apprentice'] },
-  { name: 'Box', careers: 'https://www.box.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'WeTransfer', careers: 'https://wetransfer.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'GitHub', careers: 'https://github.com/about/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'GitLab', careers: 'https://about.gitlab.com/jobs/', keywords: ['internship', 'apprentice'] },
-  { name: 'Bitbucket (Atlassian)', careers: 'https://www.atlassian.com/company/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Jira (Atlassian)', careers: 'https://www.atlassian.com/company/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Trello (Atlassian)', careers: 'https://www.atlassian.com/company/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Confluence (Atlassian)', careers: 'https://www.atlassian.com/company/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Zapier', careers: 'https://zapier.com/jobs', keywords: ['internship', 'apprentice'] },
-  { name: 'Make (Integromat)', careers: 'https://www.make.com/en/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'n8n', careers: 'https://n8n.io/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Pipedrive', careers: 'https://www.pipedrive.com/en/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'HubSpot', careers: 'https://www.hubspot.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Mailchimp (Intuit)', careers: 'https://mailchimp.com/about/jobs/', keywords: ['internship', 'apprentice'] },
-  { name: 'SendGrid (Twilio)', careers: 'https://www.twilio.com/company/jobs', keywords: ['internship', 'apprentice'] },
-  { name: 'Klaviyo', careers: 'https://www.klaviyo.com/careers', keywords: ['internship', 'apprentice'] },
-
-  // E-commerce & Marketplaces (30+)
-  { name: 'Etsy', careers: 'https://www.etsy.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'eBay France', careers: 'https://careers.ebayinc.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'Rakuten France (PriceMinister)', careers: 'https://rakuten.careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'AliExpress France', careers: 'https://www.alibabagroup.com/en/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Wish', careers: 'https://www.wish.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Shopify', careers: 'https://www.shopify.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'WooCommerce (Automattic)', careers: 'https://automattic.com/work-with-us/', keywords: ['internship', 'apprentice'] },
-  { name: 'PrestaShop', careers: 'https://www.prestashop.com/fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Magento (Adobe)', careers: 'https://magento.com/company/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'BigCommerce', careers: 'https://www.bigcommerce.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Squarespace', careers: 'https://www.squarespace.com/about/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Wix', careers: 'https://www.wix.com/jobs', keywords: ['internship', 'apprentice'] },
-  { name: 'Webflow', careers: 'https://webflow.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Sellsy', careers: 'https://www.sellsy.com/fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Axonaut', careers: 'https://www.axonaut.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Odoo', careers: 'https://www.odoo.com/jobs', keywords: ['internship', 'apprentice'] },
-  { name: 'Sage France', careers: 'https://www.sage.com/fr-fr/company/careers/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Cegid', careers: 'https://www.cegid.com/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'EBP', careers: 'https://www.ebp.com/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Adistra', careers: 'https://www.adistra.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'QuickBooks (Intuit)', careers: 'https://www.intuit.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Xero', careers: 'https://www.xero.com/about/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'FreshBooks', careers: 'https://www.freshbooks.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Zoho', careers: 'https://www.zoho.com/careers.html', keywords: ['internship', 'apprentice'] },
-  { name: 'Bitrix24', careers: 'https://www.bitrix24.com/about/careers.php', keywords: ['internship', 'apprentice'] },
-  { name: 'monday.com CRM', careers: 'https://monday.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'ClickUp', careers: 'https://clickup.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Basecamp', careers: 'https://basecamp.com/about/jobs', keywords: ['internship', 'apprentice'] },
-  { name: 'Teamwork', careers: 'https://www.teamwork.com/company/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Wrike', careers: 'https://www.wrike.com/careers/', keywords: ['internship', 'apprentice'] },
-
-  // Fintech & Crypto (30+)
-  { name: 'Binance France', careers: 'https://www.binance.com/en/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Coinbase', careers: 'https://www.coinbase.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Kraken', careers: 'https://www.kraken.com/en-us/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Crypto.com', careers: 'https://crypto.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Ledger Live', careers: 'https://www.ledger.com/join-us', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Blockchain.com', careers: 'https://www.blockchain.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Bitpanda', careers: 'https://www.bitpanda.com/en/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'eToro', careers: 'https://www.etoro.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Plus500', careers: 'https://www.plus500.com/en/Careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Trading 212', careers: 'https://www.trading212.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Revolut Business', careers: 'https://www.revolut.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Wise (TransferWise)', careers: 'https://www.wise.com/jobs/', keywords: ['internship', 'apprentice'] },
-  { name: 'Monzo', careers: 'https://monzo.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Starling Bank', careers: 'https://www.starlingbank.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Chime', careers: 'https://www.chime.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Varo Bank', careers: 'https://www.varomoney.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Current', careers: 'https://current.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Robinhood', careers: 'https://robinhood.com/us/en/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Webull', careers: 'https://www.webull.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Acorns', careers: 'https://www.acorns.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Stash', careers: 'https://www.stash.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Betterment', careers: 'https://www.betterment.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Wealthfront', careers: 'https://www.wealthfront.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Personal Capital', careers: 'https://www.personalcapital.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'SoFi', careers: 'https://www.sofi.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Affirm', careers: 'https://www.affirm.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Klarna', careers: 'https://www.klarna.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Afterpay', careers: 'https://www.afterpay.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Sezzle', careers: 'https://sezzle.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Uplift', careers: 'https://www.uplift.com/careers', keywords: ['internship', 'apprentice'] },
-
-  // EdTech & Formation (20+)
-  { name: 'Coursera', careers: 'https://about.coursera.org/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Udemy', careers: 'https://about.udemy.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Udacity', careers: 'https://www.udacity.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'edX', careers: 'https://www.edx.org/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Khan Academy', careers: 'https://www.khanacademy.org/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Duolingo', careers: 'https://careers.duolingo.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'Babbel', careers: 'https://about.babbel.com/en/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Busuu', careers: 'https://www.busuu.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Lingoda', careers: 'https://www.lingoda.com/fr/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Preply', careers: 'https://preply.com/en/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Cambly', careers: 'https://www.cambly.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Italki', careers: 'https://www.italki.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Verbling', careers: 'https://www.verbling.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Le Wagon', careers: 'https://www.lewagon.com/fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Ironhack', careers: 'https://www.ironhack.com/fr/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'General Assembly', careers: 'https://generalassemb.ly/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Flatiron School', careers: 'https://flatironschool.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Codecademy', careers: 'https://www.codecademy.com/about/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'Pluralsight', careers: 'https://www.pluralsight.com/careers', keywords: ['internship', 'apprentice'] },
-  { name: 'LinkedIn Learning', careers: 'https://careers.linkedin.com/', keywords: ['internship', 'apprentice'] },
-
-  // Logistique & Transport supplémentaires (20+)
-  { name: 'DHL France', careers: 'https://www.dhl.com/fr-fr/home/careers.html', keywords: ['alternance', 'apprentissage'] },
-  { name: 'FedEx France', careers: 'https://www.fedex.com/fr-fr/careers.html', keywords: ['alternance', 'apprentissage'] },
-  { name: 'UPS France', careers: 'https://www.jobs-ups.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'TNT France', careers: 'https://www.tnt.com/careers/', keywords: ['internship', 'apprentice'] },
-  { name: 'Chronopost', careers: 'https://www.chronopost.fr/fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Colissimo', careers: 'https://www.lapostegroupe.com/fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Mondial Relay', careers: 'https://www.mondialrelay.fr/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Relais Colis', careers: 'https://www.relaiscolis.com/recrutement/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Colis Privé', careers: 'https://www.colisprive.fr/recrutement', keywords: ['alternance', 'apprentissage'] },
-  { name: 'GLS France', careers: 'https://gls-group.com/FR/fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'DPD France', careers: 'https://www.dpd.com/fr/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'XPO Logistics', careers: 'https://jobs.xpo.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'Kuehne+Nagel', careers: 'https://www.kuehne-nagel.com/fr/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'DB Schenker', careers: 'https://www.dbschenker.com/fr-fr/carrieres', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Dachser', careers: 'https://www.dachser.fr/fr/carrieres.html', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Bolloré Logistics', careers: 'https://www.bollore-logistics.com/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'FM Logistic', careers: 'https://www.fmlogistic.com/fr-fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Stef', careers: 'https://www.stef.com/fr/carrieres/', keywords: ['alternance', 'apprentissage'] },
-  { name: 'Norbert Dentressangle (XPO)', careers: 'https://jobs.xpo.com/', keywords: ['internship', 'apprentice'] },
-  { name: 'Dubreuil', careers: 'https://www.groupe-dubreuil.com/carrieres/', keywords: ['alternance', 'apprentissage'] },
+  // ✅ VÉRIFIÉ - Back Market Lever (2 jobs)
+  { name: 'Back Market', careers: 'https://jobs.lever.co/backmarket', lever: { company: 'backmarket' } }
 ];
 
-export async function fetchDirectCareersJobs({ query = '', location = '', limit = 100, env }) {
-  console.log('[Direct Careers] Recherche sur les sites carrières des grandes entreprises...');
+const ALTERNANCE_REGEX = /\b(alternance|alternant|apprentissage|apprentice|apprenticeship|work[-\s]?study|coop|co-op)\b/i;
+const FR_KEYWORDS = [
+  'france', 'fr', 'paris', 'lyon', 'marseille', 'nantes', 'lille', 'toulouse', 'bordeaux', 'rennes',
+  'nice', 'strasbourg', 'montpellier', 'tours', 'angers', 'grenoble', 'dijon', 'reims', 'clermont',
+  'guadeloupe', 'martinique', 'guyane', 'réunion', 'mayotte', 'polynésie', 'nouvelle-calédonie'
+];
 
-  const allJobs = [];
+const TRUSTED_ATS_HOSTS = [
+  'smartrecruiters.com',
+  'lever.co',
+  'greenhouse.io',
+  'job-boards.greenhouse.io',
+  'myworkdayjobs.com',
+  'workdayjobs.com',
+  'wd3.myworkdayjobs.com',
+  'workable.com'
+];
 
-  // Postes types par secteur
-  const jobTitlesBySector = {
-    tech: ['Développeur Full Stack', 'Data Analyst', 'DevOps', 'Chef de Projet Digital'],
-    finance: ['Analyste Financier', 'Chargé de Clientèle', 'Gestionnaire de Patrimoine', 'Risk Manager'],
-    retail: ['Chef de Rayon', 'Manager Commerce', 'Category Manager', 'Responsable E-commerce'],
-    auto: ['Ingénieur Qualité', 'Technicien R&D', 'Ingénieur Procédés', 'Chef de Projet Industriel'],
-    aero: ['Ingénieur Aéronautique', 'Technicien Bureau d\'Études', 'Ingénieur Systèmes', 'Chef de Projet R&D'],
-    energy: ['Ingénieur Énergie', 'Technicien Maintenance', 'Chef de Projet Transition Énergétique', 'Ingénieur Process'],
-    luxe: ['Assistant Chef de Produit', 'Merchandiser', 'Assistant Marketing', 'Responsable Boutique'],
-    pharma: ['Assistant Recherche Clinique', 'Technicien Laboratoire', 'Assistant Affaires Réglementaires', 'Chef de Projet Qualité'],
-    telecom: ['Ingénieur Réseaux', 'Technicien Support', 'Chef de Projet Telecom', 'Ingénieur Cybersécurité'],
-    conseil: ['Consultant Junior', 'Analyste Business', 'Chef de Projet SI', 'Consultant Data'],
-    agro: ['Assistant Chef de Produit', 'Technicien Qualité', 'Responsable Supply Chain', 'Ingénieur Agroalimentaire'],
-    transport: ['Agent de Conduite', 'Technicien Maintenance', 'Chef de Projet Transport', 'Ingénieur Logistique'],
-    tourisme: ['Assistant Direction', 'Réceptionniste', 'Chef de Secteur', 'Responsable Animation'],
-    media: ['Assistant Production', 'Journaliste Stagiaire', 'Chef de Projet Digital', 'Assistant Communication'],
-    autre: ['Assistant Marketing', 'Chef de Projet', 'Assistant RH', 'Contrôleur de Gestion']
-  };
+const AGGREGATOR_HINTS = [
+  'indeed.',
+  'linkedin.',
+  'jooble',
+  'hellowork',
+  'meteojob',
+  'monster',
+  'apec',
+  'jobteaser',
+  'optioncarriere',
+  'glassdoor',
+  'regionsjob',
+  'francetravail',
+  'pole-emploi'
+];
 
-  for (const company of COMPANIES.slice(0, Math.min(limit, COMPANIES.length))) {
-    try {
-      const sector = extractSector(company.name);
-      const jobTitles = jobTitlesBySector[sector] || jobTitlesBySector.autre;
+const GENERIC_PATH_HINTS = [
+  'jobs',
+  'job',
+  'careers',
+  'career',
+  'recrutement',
+  'offres',
+  'emploi',
+  'apply',
+  'alternance',
+  'apprentissage'
+];
+const JOB_DETAIL_HINTS = [
+  'alternance',
+  'apprentissage',
+  'stage',
+  'intern',
+  'dev',
+  'marketing',
+  'chef',
+  'project',
+  'engineer',
+  'manager'
+];
 
-      // Créer 2-3 postes par entreprise avec des titres spécifiques
-      const numJobs = Math.min(2, jobTitles.length);
-      for (let i = 0; i < numJobs; i++) {
-        const job = {
-          id: `direct-${company.name.toLowerCase().replace(/[^a-z0-9]/g, '')}-${i}-${Date.now()}`,
-          title: `Alternance ${jobTitles[i]} - ${company.name}`,
-          company: company.name,
-          location: location || 'France',
-          posted: 'récent',
-          tags: ['alternance', sector, jobTitles[i].split(' ')[0].toLowerCase()],
-          url: company.careers,
-          source: 'direct-careers',
-          logo_domain: extractDomain(company.careers),
-          logo_url: null
-        };
-        allJobs.push(job);
-      }
-    } catch (error) {
-      console.error(`[Direct Careers] Erreur pour ${company.name}:`, error.message);
-    }
-  }
+const DEFAULT_OLLAMA_MODEL = 'mistral';
+const SECONDARY_MODEL_DEFAULT = 'qwen2.5';
+const MAX_AI_REVIEWS = 40;
+const HTTP_PROBE_LIMIT = 500; // Augmenté pour valider plus d'URLs
+const HTTP_PROBE_TIMEOUT = 5000; // Augmenté pour éviter les faux négatifs
 
-  console.log(`[Direct Careers] ${allJobs.length} postes ajoutés pour ${Math.min(limit, COMPANIES.length)} entreprises`);
-  return allJobs;
+const COMPANY_STRATEGIES = {
+  'telegram': 'off',
+  'dachser france': 'html'
+};
+
+function getCompanyStrategy(company) {
+  const custom = company.strategy || COMPANY_STRATEGIES[(company.name || '').toLowerCase()];
+  return custom || 'ats';
 }
 
-function extractSector(companyName) {
-  const sectors = {
-    tech: ['Capgemini', 'Atos', 'Sopra', 'OVH', 'Deezer', 'BlaBlaCar', 'Criteo', 'Doctolib', 'Mirakl', 'Alan', 'Back Market', 'Contentsquare', 'Dassault Systèmes', 'Google', 'Microsoft', 'Amazon', 'Meta', 'Apple', 'IBM', 'Salesforce', 'Oracle', 'Qonto', 'Lydia', 'Swile', 'ManoMano', 'Leboncoin', 'Vinted', 'Vestiaire', 'PayFit', 'Livestorm', 'Ubisoft', 'Dataiku', 'Talend', 'Dashlane', 'Algolia', 'Shift Technology', 'Ledger', 'Murex', 'Strapi', 'Sendinblue', 'Brevo', 'Yousign', 'Welcome', 'Meero', 'Believe', 'Withings', 'Sigfox', 'Lucca', 'Malt', 'Happn', 'Stuart', 'Ogury', 'Aircall', 'Botify', 'Doctrine', 'Side', 'Front', 'Spendesk', 'Luko', 'Brigad', 'Teads', 'Busbud', 'Getaround', 'SAP', 'Adobe', 'Dell', 'HP', 'Cisco', 'Intel', 'AMD', 'NVIDIA', 'VMware', 'Red Hat', 'Lenovo', 'Fujitsu', 'ServiceNow', 'Workday', 'Snowflake', 'Databricks', 'MongoDB', 'Elastic', 'Datadog', 'Stripe', 'Square', 'Atlassian', 'Zoom', 'Slack', 'Asana', 'Notion', 'Airtable', 'Monday', 'Figma', 'Canva', 'Miro', 'Ornikar', 'Gymlib', 'Pennylane', 'Pigment', 'Alma', 'Forest Admin', 'Molotov', 'Devialet', 'Blissim', 'Cheerz', 'JobTeaser', 'Evaneos', 'OpenClassrooms', '360Learning', 'SeLoger', 'PAP', 'Meilleurs Agents', 'Heetch', 'Kapten', 'Marcel', 'Frichti', 'Gorillas', 'Cajoo', 'Epicery', 'Padam', 'Cityscoot', 'Cooltra', 'Lime', 'Bolt', 'Tier', 'Voi', 'Dott', 'Wind', 'Zeway', 'Share Now', 'Twitter', 'LinkedIn', 'Snap', 'TikTok', 'Pinterest', 'Reddit', 'Spotify', 'Netflix', 'Disney', 'Twitch', 'Discord', 'Telegram', 'Signal', 'Dropbox', 'Box', 'WeTransfer', 'GitHub', 'GitLab', 'Bitbucket', 'Jira', 'Trello', 'Confluence', 'Zapier', 'Make', 'n8n', 'Pipedrive', 'HubSpot', 'Mailchimp', 'SendGrid', 'Klaviyo', 'Etsy', 'Shopify', 'WooCommerce', 'PrestaShop', 'Magento', 'BigCommerce', 'Squarespace', 'Wix', 'Webflow', 'Sellsy', 'Axonaut', 'Odoo', 'ClickUp', 'Basecamp', 'Teamwork', 'Wrike', 'Coursera', 'Udemy', 'Udacity', 'edX', 'Khan Academy', 'Duolingo', 'Babbel', 'Busuu', 'Lingoda', 'Preply', 'Cambly', 'Italki', 'Verbling', 'Le Wagon', 'Ironhack', 'General Assembly', 'Flatiron', 'Codecademy', 'Pluralsight'],
-    finance: ['BNP', 'Société Générale', 'Crédit', 'AXA', 'Allianz', 'Generali', 'Groupama', 'MAIF', 'MACIF', 'BPCE', 'Banque', 'Natixis', 'CIC', 'LCL', 'Populaire', 'Épargne', 'Boursorama', 'Fortuneo', 'Hello bank', 'Monabanq', 'Nickel', 'N26', 'Revolut', 'Shine', 'Manager.one', 'Foncier', 'CNP', 'AG2R', 'Malakoff', 'Harmonie', 'MGEN', 'Matmut', 'GMF', 'MMA', 'Aviva', 'Swiss Life', 'Cardif', 'April', 'Covéa', 'Maaf', 'Smacl', 'Thélem', 'Gan', 'Pacifica', 'Partners', 'Euler Hermes', 'Coface', 'Atradius', 'Binance', 'Coinbase', 'Kraken', 'Crypto.com', 'Blockchain.com', 'Bitpanda', 'eToro', 'Plus500', 'Trading 212', 'Wise', 'Monzo', 'Starling', 'Chime', 'Varo', 'Current', 'Robinhood', 'Webull', 'Acorns', 'Stash', 'Betterment', 'Wealthfront', 'Personal Capital', 'SoFi', 'Affirm', 'Klarna', 'Afterpay', 'Sezzle', 'Uplift'],
-    retail: ['Carrefour', 'Decathlon', 'Leroy Merlin', 'Auchan', 'Fnac', 'Cdiscount', 'Boulanger', 'BUT', 'Conforama', 'Castorama', 'Intermarché', 'Leclerc', 'Système U', 'Cora', 'Match', 'Monoprix', 'Franprix', 'Casino', 'Géant', 'Leader Price', 'Lidl', 'Aldi', 'Netto', 'Picard', 'Grand Frais', 'Biocoop', 'Naturalia', 'Vie Claire', 'Sephora', 'Marionnaud', 'Nocibé', 'Yves Rocher', 'Halle', 'Kiabi', 'Promod', 'Camaïeu', 'Celio', 'Jules', 'Brice', 'Bizzbee', 'Pimkie', 'Cache-Cache', 'Etam', 'Undiz', 'Darjeeling', 'Orchestra', 'Jacadi', 'Tape', 'Pareil', 'Micromania', 'Game', 'Nature', 'Cultura', 'Maisons du Monde', 'Alinéa', 'Habitat', 'Roche Bobois', 'Redoute', '3 Suisses', 'Vente-privee', 'Veepee', 'Showroomprive', 'Zalando', 'Spartoo', 'Sarenza', 'eBay', 'Rakuten', 'AliExpress', 'Wish', 'Sage', 'Cegid', 'EBP', 'Adistra', 'QuickBooks', 'Xero', 'FreshBooks', 'Zoho', 'Bitrix24'],
-    auto: ['Renault', 'Stellantis', 'Valeo', 'Faurecia', 'Plastic Omnium', 'Michelin', 'Volvo', 'Scania', 'MAN Truck', 'Iveco', 'Daimler', 'Bosch', 'Continental', 'ZF', 'Magna', 'Hella', 'Schaeffler', 'SKF', 'Europcar'],
-    aero: ['Airbus', 'Dassault Aviation', 'Safran', 'Thales', 'Naval', 'Nexter', 'MBDA', 'Latécoère', 'Zodiac', 'Daher', 'Stelia', 'Figeac', 'Lisi Aerospace', 'Hutchinson', 'Mecachrome', 'Liebherr Aerospace'],
-    energy: ['Total', 'EDF', 'Engie', 'Orano', 'Framatome', 'Veolia', 'Suez', 'Arkema', 'Nexans', 'Imerys', 'Vinci Energies', 'Spie', 'Equans', 'NGE', 'Rabot Dutilleul', 'Eurovia', 'Colas', 'Soluxiance', 'Engie Solutions', 'Enedis', 'RTE', 'GRTgaz', 'Storengy', 'GRDF', 'Teréga'],
-    luxe: ['LVMH', 'Hermès', 'Kering', 'Chanel', 'Dior', 'Lacoste', 'L\'Oréal'],
-    pharma: ['Sanofi', 'Servier', 'Ipsen', 'Pierre Fabre', 'Biocodex', 'Biogen', 'Gilead', 'Amgen', 'Bristol Myers', 'MSD', 'AstraZeneca', 'GSK', 'Roche', 'Novartis', 'Pfizer', 'Janssen', 'Eli Lilly', 'Takeda', 'Boehringer', 'Bayer', 'Abbvie', 'Novo Nordisk', 'Chiesi', 'Stallergenes', 'Biomérieux', 'Guerbet', 'LFB', 'Pasteur', 'Menarini', 'Biogaran', 'Zentiva', 'Teva', 'Mylan', 'Sandoz', 'Arrow', 'Vidal', 'Cegedim', 'Iqvia', 'Syneos', 'ICON', 'Parexel', 'PPD', 'Medtronic', 'Boston Scientific', 'Stryker'],
-    telecom: ['Orange', 'SFR', 'Bouygues Telecom', 'Iliad', 'Free', 'Eutelsat'],
-    conseil: ['Accenture', 'Deloitte', 'PwC', 'EY', 'KPMG', 'CGI', 'Wavestone', 'Publicis Sapient', 'Randstad', 'Adecco', 'Manpower', 'Mazars', 'Grant Thornton', 'BDO', 'RSM', 'BCG', 'McKinsey', 'Bain', 'Roland Berger', 'Oliver Wyman', 'Simon-Kucher', 'Sia Partners', 'Onepoint', 'Ekimetrics', 'Quantmetry', 'Artefact', 'Solucom', 'mc2i', 'Wemanity', 'Devoteam', 'Keyrus', 'Business & Decision', 'Micropole', 'Octo', 'Xebia', 'Eleven', 'Altran', 'Alten', 'Akka', 'Assystem', 'SII', 'Expleo', 'Ausy', 'CS Group', 'Apside', 'Hardis', 'Inetum', 'Sword', 'Open', 'Aubay', 'Eliad', 'Talan', 'Davidson', 'Smile', 'Néosoft', 'Conserto', 'Valtech', 'Publicis Consultants', 'IBM Consulting', 'DXC'],
-    agro: ['Danone', 'Lactalis', 'Sodexo', 'Bonduelle', 'Bel', 'Limagrain', 'Pernod Ricard'],
-    transport: ['SNCF', 'RATP', 'Poste', 'Geodis', 'Air France', 'Transdev', 'Alstom', 'Liebherr', 'Caterpillar', 'DHL', 'FedEx', 'UPS', 'TNT', 'Chronopost', 'Colissimo', 'Mondial Relay', 'Relais Colis', 'Colis Privé', 'GLS', 'DPD', 'XPO', 'Kuehne', 'Schenker', 'Dachser', 'Bolloré Logistics', 'FM Logistic', 'Stef', 'Norbert Dentressangle', 'Dubreuil'],
-    tourisme: ['Accor', 'Club Med'],
-    media: ['France Télévisions', 'Radio France', 'RTL', 'Europe 1', 'RMC', 'BFM', 'Canal', 'Mediawan', 'Newen', 'Banijay', 'Fremantle', 'Gaumont', 'Pathé', 'EuropaCorp', 'StudioCanal', 'Figaro', 'Monde', 'Libération', 'Express', 'Point', 'Obs', 'Paris Match', 'Elle', 'Marie Claire', 'Prisma', 'Lagardère', 'Hachette', 'Editis', 'Madrigall', 'JCDecaux']
-  };
+export async function fetchDirectCareersJobs({ query = 'alternance', location = 'France', limit = 100, env }) {
+  console.log('[Direct Careers] Collecte via ATS entreprises (mode gratuit amélioré)...');
 
-  for (const [sector, companies] of Object.entries(sectors)) {
-    if (companies.some(c => companyName.includes(c))) {
-      return sector;
+  // Initialise les nouveaux systèmes gratuits
+  const urlResolver = new FreeURLResolver();
+  const skipAIValidation = (env?.SKIP_AI_VALIDATION === '1') || (env?.DIRECT_CAREERS_SKIP_AI === '1');
+  const aiValidator = skipAIValidation ? null : new FreeAIValidator({
+    ollamaEndpoint: env?.OLLAMA_ENDPOINT,
+    geminiKey: env?.GEMINI_API_KEY,
+    groqKey: env?.GROQ_API_KEY
+  });
+  const monitoring = new FreeMonitoring();
+
+  const companies = await loadCompanySources(env);
+  if (!companies.length) {
+    console.warn('[Direct Careers] Aucun connecteur configuré');
+    return [];
+  }
+
+  const normalizedLimit = Math.max(1, Math.min(limit, 1000));
+  const collectorOptions = { query, location, limit: normalizedLimit };
+  const jobs = [];
+  const providerStatus = {
+    smartrecruiters: { label: 'SmartRecruiters', tested: false, success: false, count: 0 },
+    lever: { label: 'Lever', tested: false, success: false, count: 0 },
+    greenhouse: { label: 'Greenhouse', tested: false, success: false, count: 0 },
+    workday: { label: 'Workday', tested: false, success: false, count: 0 }
+  };
+  const urlStats = { total: 0, generic: 0, broken: 0, ok: 0 };
+
+  for (const company of companies) {
+    if (jobs.length >= normalizedLimit) break;
+    const strategy = getCompanyStrategy(company);
+    if (strategy !== 'ats') {
+      console.log(`[Direct Careers] ${company.name}: stratégie ${strategy}, ignoré pour ATS`);
+      continue;
+    }
+    const remaining = normalizedLimit - jobs.length;
+    try {
+      const companyJobs = await fetchCompanyJobs(company, { ...collectorOptions, limit: remaining }, providerStatus);
+      jobs.push(...companyJobs);
+    } catch (error) {
+      console.error(`[Direct Careers] ${company.name}: ${error.message}`);
     }
   }
 
-  return 'autre';
+  let uniqueJobs = dedupeJobs(jobs).slice(0, normalizedLimit);
+
+  // NOUVEAU: Log des jobs collectés pour monitoring
+  for (const job of uniqueJobs) {
+    const urlType = urlResolver.isDetailURL(job.apply_url) ? 'detail' :
+                    urlResolver.isGenericURL(job.apply_url) ? 'generic' : 'unknown';
+    monitoring.logJobCollected(job, urlType);
+  }
+
+  // NOUVEAU: Résolution intelligente des URLs génériques
+  console.log('[Direct Careers] Résolution intelligente des URLs...');
+  for (const job of uniqueJobs) {
+    if (urlResolver.isGenericURL(job.apply_url)) {
+      const resolved = await urlResolver.resolve(job.apply_url, {
+        jobId: job.rawId,
+        title: job.title,
+        company: job.company
+      });
+
+      if (resolved.confidence > 0.5) {
+        job.apply_url = resolved.url;
+        job.__url_resolved = true;
+        job.__url_method = resolved.method;
+      }
+
+      monitoring.logURLResolution(resolved);
+    }
+  }
+
+  uniqueJobs = chooseBestCandidates(uniqueJobs, urlStats);
+  await probeJobUrls(uniqueJobs, urlStats);
+
+  const beforeFilter = uniqueJobs.length;
+  uniqueJobs = uniqueJobs.filter((job) => !job.__discarded && !job.url_health?.isBroken && job.apply_url && looksLikeJobDetail(job.apply_url));
+  const filteredOut = beforeFilter - uniqueJobs.length;
+  console.log(`[Direct Careers] Filtrage URLs: ${filteredOut} offres retirées (404 ou invalides), ${uniqueJobs.length} conservées`);
+
+  // NOUVEAU: Validation IA gratuite au lieu de l'ancien système
+  const aiReviewed = [];
+  if (!skipAIValidation) {
+    console.log('[Direct Careers] Validation IA gratuite (Ollama → Gemini → Groq)...');
+    for (const job of uniqueJobs) {
+      const validation = await aiValidator.validate(job);
+
+      job.__ai_validation = {
+        tier: validation.tier,
+        verdict: validation.verdict,
+        confidence: validation.confidence,
+        reason: validation.reason
+      };
+
+      monitoring.logAIValidation(validation, job);
+
+      if (validation.verdict === 'VALID' && validation.confidence > 0.5) {
+        aiReviewed.push(job);
+        monitoring.logJobValidated(job);
+      } else {
+        monitoring.logJobRejected(job, validation.reason);
+      }
+    }
+  } else {
+    console.log('[Direct Careers] Validation IA désactivée (SKIP_AI_VALIDATION=1) → heuristique simple.');
+    for (const job of uniqueJobs) {
+      job.__ai_validation = {
+        tier: 'skipped',
+        verdict: 'VALID',
+        confidence: 0.5,
+        reason: 'ai_validation_skipped'
+      };
+      aiReviewed.push(job);
+      monitoring.logJobValidated(job);
+    }
+  }
+
+  const filtered = aiReviewed.filter((job) => job.apply_url && looksLikeJobDetail(job.apply_url));
+  urlStats.ok += filtered.length;
+
+  // NOUVEAU: Affichage du rapport de monitoring
+  const report = monitoring.generateTextReport();
+  console.log(report);
+
+  // Sauvegarde la session
+  await monitoring.saveSession().catch(() => null);
+
+  console.log(`[Direct Careers] ${filtered.length} offres collectées (${companies.length} entreprises analysées, ${aiReviewed.length - filtered.length} liens génériques/KO)`);
+
+  const payload = filtered.map(stripInternalFields);
+  payload.meta = {
+    ai_reviewed: aiReviewed.length,
+    ai_rejected: uniqueJobs.length - aiReviewed.length,
+    providers: providerStatus,
+    url_stats: urlStats,
+    url_resolver_stats: urlResolver.getStats(),
+    ai_validator_stats: aiValidator ? aiValidator.getStats() : { skipped: true },
+    monitoring_stats: monitoring.getCurrentStats()
+  };
+  return payload;
+}
+
+async function loadCompanySources(env) {
+  if (env?.DIRECT_CAREERS_SOURCES) {
+    try {
+      const parsed = JSON.parse(env.DIRECT_CAREERS_SOURCES);
+      if (Array.isArray(parsed) && parsed.length) {
+        return parsed;
+      }
+    } catch (error) {
+      console.warn('[Direct Careers] Impossible de parser DIRECT_CAREERS_SOURCES:', error.message);
+    }
+  }
+  return DEFAULT_COMPANIES;
+}
+
+async function fetchCompanyJobs(company, options, providerStatus) {
+  const collectors = [];
+  if (company.smart?.company) {
+    collectors.push({
+      provider: 'smartrecruiters',
+      run: () => fetchSmartRecruitersJobs(company, options)
+    });
+  }
+  if (company.lever?.company) {
+    collectors.push({
+      provider: 'lever',
+      run: () => fetchLeverJobs(company, options)
+    });
+  }
+  if (company.greenhouse?.board) {
+    collectors.push({
+      provider: 'greenhouse',
+      run: () => fetchGreenhouseJobs(company, options)
+    });
+  }
+  if (company.workday?.host && company.workday?.tenant) {
+    collectors.push({
+      provider: 'workday',
+      run: () => fetchWorkdayJobs(company, options)
+    });
+  }
+
+  if (!collectors.length) {
+    console.warn(`[Direct Careers] ${company.name}: aucun ATS supporté configuré`);
+    return [];
+  }
+
+  const jobs = [];
+  for (const collector of collectors) {
+    try {
+      if (!providerStatus[collector.provider]) {
+        providerStatus[collector.provider] = { label: collector.provider, tested: false, success: false, count: 0 };
+      }
+      providerStatus[collector.provider].tested = true;
+      const dataset = await collector.run();
+      if (dataset?.length) {
+        providerStatus[collector.provider].success = true;
+        providerStatus[collector.provider].count += dataset.length;
+      }
+      jobs.push(...dataset);
+    } catch (error) {
+      console.error(`[Direct Careers] ${company.name} (${collector.provider}): ${error.message}`);
+    }
+  }
+  return jobs;
+}
+
+async function fetchSmartRecruitersJobs(company, options) {
+  const limit = Math.min(options.limit || 200, 200);
+  const url = `https://api.smartrecruiters.com/v1/companies/${company.smart.company}/postings?limit=${limit}`;
+  const response = await fetch(url, { headers: { accept: 'application/json' } });
+  if (!response.ok) {
+    throw new Error(`SmartRecruiters HTTP ${response.status}`);
+  }
+  const payload = await response.json().catch(() => ({}));
+  const content = Array.isArray(payload?.content) ? payload.content : [];
+  return content
+    .map((posting) => {
+      const description = posting.jobAd?.sections?.jobDescription?.text || posting.jobAd?.sections?.qualifications?.text || '';
+      const tags = [posting.function, posting.department, posting.industry].filter(Boolean);
+      const location = [
+        posting.location?.city,
+        posting.location?.region,
+        posting.location?.country
+      ].filter(Boolean).join(', ');
+      return normalizeJob({
+        provider: 'smartrecruiters',
+        rawId: posting.id,
+        company,
+        title: posting.name,
+        location,
+        raw_url: posting.jobAd?.sections?.jobDescription?.ref || posting.applyUrl || posting.ref || company.careers,
+        raw_apply_url: posting.applyUrl || null,
+        url_candidates: buildSmartRecruitersCandidates(posting, company),
+        posted: posting.releasedDate || posting.releasedAt || posting.updatedOn,
+        tags,
+        description
+      });
+    })
+    .filter((job) => shouldKeepJob(job, options));
+}
+
+async function fetchLeverJobs(company, options) {
+  const url = `https://api.lever.co/v0/postings/${encodeURIComponent(company.lever.company)}?mode=json`;
+  const response = await fetch(url, { headers: { accept: 'application/json' } });
+  if (!response.ok) {
+    throw new Error(`Lever HTTP ${response.status}`);
+  }
+  const list = await response.json().catch(() => []);
+  return (Array.isArray(list) ? list : [])
+    .map((posting) => {
+      const description = posting.text || posting.description || '';
+      const tags = Object.values(posting.categories || {}).filter(Boolean);
+      return normalizeJob({
+        provider: 'lever',
+        rawId: posting.id,
+        company,
+        title: posting.text || posting.title,
+        location: posting.categories?.location || '',
+        raw_url: posting.hostedUrl || posting.applyUrl || posting.url || company.careers,
+        raw_apply_url: posting.applyUrl || posting.hostedUrl || null,
+        url_candidates: buildLeverCandidates(posting, company),
+        posted: posting.createdAt,
+        tags,
+        description
+      });
+    })
+    .filter((job) => shouldKeepJob(job, options));
+}
+
+async function fetchGreenhouseJobs(company, options) {
+  const board = company.greenhouse.board;
+  const url = `https://boards-api.greenhouse.io/v1/boards/${board}/jobs?content=true`;
+  const response = await fetch(url, { headers: { accept: 'application/json' } });
+  if (!response.ok) {
+    throw new Error(`Greenhouse HTTP ${response.status}`);
+  }
+  const payload = await response.json().catch(() => ({}));
+  const jobs = Array.isArray(payload?.jobs) ? payload.jobs : [];
+  return jobs
+    .map((job) => {
+      const description = job.content || '';
+      const tags = (job.metadata || []).map((m) => `${m.name}:${m.value}`);
+      return normalizeJob({
+        provider: 'greenhouse',
+        rawId: job.id,
+        company,
+        title: job.title,
+        location: job.location?.name || '',
+        raw_url: job.absolute_url || job.external_url || company.careers,
+        raw_apply_url: job.absolute_url || job.external_url || null,
+        url_candidates: buildGreenhouseCandidates(job, company),
+        posted: job.updated_at || job.created_at,
+        tags,
+        description
+      });
+    })
+    .filter((job) => shouldKeepJob(job, options));
+}
+
+async function fetchWorkdayJobs(company, options) {
+  const { host, tenant, site } = company.workday;
+  const base = `https://${host}/wday/cxs/${tenant}/${site || 'careers'}/jobs`;
+  const body = {
+    appliedFacets: { locationCountry: ['FR'] },
+    limit: Math.min(options.limit || 50, 50),
+    offset: 0,
+    searchText: options.query || ''
+  };
+  const response = await fetch(base, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!response.ok) {
+    throw new Error(`Workday HTTP ${response.status}`);
+  }
+  const payload = await response.json().catch(() => ({}));
+  const postings = Array.isArray(payload?.jobPostings) ? payload.jobPostings : [];
+  return postings
+    .map((posting) => {
+      const tags = Array.isArray(posting.categories) ? posting.categories : [];
+      const description = posting.brandedDescription || posting.jobPostingInfo?.jobDescription || '';
+      const location = (posting.locations || [])
+        .map((loc) => loc.shortName || loc.name)
+        .filter(Boolean)
+        .join(', ');
+      return normalizeJob({
+        provider: 'workday',
+        rawId: posting.jobPostingId,
+        company,
+        title: posting.title,
+        location,
+        raw_url: `https://${host}${posting.externalPath || posting.externalUrl || ''}` || company.careers,
+        raw_apply_url: posting.externalUrl ? `https://${host}${posting.externalUrl}` : null,
+        url_candidates: buildWorkdayCandidates(posting, company),
+        posted: posting.postedOn || posting.postedDateTime,
+        tags,
+        description
+      });
+    })
+    .filter((job) => shouldKeepJob(job, options));
+}
+
+function normalizeJob({ provider, rawId, company, title, location, raw_url, raw_apply_url, url_candidates = [], posted, tags = [], description = '' }) {
+  const id = `${provider}:${rawId}`;
+  const normalizedCandidates = Array.isArray(url_candidates) ? url_candidates.map((c) => ({
+    ...c,
+    url: ensureAbsoluteUrl(c.url, company.careers)
+  })) : [];
+  const normalizedUrl = ensureAbsoluteUrl(raw_url, company.careers);
+  const detailUrl = normalizedCandidates.length ? null : (looksLikeJobDetail(normalizedUrl) ? normalizedUrl : '');
+  const normalizedTags = Array.from(new Set(['alternance', ...tags.filter(Boolean).map((tag) => tag.toString().trim())]));
+  const careerDomain = extractDomain(company.careers);
+  const urlDomain = extractDomain(normalizedUrl) || careerDomain;
+  const logoUrl = urlDomain ? buildFaviconUrl(urlDomain) : null;
+  return {
+    id,
+    title: title?.trim() || `Alternance ${company.name}`,
+    company: company.name,
+    location: location || 'France',
+    posted: safeIsoDate(posted),
+    raw_url: normalizedUrl,
+    raw_apply_url: ensureAbsoluteUrl(raw_apply_url, normalizedUrl) || null,
+    url_candidates: normalizedCandidates,
+    url: normalizedUrl,
+    apply_url: detailUrl || null,
+    source: 'direct-careers',
+    tags: normalizedTags,
+    description: stripHtml(description),
+    logo_domain: urlDomain,
+    logo_url: logoUrl,
+    company_careers: company.careers || null
+  };
+}
+
+function shouldKeepJob(job, { query, location }) {
+  const queryMatch = matchesQuery(job, query) || ALTERNANCE_REGEX.test(job.title) || ALTERNANCE_REGEX.test(job.description || '');
+  const locationMatch = matchesLocation(job.location, location);
+  return queryMatch && locationMatch;
+}
+
+function matchesQuery(job, query) {
+  if (!query) return true;
+  const needle = query.toLowerCase();
+  const haystack = [
+    job.title,
+    job.description,
+    job.location,
+    Array.isArray(job.tags) ? job.tags.join(' ') : null
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+  return haystack.includes(needle);
+}
+
+function matchesLocation(value, desired) {
+  if (!desired) return true;
+  const haystack = (value || '').toLowerCase();
+  const needle = desired.toLowerCase();
+  if (!haystack) return needle === 'france';
+  if (needle !== 'france') {
+    return haystack.includes(needle);
+  }
+  return FR_KEYWORDS.some((term) => haystack.includes(term));
+}
+
+function safeIsoDate(value) {
+  if (!value) return new Date().toISOString();
+  try {
+    return new Date(value).toISOString();
+  } catch {
+    return new Date().toISOString();
+  }
+}
+
+function stripHtml(value = '') {
+  return value.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 function extractDomain(url) {
   try {
-    const urlObj = new URL(url);
-    return urlObj.hostname.replace('www.', '');
+    const obj = new URL(url);
+    return obj.hostname.replace(/^www\./, '');
   } catch {
     return null;
   }
+}
+
+function dedupeJobs(jobs) {
+  const seen = new Map();
+  for (const job of jobs) {
+    const key = job.url || job.id;
+    if (!key) continue;
+    if (!seen.has(key)) {
+      seen.set(key, job);
+    }
+  }
+  return Array.from(seen.values());
+}
+
+function chooseBestCandidates(jobs, stats) {
+  for (const job of jobs) {
+    stats.total++;
+    const candidates = Array.isArray(job.url_candidates) ? job.url_candidates : [];
+    if (!candidates.length) {
+      job.__discarded = 'no_candidates';
+      stats.generic++;
+      continue;
+    }
+    const filtered = candidates
+      .map((candidate) => scoreUrlCandidate(job, candidate))
+      .filter((candidate) => !isGenericCareerUrl(candidate.url, job.company_careers));
+    if (!filtered.length) {
+      job.__discarded = 'generic_candidates';
+      stats.generic++;
+      continue;
+    }
+    const scored = filtered.sort((a, b) => b._score - a._score);
+    job.url_candidates = scored;
+    const best = scored[0];
+    job.url = best.url;
+    job.apply_url = best.url;
+  }
+  return jobs;
+}
+
+function scoreUrlCandidate(job, candidate) {
+  const url = candidate.url || '';
+  const domain = extractDomain(url) || '';
+  const generic = isGenericCareerUrl(url, job.company_careers);
+  const detail = looksLikeJobDetail(url);
+  let hostTrust = 0;
+  if (TRUSTED_ATS_HOSTS.some((host) => domain.endsWith(host))) hostTrust = 1;
+  else if (domain.includes(slugify(job.company))) hostTrust = 0.7;
+  const aggregatorPenalty = AGGREGATOR_HINTS.some((hint) => domain.includes(hint)) ? 1 : 0;
+  const greenhouseBoost = domain === 'job-boards.greenhouse.io' ? 0.5 : 0;
+  const score = hostTrust * 3 + (detail ? 2 : 0) - (generic ? 4 : 0) - aggregatorPenalty * 4 + greenhouseBoost;
+  return { ...candidate, genericScore: generic ? 1 : 0, detailScore: detail ? 1 : 0, hostTrustScore: hostTrust, _score: score };
+}
+
+async function probeJobUrls(jobs, stats) {
+  const limit = Math.min(HTTP_PROBE_LIMIT, jobs.length);
+  const subset = jobs.slice(0, limit);
+  const tasks = subset.map((job) => probeSingleJob(job, stats));
+  await Promise.all(tasks);
+  return jobs;
+}
+
+async function probeSingleJob(job, stats) {
+  const target = job.apply_url || job.url;
+  if (!target) return;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), HTTP_PROBE_TIMEOUT);
+  try {
+    let res = await fetch(target, { method: 'HEAD', redirect: 'follow', signal: controller.signal });
+    if (res.status === 405 || res.status === 501) {
+      res = await fetch(target, {
+        method: 'GET',
+        redirect: 'follow',
+        signal: controller.signal,
+        headers: {
+          Range: 'bytes=0-4096',
+          Accept: 'text/html,application/xhtml+xml'
+        }
+      });
+      if (res.ok) {
+        const html = await res.text().catch(() => '');
+        job.pageMeta = extractPageMeta(html);
+      }
+    }
+    clearTimeout(timeout);
+    job.url_health = {
+      status: res.status,
+      finalUrl: res.url,
+      isBroken: res.status >= 400
+    };
+    if (res.ok && res.url && res.url !== target) {
+      job.url = res.url;
+      job.apply_url = res.url;
+      if (job.url_candidates) {
+        job.url_candidates.unshift({ url: res.url, source: 'http_redirect' });
+      }
+    }
+    if (res.status >= 400) {
+      stats.broken++;
+    }
+  } catch (error) {
+    clearTimeout(timeout);
+    stats.broken++;
+    job.url_health = {
+      status: 0,
+      finalUrl: target,
+      isBroken: true,
+      error: error.message
+    };
+  }
+}
+
+function extractPageMeta(html = '') {
+  if (!html) return null;
+  const titleMatch = html.match(/<title>([^<]{0,200})<\/title>/i);
+  const h1Match = html.match(/<h1[^>]*>([^<]{0,200})<\/h1>/i);
+  const ogTitleMatch = html.match(/property=['"]og:title['"][^>]*content=['"]([^'"]{0,200})['"]/i);
+  if (!titleMatch && !h1Match && !ogTitleMatch) return null;
+  return {
+    title: titleMatch ? titleMatch[1].trim() : null,
+    h1: h1Match ? h1Match[1].trim() : null,
+    ogTitle: ogTitleMatch ? ogTitleMatch[1].trim() : null
+  };
+}
+
+function buildFaviconUrl(domain) {
+  if (!domain) return null;
+  return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+}
+
+function stripInternalFields(job) {
+  const { company_careers, raw_url, raw_apply_url, url_candidates, url_health, pageMeta, __discarded, ...rest } = job;
+  return rest;
+}
+
+async function reviewJobsWithAI(jobs, env) {
+  if (!jobs.length) return jobs;
+  const ollamaUrl = readEnv(env, 'OLLAMA_URL');
+  if (!ollamaUrl) return jobs;
+  const primaryModel = readEnv(env, 'OLLAMA_MODEL') || DEFAULT_OLLAMA_MODEL;
+  const secondaryModel = readEnv(env, 'DIRECT_CAREERS_SECONDARY_MODEL') || SECONDARY_MODEL_DEFAULT;
+  const useSecondary = Boolean(secondaryModel && secondaryModel.toLowerCase() !== 'off');
+  const aiLimit = Math.max(0, parseInt(readEnv(env, 'DIRECT_CAREERS_AI_LIMIT') || `${MAX_AI_REVIEWS}`, 10));
+
+  const candidates = jobs.filter((job) => shouldUseAiReview(job)).slice(0, aiLimit || MAX_AI_REVIEWS);
+  if (!candidates.length) return jobs;
+
+  const updates = new Map();
+  const rejects = [];
+  for (const job of candidates) {
+    try {
+      const primary = await fixJobWithOllama(job, { ollamaUrl, model: primaryModel });
+      if (!primary || primary.is_company_listing === false) {
+        rejects.push({ id: job.id, reason: primary?.reason || 'primary_reject' });
+        continue;
+      }
+      let approved = true;
+      let secondaryNote = null;
+      if (useSecondary) {
+        const verdict = await verifyJobWithOllama(job, primary, { ollamaUrl, model: secondaryModel });
+        if (!verdict || verdict.approved !== true) {
+          approved = false;
+          rejects.push({ id: job.id, reason: verdict?.reason || 'secondary_reject' });
+        } else {
+          secondaryNote = verdict;
+        }
+      }
+      if (!approved) continue;
+      updates.set(job.id, { ...primary, secondary: secondaryNote });
+    } catch (error) {
+      console.warn(`[Direct Careers][AI] ${job.id}: ${error.message}`);
+    }
+  }
+
+  if (rejects.length) {
+    console.warn('[Direct Careers][AI] Offres rejetées:', rejects.slice(0, 5));
+  }
+
+  const repaired = [];
+  for (const job of jobs) {
+    const patch = updates.get(job.id);
+    if (patch) {
+      job.title = patch.title || job.title;
+      job.location = patch.location || job.location;
+      job.url = patch.url || job.url;
+      job.apply_url = patch.url || job.apply_url || job.url;
+      job.logo_domain = job.logo_domain || extractDomain(job.url);
+      job.logo_url = job.logo_url || (job.logo_domain ? buildFaviconUrl(job.logo_domain) : null);
+      job.tags = Array.isArray(job.tags) ? Array.from(new Set([...job.tags, 'validé-ia'])) : ['validé-ia'];
+      job.ai_review = {
+        source: 'ollama',
+        is_company_listing: patch.is_company_listing !== false,
+        reason: patch.reason || '',
+        secondary: patch.secondary || null,
+        reviewed_at: new Date().toISOString()
+      };
+    }
+    repaired.push(job);
+  }
+
+  return repaired;
+}
+
+function shouldUseAiReview(job) {
+  const targetLink = job.apply_url || job.url || '';
+  const domain = extractDomain(targetLink);
+  const generic = isGenericCareerUrl(targetLink, job.company_careers);
+  if (generic) return true;
+  if (!targetLink) return true;
+  if (!domain) return true;
+  if (!job.company) return true;
+  if (!looksLikeJobDetail(targetLink)) return true;
+  return !isLikelyHealthyUrl(domain, job.company);
+}
+
+function isLikelyHealthyUrl(domain, companyName) {
+  if (!domain) return false;
+  const lower = domain.toLowerCase();
+  if (TRUSTED_ATS_HOSTS.some((host) => lower.endsWith(host))) {
+    return true;
+  }
+  const companySlug = slugify(companyName);
+  if (companySlug && lower.includes(companySlug)) {
+    return true;
+  }
+  return !AGGREGATOR_HINTS.some((hint) => lower.includes(hint));
+}
+
+function slugify(value) {
+  if (!value) return '';
+  return value
+    .toString()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function isGenericCareerUrl(url, careersBase) {
+  if (!url) return true;
+  try {
+    const parsed = new URL(url);
+    const path = parsed.pathname.replace(/\/+$/, '');
+    if (!path || path === '') return true;
+    const segments = path.split('/').filter(Boolean);
+    if (segments.length <= 1) return true;
+    const last = segments[segments.length - 1].toLowerCase();
+    if (GENERIC_PATH_HINTS.some((hint) => last.includes(hint))) return true;
+    if (!looksLikeJobDetail(url)) return true;
+    if (careersBase) {
+      const base = new URL(careersBase);
+      if (base.hostname === parsed.hostname && path === base.pathname.replace(/\/+$/, '')) {
+        return true;
+      }
+    }
+    return false;
+  } catch {
+    return true;
+  }
+}
+
+function looksLikeJobDetail(url) {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url);
+    const path = parsed.pathname.replace(/\/+$/, '');
+    if (!path || path === '' || path === '/') return false;
+    const segments = path.split('/').filter(Boolean);
+    if (segments.length < 2) return false;
+    const last = segments[segments.length - 1];
+    if (last.length <= 5) return false;
+    const lower = last.toLowerCase();
+    if (/\d/.test(last) || last.includes('-')) return true;
+    if (JOB_DETAIL_HINTS.some((hint) => lower.includes(hint))) return true;
+    return segments.length >= 3;
+  } catch {
+    return false;
+  }
+}
+
+function buildSmartRecruitersCandidates(posting, company) {
+  const candidates = [];
+  const companyId = posting.company?.identifier || company.smart?.company;
+  const slug = slugify(posting.name || posting.title || '');
+  if (companyId && posting.id && slug) {
+    candidates.push({
+      url: `https://jobs.smartrecruiters.com/${companyId}/${slug}-${posting.id}`,
+      source: 'ats_canonical'
+    });
+  }
+  if (posting.applyUrl) {
+    candidates.push({ url: posting.applyUrl, source: 'ats_apply' });
+  }
+  if (posting.jobAd?.sections?.jobDescription?.ref) {
+    candidates.push({ url: posting.jobAd.sections.jobDescription.ref, source: 'ats_ref' });
+  }
+  if (posting.ref) {
+    candidates.push({ url: posting.ref, source: 'ats_ref_raw' });
+  }
+  if (company.careers) {
+    candidates.push({ url: company.careers, source: 'company_careers' });
+  }
+  return dedupeCandidates(candidates);
+}
+
+function buildLeverCandidates(posting, company) {
+  const candidates = [];
+  const companySlug = company.lever?.company;
+  const slug = slugify(posting.text || posting.title || '');
+  if (companySlug && posting.id && slug) {
+    candidates.push({
+      url: `https://jobs.lever.co/${companySlug}/${slug}-${posting.id}`,
+      source: 'ats_canonical'
+    });
+  }
+  if (posting.hostedUrl) candidates.push({ url: posting.hostedUrl, source: 'ats_hosted' });
+  if (posting.applyUrl) candidates.push({ url: posting.applyUrl, source: 'ats_apply' });
+  if (posting.url) candidates.push({ url: posting.url, source: 'ats_url' });
+  if (company.careers) candidates.push({ url: company.careers, source: 'company_careers' });
+  return dedupeCandidates(candidates);
+}
+
+function buildGreenhouseCandidates(job, company) {
+  const candidates = [];
+  const board = company.greenhouse?.board;
+  if (board && job.id) {
+    pushGreenhouseCandidate(candidates, `https://boards.greenhouse.io/${board}/jobs/${job.id}`, 'ats_canonical');
+    pushGreenhouseCandidate(candidates, `https://job-boards.greenhouse.io/${board}/jobs/${job.id}`, 'ats_canonical_jobboards');
+  }
+  if (job.absolute_url) pushGreenhouseCandidate(candidates, job.absolute_url, 'ats_absolute');
+  if (job.external_url) pushGreenhouseCandidate(candidates, job.external_url, 'ats_external');
+  if (company.careers) candidates.push({ url: company.careers, source: 'company_careers' });
+  return dedupeCandidates(candidates);
+}
+
+function pushGreenhouseCandidate(list, url, source) {
+  const normalized = ensureAbsoluteUrl(url);
+  if (!normalized) return;
+  list.push({ url: normalized, source });
+  const jobBoardsVariant = toGreenhouseJobBoards(normalized);
+  if (jobBoardsVariant && jobBoardsVariant !== normalized) {
+    list.push({ url: jobBoardsVariant, source: `${source}_jobboards` });
+  }
+}
+
+function toGreenhouseJobBoards(url) {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === 'boards.greenhouse.io') {
+      parsed.hostname = 'job-boards.greenhouse.io';
+      return parsed.toString();
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function buildWorkdayCandidates(posting, company) {
+  const candidates = [];
+  const host = company.workday?.host;
+  const tenant = company.workday?.tenant;
+  const site = company.workday?.site || 'careers';
+  if (host && tenant && posting.jobPostingId) {
+    candidates.push({
+      url: `https://${host}/wday/cxs/${tenant}/${site}/job/${posting.jobPostingId}`,
+      source: 'ats_canonical'
+    });
+  }
+  if (posting.externalPath) {
+    candidates.push({ url: `https://${host}${posting.externalPath}`, source: 'ats_external_path' });
+  }
+  if (posting.externalUrl) {
+    candidates.push({ url: `https://${host}${posting.externalUrl}`, source: 'ats_external' });
+  }
+  if (company.careers) candidates.push({ url: company.careers, source: 'company_careers' });
+  return dedupeCandidates(candidates);
+}
+
+function dedupeCandidates(candidates) {
+  const seen = new Set();
+  const out = [];
+  for (const candidate of candidates) {
+    const normalized = candidate.url;
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    out.push(candidate);
+  }
+  return out;
+}
+
+function ensureAbsoluteUrl(url, base) {
+  if (!url && base) return base;
+  if (!url) return '';
+  try {
+    return new URL(url).toString();
+  } catch {
+    if (base) {
+      try {
+        return new URL(url, base).toString();
+      } catch {
+        // ignore
+      }
+    }
+    if (!/^https?:\/\//i.test(url)) {
+      return `https://${url.replace(/^\/+/, '')}`;
+    }
+    return url;
+  }
+}
+
+async function fixJobWithOllama(job, { ollamaUrl, model }) {
+  const careersBase = job.company_careers || '';
+  const candidateLines = Array.isArray(job.url_candidates) && job.url_candidates.length
+    ? job.url_candidates.map((cand, idx) => `${idx}. ${cand.url} (${cand.source || 'source'})`).join('\n')
+    : '0. ' + (job.apply_url || job.raw_apply_url || job.raw_url || careersBase || 'aucune');
+  const prompt = `
+Tu nettoies des fiches d'offres d'alternance pour vérifier qu'elles proviennent d'un site employeur.
+Entreprise: ${job.company}
+Titre: ${job.title}
+Localisation: ${job.location || 'inconnue'}
+URL fournie: ${job.url || 'aucune'}
+Page carrière: ${careersBase || 'inconnue'}
+
+Liste d'URLs candidates (tu dois choisir l'une d'elles, pas en inventer) :
+${candidateLines}
+
+Consignes:
+- Renvoie un titre court (<=90 caractères) lisible.
+- Choisis l'index de l'URL qui correspond le mieux à la fiche détaillée. Ne crée pas d'URL.
+- Indique si l'offre semble publiée par l'employeur (true/false) selon le domaine.
+- Donne une localisation concise si tu peux.
+
+Réponds STRICTEMENT avec un JSON sans markdown:
+{
+  "title": "...",
+  "location": "...",
+  "chosen_index": number,
+  "is_company_listing": true/false,
+  "reason": "explication brève"
+}
+`;
+
+  const response = await callOllama({ baseUrl: ollamaUrl, model, prompt });
+  const parsed = parseJsonResponse(response);
+  if (!parsed) return null;
+  let fixedUrl = null;
+  if (Array.isArray(job.url_candidates) && job.url_candidates.length) {
+    const idx = Number(parsed.chosen_index);
+    if (!Number.isFinite(idx) || !job.url_candidates[idx]) return null;
+    fixedUrl = job.url_candidates[idx].url;
+  } else if (parsed.url) {
+    fixedUrl = ensureAbsoluteUrl(parsed.url, careersBase || job.url);
+  }
+  if (!fixedUrl || !looksLikeJobDetail(fixedUrl)) return null;
+  return {
+    title: parsed.title,
+    location: parsed.location,
+    url: fixedUrl,
+    is_company_listing: parsed.is_company_listing !== false,
+    reason: parsed.reason || ''
+  };
+}
+
+async function verifyJobWithOllama(job, candidate, { ollamaUrl, model }) {
+  const meta = job.pageMeta;
+  const metaText = meta
+    ? `Meta page détectées: title="${meta.title || ''}", h1="${meta.h1 || ''}", og:title="${meta.ogTitle || ''}".`
+    : `Meta page détectées: aucune.`;
+  const prompt = `
+Tu dois valider que la fiche ci-dessous correspond bien à l'offre d'alternance décrite par l'entreprise.
+
+Entreprise: ${job.company}
+Titre attendu: ${job.title}
+Localisation attendue: ${job.location || 'inconnue'}
+Source: ${job.source}
+
+Fiche proposée:
+- URL: ${candidate.url || 'aucune'}
+- Titre proposé: ${candidate.title || 'inconnu'}
+- Localisation proposée: ${candidate.location || 'inconnue'}
+${metaText}
+
+Questions:
+1. L'URL semble-t-elle pointer vers une offre précise (pas une page générique) ?
+2. Le titre/localisation correspondent-ils à l'offre décrite ?
+
+Réponds STRICTEMENT avec un JSON:
+{
+  "approved": true/false,
+  "reason": "explication courte",
+  "confidence": 0-1
+}
+`;
+
+  try {
+    const response = await callOllama({ baseUrl: ollamaUrl, model, prompt });
+    const parsed = parseJsonResponse(response);
+    return parsed || null;
+  } catch (error) {
+    console.warn('[Direct Careers][AI secondary] erreur:', error.message);
+    return null;
+  }
+}
+
+async function callOllama({ baseUrl, model, prompt }) {
+  const endpoint = `${baseUrl.replace(/\/$/, '')}/api/generate`;
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model,
+      prompt,
+      stream: false,
+      options: { temperature: 0.1, top_p: 0.9 }
+    })
+  });
+  if (!res.ok) {
+    throw new Error(`Ollama ${res.status}`);
+  }
+  const data = await res.json();
+  return data.response?.trim() || '';
+}
+
+function parseJsonResponse(text) {
+  if (!text) return null;
+  let cleaned = text.trim();
+  if (cleaned.startsWith('```')) {
+    cleaned = cleaned.replace(/```json/gi, '').replace(/```/g, '').trim();
+  }
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    return null;
+  }
+}
+
+function readEnv(env, key) {
+  if (env && Object.prototype.hasOwnProperty.call(env, key)) {
+    return env[key];
+  }
+  if (typeof process !== 'undefined' && process.env && Object.prototype.hasOwnProperty.call(process.env, key)) {
+    return process.env[key];
+  }
+  return undefined;
 }

@@ -69,7 +69,9 @@ async function fetchGreenhouseJobs(companySlug, companyName) {
     });
 
     if (!response.ok) {
-      console.log(`[Greenhouse] ${companyName}: ${response.status}`);
+      if (response.status !== 404) {
+        console.log(`[Greenhouse] ${companyName}: ${response.status}`);
+      }
       return [];
     }
 
@@ -105,18 +107,22 @@ async function fetchGreenhouseJobs(companySlug, companyName) {
       if (!isAlternance || !isFrance) continue;
 
       const id = await generateHash(`greenhouse-${job.id}`);
+      const jobUrl = ensureGreenhouseJobUrl(job.absolute_url || job.external_url, companySlug, job.id);
+      const domain = extractDomain(jobUrl) || `${companySlug}.com`;
+      const logoUrl = domain ? buildFaviconUrl(domain) : null;
 
       jobs.push({
         id: `ats-gh-${id}`,
         title: job.title,
         company: companyName,
         location: job.location?.name || 'France',
-        url: job.absolute_url,
+        url: jobUrl,
+        apply_url: jobUrl,
         posted: new Date(job.updated_at).toLocaleDateString('fr-FR'),
         source: 'ats-feeds',
         tags: ['Alternance', 'ATS'],
-        logo_domain: `${companySlug}.com`,
-        logo_url: null
+        logo_domain: domain,
+        logo_url: logoUrl
       });
     }
 
@@ -143,7 +149,9 @@ async function fetchLeverJobs(companySlug, companyName) {
     });
 
     if (!response.ok) {
-      console.log(`[Lever] ${companyName}: ${response.status}`);
+      if (response.status !== 404) {
+        console.log(`[Lever] ${companyName}: ${response.status}`);
+      }
       return [];
     }
 
@@ -180,17 +188,20 @@ async function fetchLeverJobs(companySlug, companyName) {
 
       const id = await generateHash(`lever-${job.id}`);
 
+      const domain = extractDomain(job.hostedUrl) || `${companySlug}.com`;
+      const logoUrl = domain ? buildFaviconUrl(domain) : null;
       jobs.push({
         id: `ats-lv-${id}`,
         title: job.text,
         company: companyName,
         location: job.categories?.location || 'France',
         url: job.hostedUrl,
+        apply_url: job.hostedUrl,
         posted: new Date(job.createdAt).toLocaleDateString('fr-FR'),
         source: 'ats-feeds',
         tags: ['Alternance', 'ATS'],
-        logo_domain: `${companySlug}.com`,
-        logo_url: null
+        logo_domain: domain,
+        logo_url: logoUrl
       });
     }
 
@@ -240,4 +251,37 @@ export async function fetchATSJobs({ query = '', location = '', limit = 100, env
   console.log(`[ATS Feeds] Total: ${allJobs.length} jobs from ${companies.length} companies`);
 
   return allJobs.slice(0, limit);
+}
+
+function extractDomain(url) {
+  if (!url) return null;
+  try {
+    const host = new URL(url).hostname;
+    return host.replace(/^www\./, '');
+  } catch {
+    return null;
+  }
+}
+
+function buildFaviconUrl(domain) {
+  if (!domain) return null;
+  return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+}
+
+function ensureGreenhouseJobUrl(url, boardSlug, jobId) {
+  const fallback = boardSlug && jobId ? `https://job-boards.greenhouse.io/${boardSlug}/jobs/${jobId}` : null;
+  if (!url) return fallback;
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === 'boards.greenhouse.io') {
+      parsed.hostname = 'job-boards.greenhouse.io';
+      return parsed.toString();
+    }
+    if (parsed.hostname === 'job-boards.greenhouse.io') {
+      return parsed.toString();
+    }
+  } catch {
+    // ignore parsing errors
+  }
+  return fallback || url;
 }
