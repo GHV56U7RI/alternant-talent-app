@@ -17,20 +17,53 @@ import { FreeAIValidator } from './ai-validator-free.js';
 import { FreeMonitoring } from './monitoring-free.js';
 
 const DEFAULT_COMPANIES = [
-  // ✅ VÉRIFIÉ - Doctolib Greenhouse (240 jobs, 81 en France)
+  // --- GREENHOUSE (Tech & Startups) - VÉRIFIÉS ✅ ---
   { name: 'Doctolib', careers: 'https://careers.doctolib.com', greenhouse: { board: 'doctolib' } },
-
-  // ✅ VÉRIFIÉ - Datadog Greenhouse (425 jobs, 81 en France)
   { name: 'Datadog', careers: 'https://careers.datadoghq.com', greenhouse: { board: 'datadog' } },
-
-  // ✅ VÉRIFIÉ - Algolia Greenhouse (28 jobs, 14 en France)
   { name: 'Algolia', careers: 'https://www.algolia.com/careers', greenhouse: { board: 'algolia' } },
+  { name: 'Stripe', careers: 'https://stripe.com/jobs', greenhouse: { board: 'stripe' } },
+  { name: 'TheFork', careers: 'https://careers.thefork.com', greenhouse: { board: 'thefork' } },
+  { name: 'Artefact', careers: 'https://www.artefact.com/careers', greenhouse: { board: 'artefact' } },
+  { name: 'Valtech', careers: 'https://www.valtech.com/careers', greenhouse: { board: 'valtech' } },
 
-  // ✅ VÉRIFIÉ - Qonto Lever (31 jobs, 22 en France)
-  { name: 'Qonto', careers: 'https://jobs.qonto.com', lever: { company: 'qonto' } },
+  // --- LEVER (Startups & Scaleups) ---
+  { name: 'Qonto', careers: 'https://qonto.com/careers', lever: { company: 'qonto' } },
+  { name: 'Spendesk', careers: 'https://www.spendesk.com/careers', lever: { company: 'spendesk' } },
+  // Lydia, Yousign, Luko, Shift Technology → 404, retirés
+  { name: 'Doctrine', careers: 'https://www.doctrine.fr/careers', lever: { company: 'doctrine' } },
+  { name: 'Veepee', careers: 'https://careers.veepee.com', lever: { company: 'veepee' } },
+  { name: 'Scaleway', careers: 'https://www.scaleway.com/en/careers', lever: { company: 'scaleway' } },
+  { name: 'Pigment', careers: 'https://www.pigment.com/careers', lever: { company: 'pigment' } },
+  { name: 'Kickmaker', careers: 'https://kickmaker.net/careers', lever: { company: 'kickmaker' } },
+  { name: 'Verkor', careers: 'https://verkor.com/careers', lever: { company: 'verkor' } },
+  { name: 'Lucca', careers: 'https://www.lucca.fr/carrieres', lever: { company: 'lucca' } },
+  { name: 'Brevo', careers: 'https://www.brevo.com/careers', lever: { company: 'brevo' } },
 
-  // ✅ VÉRIFIÉ - Back Market Lever (2 jobs)
-  { name: 'Back Market', careers: 'https://jobs.lever.co/backmarket', lever: { company: 'backmarket' } }
+  // Lever - Nouvelles entreprises
+  { name: 'Alma', careers: 'https://getalma.eu/careers', lever: { company: 'alma' } },
+  { name: 'Pennylane', careers: 'https://www.pennylane.com/careers', lever: { company: 'pennylane' } },
+  { name: 'PayFit', careers: 'https://payfit.com/careers', lever: { company: 'payfit' } },
+  { name: 'Swile', careers: 'https://www.swile.co/careers', lever: { company: 'swile' } },
+  { name: 'Sorare', careers: 'https://sorare.com/careers', lever: { company: 'sorare' } },
+  { name: 'Ankorstore', careers: 'https://www.ankorstore.com/careers', lever: { company: 'ankorstore' } },
+  { name: 'Shine', careers: 'https://www.shine.fr/careers', lever: { company: 'shine' } },
+  { name: 'Memo Bank', careers: 'https://memo.bank/careers', lever: { company: 'memo-bank' } },
+  { name: 'Pretto', careers: 'https://www.pretto.fr/careers', lever: { company: 'pretto' } },
+  { name: 'Lunchr', careers: 'https://www.lunchr.fr/careers', lever: { company: 'lunchr' } },
+  { name: 'Comet', careers: 'https://www.comet.co/careers', lever: { company: 'comet' } },
+  { name: 'Hokodo', careers: 'https://hokodo.co/careers', lever: { company: 'hokodo' } },
+
+  // --- SMARTRECRUITERS (Large Groups) ---
+  { name: 'Ubisoft', careers: 'https://www.ubisoft.com/en-us/careers', smart: { company: 'Ubisoft2' } },
+  { name: 'Accor', careers: 'https://careers.accor.com', smart: { company: 'AccorGroup' } },
+  { name: 'Publicis', careers: 'https://www.publicisgroupe.com/en/careers', smart: { company: 'PublicisGroupe' } },
+  { name: 'Celonis', careers: 'https://www.celonis.com/careers', smart: { company: 'Celonis' } }
+
+  // COMMENT AJOUTER UNE NOUVELLE ENTREPRISE:
+  // 1. Greenhouse: Tester avec curl "https://boards-api.greenhouse.io/v1/boards/BOARD_ID/jobs"
+  // 2. Lever: Tester avec curl "https://api.lever.co/v0/postings/COMPANY_ID?mode=json"
+  // 3. SmartRecruiters: Tester avec curl "https://api.smartrecruiters.com/v1/companies/COMPANY_ID/postings"
+  // 4. Ajouter ici avec le bon format
 ];
 
 const ALTERNANCE_REGEX = /\b(alternance|alternant|apprentissage|apprentice|apprenticeship|work[-\s]?study|coop|co-op)\b/i;
@@ -159,7 +192,7 @@ export async function fetchDirectCareersJobs({ query = 'alternance', location = 
   // NOUVEAU: Log des jobs collectés pour monitoring
   for (const job of uniqueJobs) {
     const urlType = urlResolver.isDetailURL(job.apply_url) ? 'detail' :
-                    urlResolver.isGenericURL(job.apply_url) ? 'generic' : 'unknown';
+      urlResolver.isGenericURL(job.apply_url) ? 'generic' : 'unknown';
     monitoring.logJobCollected(job, urlType);
   }
 
@@ -491,7 +524,79 @@ function normalizeJob({ provider, rawId, company, title, location, raw_url, raw_
 function shouldKeepJob(job, { query, location }) {
   const queryMatch = matchesQuery(job, query) || ALTERNANCE_REGEX.test(job.title) || ALTERNANCE_REGEX.test(job.description || '');
   const locationMatch = matchesLocation(job.location, location);
-  return queryMatch && locationMatch;
+
+  // NOUVEAU: Vérification stricte du type de contrat via les tags
+  const contractTypeMatch = isApprenticeshipContract(job);
+
+  return queryMatch && locationMatch && contractTypeMatch;
+}
+
+/**
+ * Vérifie si l'offre est bien un contrat d'alternance/apprentissage
+ * en analysant les tags Employment Type
+ */
+function isApprenticeshipContract(job) {
+  const tags = Array.isArray(job.tags) ? job.tags.join(' ').toLowerCase() : '';
+  const title = (job.title || '').toLowerCase();
+
+  // Tags qui indiquent un CDI/CDD/autre (à rejeter)
+  const invalidContractTypes = [
+    'unlimited contract',  // CDI
+    'fixed term',          // CDD
+    'permanent',           // CDI
+    'freelance',
+    'contractor',
+    'temporary'
+  ];
+
+  // Si l'offre a un tag de type CDI/CDD, on rejette
+  if (invalidContractTypes.some(type => tags.includes(type))) {
+    // EXCEPTION: Si le titre mentionne explicitement "alternance" ET le tag "apprentice"
+    const hasAlternanceInTitle = /\b(alternance|apprentissage)\b/i.test(title);
+    const hasApprenticeTag = tags.includes('apprentice');
+
+    if (hasAlternanceInTitle && hasApprenticeTag) {
+      return true; // C'est probablement une vraie alternance malgré le tag ambigu
+    }
+
+    return false; // Sinon on rejette
+  }
+
+  // Tags qui indiquent une alternance/apprentissage (à garder)
+  const validContractTypes = [
+    'apprentice',
+    'apprenticeship',
+    'work-study',
+    'work study',
+    'contrat pro'
+  ];
+
+  // Si l'offre a un tag valide, on garde
+  if (validContractTypes.some(type => tags.includes(type))) {
+    return true;
+  }
+
+  // NOUVEAU: Gestion spéciale des "Internship" (stage)
+  // Un stage n'est PAS une alternance, SAUF si le titre mentionne explicitement "alternance"
+  if (tags.includes('internship')) {
+    const hasAlternanceInTitle = /\b(alternance|apprentissage|apprentice)\b/i.test(title);
+
+    // Si c'est un stage ET le titre mentionne "alternance", on garde
+    if (hasAlternanceInTitle) {
+      return true;
+    }
+
+    // Sinon c'est juste un stage, on rejette
+    return false;
+  }
+
+  // Si pas de tag Employment Type mais "alternance" dans le titre, on garde
+  if (/\b(alternance|apprentissage)\b/i.test(title)) {
+    return true;
+  }
+
+  // Sinon on rejette (pas assez de preuves que c'est une alternance)
+  return false;
 }
 
 function matchesQuery(job, query) {
@@ -608,28 +713,54 @@ async function probeSingleJob(job, stats) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), HTTP_PROBE_TIMEOUT);
   try {
-    let res = await fetch(target, { method: 'HEAD', redirect: 'follow', signal: controller.signal });
-    if (res.status === 405 || res.status === 501) {
-      res = await fetch(target, {
+    const headers = {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+      'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7'
+    };
+
+    let res = await fetch(target, { method: 'HEAD', redirect: 'follow', signal: controller.signal, headers });
+
+    // Si 405 (Method Not Allowed), 501 (Not Implemented) ou 404 (Not Found), on tente GET
+    // On tente aussi avec un slash à la fin si 404 (certains serveurs le demandent)
+    if (res.status === 405 || res.status === 501 || res.status === 404) {
+      let retryUrl = target;
+      if (res.status === 404 && !target.endsWith('/')) {
+        retryUrl = target + '/';
+      }
+
+      res = await fetch(retryUrl, {
         method: 'GET',
         redirect: 'follow',
         signal: controller.signal,
         headers: {
-          Range: 'bytes=0-4096',
-          Accept: 'text/html,application/xhtml+xml'
+          ...headers,
+          Range: 'bytes=0-4096'
         }
       });
       if (res.ok) {
         const html = await res.text().catch(() => '');
         job.pageMeta = extractPageMeta(html);
+        if (retryUrl !== target) {
+          job.url = retryUrl;
+          job.apply_url = retryUrl;
+        }
       }
     }
+
     clearTimeout(timeout);
+
+    // Si on a une erreur 403/429 (Rate Limit/Forbidden), on suppose que le lien est valide (protection bot)
+    // pour ne pas jeter de bonnes offres.
+    const isSoftError = res.status === 403 || res.status === 429;
+    const isBroken = res.status >= 400 && !isSoftError;
+
     job.url_health = {
       status: res.status,
       finalUrl: res.url,
-      isBroken: res.status >= 400
+      isBroken: isBroken
     };
+
     if (res.ok && res.url && res.url !== target) {
       job.url = res.url;
       job.apply_url = res.url;
@@ -637,18 +768,30 @@ async function probeSingleJob(job, stats) {
         job.url_candidates.unshift({ url: res.url, source: 'http_redirect' });
       }
     }
-    if (res.status >= 400) {
+    if (isBroken) {
       stats.broken++;
     }
   } catch (error) {
     clearTimeout(timeout);
-    stats.broken++;
-    job.url_health = {
-      status: 0,
-      finalUrl: target,
-      isBroken: true,
-      error: error.message
-    };
+    // En cas de timeout ou erreur réseau, on garde le bénéfice du doute si c'est un ATS connu
+    const isKnownAts = TRUSTED_ATS_HOSTS.some(host => target.includes(host));
+
+    if (isKnownAts) {
+      job.url_health = {
+        status: 0,
+        finalUrl: target,
+        isBroken: false, // On garde car c'est probablement juste un timeout/blocage
+        error: error.message
+      };
+    } else {
+      stats.broken++;
+      job.url_health = {
+        status: 0,
+        finalUrl: target,
+        isBroken: true,
+        error: error.message
+      };
+    }
   }
 }
 
@@ -808,8 +951,14 @@ function looksLikeJobDetail(url) {
     const parsed = new URL(url);
     const path = parsed.pathname.replace(/\/+$/, '');
     if (!path || path === '' || path === '/') return false;
+
     const segments = path.split('/').filter(Boolean);
     if (segments.length < 2) return false;
+
+    // Si c'est un ATS de confiance, on est plus permissif (ex: /company/job-id)
+    const isTrusted = TRUSTED_ATS_HOSTS.some(host => parsed.hostname.endsWith(host));
+    if (isTrusted) return true;
+
     const last = segments[segments.length - 1];
     if (last.length <= 5) return false;
     const lower = last.toLowerCase();
@@ -825,14 +974,14 @@ function buildSmartRecruitersCandidates(posting, company) {
   const candidates = [];
   const companyId = posting.company?.identifier || company.smart?.company;
   const slug = slugify(posting.name || posting.title || '');
+  if (posting.applyUrl) {
+    candidates.push({ url: posting.applyUrl, source: 'ats_apply' });
+  }
   if (companyId && posting.id && slug) {
     candidates.push({
       url: `https://jobs.smartrecruiters.com/${companyId}/${slug}-${posting.id}`,
       source: 'ats_canonical'
     });
-  }
-  if (posting.applyUrl) {
-    candidates.push({ url: posting.applyUrl, source: 'ats_apply' });
   }
   if (posting.jobAd?.sections?.jobDescription?.ref) {
     candidates.push({ url: posting.jobAd.sections.jobDescription.ref, source: 'ats_ref' });
@@ -850,13 +999,13 @@ function buildLeverCandidates(posting, company) {
   const candidates = [];
   const companySlug = company.lever?.company;
   const slug = slugify(posting.text || posting.title || '');
+  if (posting.hostedUrl) candidates.push({ url: posting.hostedUrl, source: 'ats_hosted' });
   if (companySlug && posting.id && slug) {
     candidates.push({
       url: `https://jobs.lever.co/${companySlug}/${slug}-${posting.id}`,
       source: 'ats_canonical'
     });
   }
-  if (posting.hostedUrl) candidates.push({ url: posting.hostedUrl, source: 'ats_hosted' });
   if (posting.applyUrl) candidates.push({ url: posting.applyUrl, source: 'ats_apply' });
   if (posting.url) candidates.push({ url: posting.url, source: 'ats_url' });
   if (company.careers) candidates.push({ url: company.careers, source: 'company_careers' });
