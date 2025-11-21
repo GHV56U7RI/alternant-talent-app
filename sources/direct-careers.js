@@ -654,8 +654,8 @@ function isApprenticeshipContract(job) {
     return false;
   }
 
-  // Si pas de tag Employment Type mais "alternance" dans le titre, on garde
-  if (/\b(alternance|apprentissage)\b/i.test(title)) {
+  // Si pas de tag Employment Type mais "alternance" (ou anglais) dans le titre, on garde
+  if (/\b(alternance|apprentissage|apprentice|apprenticeship|contrat pro|professionnalisation)\b/i.test(title)) {
     return true;
   }
 
