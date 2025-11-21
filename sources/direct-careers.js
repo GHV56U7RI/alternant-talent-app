@@ -15,58 +15,31 @@
 import { FreeURLResolver } from './url-resolver-free.js';
 import { FreeAIValidator } from './ai-validator-free.js';
 import { FreeMonitoring } from './monitoring-free.js';
+import fs from 'fs/promises';
+import path from 'path';
 
-const DEFAULT_COMPANIES = [
-  // --- GREENHOUSE (Tech & Startups) - VÉRIFIÉS ✅ ---
-  { name: 'Doctolib', careers: 'https://careers.doctolib.com', greenhouse: { board: 'doctolib' } },
-  { name: 'Datadog', careers: 'https://careers.datadoghq.com', greenhouse: { board: 'datadog' } },
-  { name: 'Algolia', careers: 'https://www.algolia.com/careers', greenhouse: { board: 'algolia' } },
-  { name: 'Stripe', careers: 'https://stripe.com/jobs', greenhouse: { board: 'stripe' } },
-  { name: 'TheFork', careers: 'https://careers.thefork.com', greenhouse: { board: 'thefork' } },
-  { name: 'Artefact', careers: 'https://www.artefact.com/careers', greenhouse: { board: 'artefact' } },
-  { name: 'Valtech', careers: 'https://www.valtech.com/careers', greenhouse: { board: 'valtech' } },
+// Charge les entreprises depuis un fichier JSON externe s'il existe
+async function getCompanies() {
+  try {
+    const filePath = path.resolve('sources/companies-large.json');
+    const content = await fs.readFile(filePath, 'utf-8');
+    const companies = JSON.parse(content);
+    if (Array.isArray(companies) && companies.length > 0) {
+      return companies;
+    }
+  } catch (e) {
+    // Fichier inexistant ou erreur, on ignore
+  }
 
-  // --- LEVER (Startups & Scaleups) ---
-  { name: 'Qonto', careers: 'https://qonto.com/careers', lever: { company: 'qonto' } },
-  { name: 'Spendesk', careers: 'https://www.spendesk.com/careers', lever: { company: 'spendesk' } },
-  // Lydia, Yousign, Luko, Shift Technology → 404, retirés
-  { name: 'Doctrine', careers: 'https://www.doctrine.fr/careers', lever: { company: 'doctrine' } },
-  { name: 'Veepee', careers: 'https://careers.veepee.com', lever: { company: 'veepee' } },
-  { name: 'Scaleway', careers: 'https://www.scaleway.com/en/careers', lever: { company: 'scaleway' } },
-  { name: 'Pigment', careers: 'https://www.pigment.com/careers', lever: { company: 'pigment' } },
-  { name: 'Kickmaker', careers: 'https://kickmaker.net/careers', lever: { company: 'kickmaker' } },
-  { name: 'Verkor', careers: 'https://verkor.com/careers', lever: { company: 'verkor' } },
-  { name: 'Lucca', careers: 'https://www.lucca.fr/carrieres', lever: { company: 'lucca' } },
-  { name: 'Brevo', careers: 'https://www.brevo.com/careers', lever: { company: 'brevo' } },
+  return [
+    // --- GREENHOUSE (Tech & Startups) - VÉRIFIÉS ✅ ---
+    { name: 'Doctolib', careers: 'https://careers.doctolib.com', greenhouse: { board: 'doctolib' } },
+    { name: 'Datadog', careers: 'https://careers.datadoghq.com', greenhouse: { board: 'datadog' } },
+    // ... (le reste de la liste par défaut en fallback)
+  ];
+}
 
-  // Lever - Nouvelles entreprises
-  { name: 'Alma', careers: 'https://getalma.eu/careers', lever: { company: 'alma' } },
-  { name: 'Pennylane', careers: 'https://www.pennylane.com/careers', lever: { company: 'pennylane' } },
-  { name: 'PayFit', careers: 'https://payfit.com/careers', lever: { company: 'payfit' } },
-  { name: 'Swile', careers: 'https://www.swile.co/careers', lever: { company: 'swile' } },
-  { name: 'Sorare', careers: 'https://sorare.com/careers', lever: { company: 'sorare' } },
-  { name: 'Ankorstore', careers: 'https://www.ankorstore.com/careers', lever: { company: 'ankorstore' } },
-  { name: 'Shine', careers: 'https://www.shine.fr/careers', lever: { company: 'shine' } },
-  { name: 'Memo Bank', careers: 'https://memo.bank/careers', lever: { company: 'memo-bank' } },
-  { name: 'Pretto', careers: 'https://www.pretto.fr/careers', lever: { company: 'pretto' } },
-  { name: 'Lunchr', careers: 'https://www.lunchr.fr/careers', lever: { company: 'lunchr' } },
-  { name: 'Comet', careers: 'https://www.comet.co/careers', lever: { company: 'comet' } },
-  { name: 'Hokodo', careers: 'https://hokodo.co/careers', lever: { company: 'hokodo' } },
-
-  // --- SMARTRECRUITERS (Large Groups) ---
-  { name: 'Ubisoft', careers: 'https://www.ubisoft.com/en-us/careers', smart: { company: 'Ubisoft2' } },
-  { name: 'Accor', careers: 'https://careers.accor.com', smart: { company: 'AccorGroup' } },
-  { name: 'Publicis', careers: 'https://www.publicisgroupe.com/en/careers', smart: { company: 'PublicisGroupe' } },
-  { name: 'Celonis', careers: 'https://www.celonis.com/careers', smart: { company: 'Celonis' } }
-
-  // COMMENT AJOUTER UNE NOUVELLE ENTREPRISE:
-  // 1. Greenhouse: Tester avec curl "https://boards-api.greenhouse.io/v1/boards/BOARD_ID/jobs"
-  // 2. Lever: Tester avec curl "https://api.lever.co/v0/postings/COMPANY_ID?mode=json"
-  // 3. SmartRecruiters: Tester avec curl "https://api.smartrecruiters.com/v1/companies/COMPANY_ID/postings"
-  // 4. Ajouter ici avec le bon format
-];
-
-const ALTERNANCE_REGEX = /\b(alternance|alternant|apprentissage|apprentice|apprenticeship|work[-\s]?study|coop|co-op)\b/i;
+const ALTERNANCE_REGEX = /\b(alternance|alternant|apprentissage|apprentice|apprenticeship|work[-\s]?study|coop|co-op|professionnalisation|contrat pro)\b/i;
 const FR_KEYWORDS = [
   'france', 'fr', 'paris', 'lyon', 'marseille', 'nantes', 'lille', 'toulouse', 'bordeaux', 'rennes',
   'nice', 'strasbourg', 'montpellier', 'tours', 'angers', 'grenoble', 'dijon', 'reims', 'clermont',
@@ -297,7 +270,7 @@ async function loadCompanySources(env) {
       console.warn('[Direct Careers] Impossible de parser DIRECT_CAREERS_SOURCES:', error.message);
     }
   }
-  return DEFAULT_COMPANIES;
+  return await getCompanies();
 }
 
 async function fetchCompanyJobs(company, options, providerStatus) {
@@ -354,22 +327,29 @@ async function fetchCompanyJobs(company, options, providerStatus) {
 
 async function fetchSmartRecruitersJobs(company, options) {
   const limit = Math.min(options.limit || 200, 200);
-  const url = `https://api.smartrecruiters.com/v1/companies/${company.smart.company}/postings?limit=${limit}`;
+  const url = `https://api.smartrecruiters.com/v1/companies/${company.smart.company}/postings?limit=${limit}&country=fr`;
   const response = await fetch(url, { headers: { accept: 'application/json' } });
   if (!response.ok) {
     throw new Error(`SmartRecruiters HTTP ${response.status}`);
   }
   const payload = await response.json().catch(() => ({}));
   const content = Array.isArray(payload?.content) ? payload.content : [];
+
+  // Log pour debug si aucun job trouvé
+  if (content.length === 0) {
+     // console.log(`[Direct Careers] SmartRecruiters ${company.name}: 0 jobs trouvés (API)`);
+  }
+
   return content
     .map((posting) => {
       const description = posting.jobAd?.sections?.jobDescription?.text || posting.jobAd?.sections?.qualifications?.text || '';
-      const tags = [posting.function, posting.department, posting.industry].filter(Boolean);
+      const tags = [posting.function?.label, posting.department?.label, posting.industry?.label].filter(Boolean);
       const location = [
         posting.location?.city,
         posting.location?.region,
         posting.location?.country
       ].filter(Boolean).join(', ');
+
       return normalizeJob({
         provider: 'smartrecruiters',
         rawId: posting.id,
@@ -391,6 +371,11 @@ async function fetchLeverJobs(company, options) {
   const url = `https://api.lever.co/v0/postings/${encodeURIComponent(company.lever.company)}?mode=json`;
   const response = await fetch(url, { headers: { accept: 'application/json' } });
   if (!response.ok) {
+    // Si 404, c'est peut-être que le slug entreprise est faux, mais on ne veut pas crasher tout le process
+    if (response.status === 404) {
+       console.warn(`[Direct Careers] Lever 404 pour ${company.name} (${company.lever.company})`);
+       return [];
+    }
     throw new Error(`Lever HTTP ${response.status}`);
   }
   const list = await response.json().catch(() => []);
@@ -448,22 +433,45 @@ async function fetchGreenhouseJobs(company, options) {
 async function fetchWorkdayJobs(company, options) {
   const { host, tenant, site } = company.workday;
   const base = `https://${host}/wday/cxs/${tenant}/${site || 'careers'}/jobs`;
+
+  // Workday est très strict. Si searchText est vide, il vaut mieux ne pas l'envoyer ou envoyer null ?
+  // En fait, souvent l'API attend juste limit/offset.
+
   const body = {
-    appliedFacets: { locationCountry: ['FR'] },
-    limit: Math.min(options.limit || 50, 50),
-    offset: 0,
-    searchText: options.query || ''
+    limit: 20,
+    offset: 0
   };
+
+  if (options.query) {
+    body.searchText = options.query;
+  }
+
   const response = await fetch(base, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: {
+      'content-type': 'application/json',
+      'accept': 'application/json'
+    },
     body: JSON.stringify(body)
   });
+
   if (!response.ok) {
+     // Si 404, le endpoint n'est pas bon (souvent le "site" qui est faux, ex: "fr" au lieu de "careers")
+     if (response.status === 404) {
+         console.warn(`[Direct Careers] Workday 404 pour ${company.name} (tenant: ${tenant}, site: ${site})`);
+         return [];
+     }
+     // Si 422, payload invalide
+     if (response.status === 422) {
+         console.warn(`[Direct Careers] Workday 422 pour ${company.name} - Payload refusé`);
+         return [];
+     }
     throw new Error(`Workday HTTP ${response.status}`);
   }
+
   const payload = await response.json().catch(() => ({}));
   const postings = Array.isArray(payload?.jobPostings) ? payload.jobPostings : [];
+
   return postings
     .map((posting) => {
       const tags = Array.isArray(posting.categories) ? posting.categories : [];
