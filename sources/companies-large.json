@@ -1,58 +1,394 @@
 [
-  { "name": "Doctolib", "careers": "https://careers.doctolib.com", "greenhouse": { "board": "doctolib" } },
-  { "name": "Datadog", "careers": "https://careers.datadoghq.com", "greenhouse": { "board": "datadog" } },
-  { "name": "Algolia", "careers": "https://www.algolia.com/careers", "greenhouse": { "board": "algolia" } },
-  { "name": "Stripe", "careers": "https://stripe.com/jobs", "greenhouse": { "board": "stripe" } },
-  { "name": "TheFork", "careers": "https://careers.thefork.com", "greenhouse": { "board": "thefork" } },
-  { "name": "Artefact", "careers": "https://www.artefact.com/careers", "greenhouse": { "board": "artefact" } },
-  { "name": "Valtech", "careers": "https://www.valtech.com/careers", "greenhouse": { "board": "valtech" } },
-  { "name": "Contentsquare", "careers": "https://contentsquare.com/careers", "lever": { "company": "contentsquare" } },
-  { "name": "Mirakl", "careers": "https://www.mirakl.com/careers", "greenhouse": { "board": "mirakl" } },
-  { "name": "Back Market", "careers": "https://www.backmarket.com/careers", "greenhouse": { "board": "backmarket" } },
-  { "name": "BlaBlaCar", "careers": "https://blog.blablacar.com/about-us/careers", "smart": { "company": "BlaBlaCar" } },
-  { "name": "Ubisoft", "careers": "https://www.ubisoft.com/en-us/careers", "smart": { "company": "Ubisoft2" } },
-  { "name": "Publicis", "careers": "https://www.publicisgroupe.com/en/careers", "smart": { "company": "PublicisGroupe" } },
-  { "name": "Accor", "careers": "https://careers.accor.com", "smart": { "company": "AccorGroup" } },
-  { "name": "Deezer", "careers": "https://www.deezer-jobs.com/", "smart": { "company": "Deezer" } },
-  { "name": "ManoMano", "careers": "https://jobs.manomano.com/", "smart": { "company": "ManoMano" } },
-  { "name": "Aircall", "careers": "https://aircall.io/careers/", "greenhouse": { "board": "aircall" } },
-  { "name": "Alan", "careers": "https://alan.com/careers", "greenhouse": { "board": "alan" } },
-  { "name": "PayFit", "careers": "https://payfit.com/careers", "greenhouse": { "board": "payfit" } },
-  { "name": "Qonto", "careers": "https://qonto.com/careers", "lever": { "company": "qonto" } },
-  { "name": "Spendesk", "careers": "https://www.spendesk.com/careers", "lever": { "company": "spendesk" } },
-  { "name": "Swile", "careers": "https://www.swile.co/careers", "lever": { "company": "swile" } },
-  { "name": "Ledger", "careers": "https://www.ledger.com/careers", "lever": { "company": "ledger" } },
-  { "name": "Voodoo", "careers": "https://www.voodoo.io/careers", "lever": { "company": "voodoo" } },
-  { "name": "Jobteaser", "careers": "https://www.jobteaser.com/en/companies/jobteaser/job-offers", "smart": { "company": "JobTeaser" } },
-  { "name": "Malt", "careers": "https://www.malt.com/about/careers", "lever": { "company": "malt" } },
-  { "name": "OpenClassrooms", "careers": "https://openclassrooms.com/en/careers", "greenhouse": { "board": "openclassrooms" } },
-  { "name": "Vestiaire Collective", "careers": "https://careers.vestiairecollective.com/", "smart": { "company": "VestiaireCollective" } },
-  { "name": "Younited", "careers": "https://younited-credit.com/careers/", "smart": { "company": "YounitedCredit" } },
-  { "name": "Devialet", "careers": "https://www.devialet.com/en-fr/careers/", "smart": { "company": "Devialet" } },
-  { "name": "Believe", "careers": "https://www.believe.com/careers", "smart": { "company": "Believe" } },
-  { "name": "Criteo", "careers": "https://careers.criteo.com/", "smart": { "company": "Criteo" } },
-  { "name": "Dassault Systèmes", "careers": "https://careers.3ds.com/", "smart": { "company": "DassaultSystemes" } },
-  { "name": "Schneider Electric", "careers": "https://www.se.com/ww/en/about-us/careers/overview.jsp", "smart": { "company": "SchneiderElectric" } },
-  { "name": "L'Oréal", "careers": "https://careers.loreal.com/en_US/content/Home", "smart": { "company": "Loreal" } },
-  { "name": "LVMH", "careers": "https://www.lvmh.com/talents/work-with-us/job-offers/", "smart": { "company": "LVMH" } },
-  { "name": "Sephora", "careers": "https://jobs.sephora.com/", "smart": { "company": "Sephora" } },
-  { "name": "Airbus", "careers": "https://www.airbus.com/en/careers", "smart": { "company": "Airbus" } },
-  { "name": "Thales", "careers": "https://www.thalesgroup.com/en/career", "workday": { "host": "thales.wd3.myworkdayjobs.com", "tenant": "Careers", "site": "Careers" } },
-  { "name": "Sanofi", "careers": "https://www.sanofi.com/en/careers", "workday": { "host": "sanofi.wd3.myworkdayjobs.com", "tenant": "SanofiCareers", "site": "SanofiCareers" } },
-  { "name": "Danone", "careers": "https://careers.danone.com/en-global/", "workday": { "host": "danone.wd3.myworkdayjobs.com", "tenant": "Danone", "site": "Danone" } },
-  { "name": "Pernod Ricard", "careers": "https://www.pernod-ricard.com/en/careers", "workday": { "host": "pernodricard.wd3.myworkdayjobs.com", "tenant": "pernodricard", "site": "pernod-ricard" } },
-  { "name": "Carrefour", "careers": "https://recrute.carrefour.fr/", "smart": { "company": "Carrefour" } },
-  { "name": "Auchan", "careers": "https://auchan-recrute.fr/", "smart": { "company": "AuchanRetail" } },
-  { "name": "Decathlon", "careers": "https://recrutement.decathlon.fr/", "smart": { "company": "Decathlon" } },
-  { "name": "Leroy Merlin", "careers": "https://recrutement.leroymerlin.fr/", "smart": { "company": "LeroyMerlin" } },
-  { "name": "Fnac Darty", "careers": "https://groupe-fnac.com/carrieres/", "smart": { "company": "FnacDarty" } },
-  { "name": "Capgemini", "careers": "https://www.capgemini.com/careers/", "smart": { "company": "Capgemini" } },
-  { "name": "Atos", "careers": "https://atos.net/en/careers", "smart": { "company": "Atos" } },
-  { "name": "Sopra Steria", "careers": "https://www.soprasteria.com/careers", "smart": { "company": "SopraSteria" } },
-  { "name": "Wavestone", "careers": "https://www.wavestone.com/en/careers/", "smart": { "company": "Wavestone" } },
-  { "name": "Mazars", "careers": "https://www.mazars.com/Home/Careers", "smart": { "company": "Mazars" } },
-  { "name": "Deloitte", "careers": "https://www2.deloitte.com/fr/fr/pages/carrieres/topics/recrutement-deloitte.html", "smart": { "company": "Deloitte" } },
-  { "name": "KPMG", "careers": "https://home.kpmg/fr/fr/home/carrieres.html", "smart": { "company": "KPMG" } },
-  { "name": "EY", "careers": "https://www.ey.com/fr_fr/careers", "smart": { "company": "EY" } },
-  { "name": "PwC", "careers": "https://www.pwc.fr/fr/carrieres.html", "workday": { "host": "pwc.wd3.myworkdayjobs.com", "tenant": "Global_Experienced_Careers", "site": "Global_Experienced_Careers" } }
+  {
+    "name": "Doctolib",
+    "careers": "https://careers.doctolib.com",
+    "greenhouse": {
+      "board": "doctolib"
+    }
+  },
+  {
+    "name": "Datadog",
+    "careers": "https://careers.datadoghq.com",
+    "greenhouse": {
+      "board": "datadog"
+    }
+  },
+  {
+    "name": "Algolia",
+    "careers": "https://www.algolia.com/careers",
+    "greenhouse": {
+      "board": "algolia"
+    }
+  },
+  {
+    "name": "Stripe",
+    "careers": "https://stripe.com/jobs",
+    "greenhouse": {
+      "board": "stripe"
+    }
+  },
+  {
+    "name": "TheFork",
+    "careers": "https://careers.thefork.com",
+    "greenhouse": {
+      "board": "thefork"
+    }
+  },
+  {
+    "name": "Artefact",
+    "careers": "https://www.artefact.com/careers",
+    "greenhouse": {
+      "board": "artefact"
+    }
+  },
+  {
+    "name": "Valtech",
+    "careers": "https://www.valtech.com/careers",
+    "greenhouse": {
+      "board": "valtech"
+    }
+  },
+  {
+    "name": "Contentsquare",
+    "careers": "https://contentsquare.com/careers",
+    "lever": {
+      "company": "contentsquare"
+    }
+  },
+  {
+    "name": "Mirakl",
+    "careers": "https://www.mirakl.com/careers",
+    "greenhouse": {
+      "board": "mirakl"
+    }
+  },
+  {
+    "name": "Back Market",
+    "careers": "https://www.backmarket.com/careers",
+    "smart": {
+      "company": "back-market"
+    }
+  },
+  {
+    "name": "BlaBlaCar",
+    "careers": "https://blog.blablacar.com/about-us/careers",
+    "smart": {
+      "company": "BlaBlaCar"
+    }
+  },
+  {
+    "name": "Ubisoft",
+    "careers": "https://www.ubisoft.com/en-us/careers",
+    "smart": {
+      "company": "Ubisoft2"
+    }
+  },
+  {
+    "name": "Publicis",
+    "careers": "https://www.publicisgroupe.com/en/careers",
+    "smart": {
+      "company": "PublicisGroupe"
+    }
+  },
+  {
+    "name": "Accor",
+    "careers": "https://careers.accor.com",
+    "smart": {
+      "company": "AccorGroup"
+    }
+  },
+  {
+    "name": "Deezer",
+    "careers": "https://www.deezer-jobs.com/",
+    "smart": {
+      "company": "Deezer"
+    }
+  },
+  {
+    "name": "ManoMano",
+    "careers": "https://jobs.manomano.com/",
+    "smart": {
+      "company": "ManoMano"
+    }
+  },
+  {
+    "name": "Aircall",
+    "careers": "https://aircall.io/careers/",
+    "lever": {
+      "company": "aircall"
+    }
+  },
+  {
+    "name": "Alan",
+    "careers": "https://alan.com/careers",
+    "smart": {
+      "company": "alan"
+    }
+  },
+  {
+    "name": "PayFit",
+    "careers": "https://payfit.com/careers",
+    "smart": {
+      "company": "payfit"
+    }
+  },
+  {
+    "name": "Qonto",
+    "careers": "https://qonto.com/careers",
+    "lever": {
+      "company": "qonto"
+    }
+  },
+  {
+    "name": "Spendesk",
+    "careers": "https://www.spendesk.com/careers",
+    "lever": {
+      "company": "spendesk"
+    }
+  },
+  {
+    "name": "Swile",
+    "careers": "https://www.swile.co/careers",
+    "lever": {
+      "company": "swile"
+    }
+  },
+  {
+    "name": "Ledger",
+    "careers": "https://www.ledger.com/careers",
+    "lever": {
+      "company": "ledger"
+    }
+  },
+  {
+    "name": "Voodoo",
+    "careers": "https://www.voodoo.io/careers",
+    "lever": {
+      "company": "voodoo"
+    }
+  },
+  {
+    "name": "Jobteaser",
+    "careers": "https://www.jobteaser.com/en/companies/jobteaser/job-offers",
+    "smart": {
+      "company": "JobTeaser"
+    }
+  },
+  {
+    "name": "Malt",
+    "careers": "https://www.malt.com/about/careers",
+    "lever": {
+      "company": "malt"
+    }
+  },
+  {
+    "name": "OpenClassrooms",
+    "careers": "https://openclassrooms.com/en/careers",
+    "smart": {
+      "company": "openclassrooms"
+    }
+  },
+  {
+    "name": "Vestiaire Collective",
+    "careers": "https://careers.vestiairecollective.com/",
+    "smart": {
+      "company": "VestiaireCollective"
+    }
+  },
+  {
+    "name": "Younited",
+    "careers": "https://younited-credit.com/careers/",
+    "smart": {
+      "company": "YounitedCredit"
+    }
+  },
+  {
+    "name": "Devialet",
+    "careers": "https://www.devialet.com/en-fr/careers/",
+    "smart": {
+      "company": "Devialet"
+    }
+  },
+  {
+    "name": "Believe",
+    "careers": "https://www.believe.com/careers",
+    "smart": {
+      "company": "Believe"
+    }
+  },
+  {
+    "name": "Criteo",
+    "careers": "https://careers.criteo.com/",
+    "smart": {
+      "company": "Criteo"
+    }
+  },
+  {
+    "name": "Dassault Systèmes",
+    "careers": "https://careers.3ds.com/",
+    "smart": {
+      "company": "DassaultSystemes"
+    }
+  },
+  {
+    "name": "Schneider Electric",
+    "careers": "https://www.se.com/ww/en/about-us/careers/overview.jsp",
+    "smart": {
+      "company": "SchneiderElectric"
+    }
+  },
+  {
+    "name": "L'Oréal",
+    "careers": "https://careers.loreal.com/en_US/content/Home",
+    "smart": {
+      "company": "Loreal"
+    }
+  },
+  {
+    "name": "LVMH",
+    "careers": "https://www.lvmh.com/talents/work-with-us/job-offers/",
+    "smart": {
+      "company": "LVMH"
+    }
+  },
+  {
+    "name": "Sephora",
+    "careers": "https://jobs.sephora.com/",
+    "smart": {
+      "company": "Sephora"
+    }
+  },
+  {
+    "name": "Airbus",
+    "careers": "https://www.airbus.com/en/careers",
+    "smart": {
+      "company": "Airbus"
+    }
+  },
+  {
+    "name": "Thales",
+    "careers": "https://www.thalesgroup.com/en/career",
+    "smart": {
+      "company": "thales"
+    }
+  },
+  {
+    "name": "Sanofi",
+    "careers": "https://www.sanofi.com/en/careers",
+    "smart": {
+      "company": "sanofi"
+    }
+  },
+  {
+    "name": "Danone",
+    "careers": "https://careers.danone.com/en-global/",
+    "smart": {
+      "company": "danone"
+    }
+  },
+  {
+    "name": "Pernod Ricard",
+    "careers": "https://www.pernod-ricard.com/en/careers",
+    "smart": {
+      "company": "pernod-ricard"
+    }
+  },
+  {
+    "name": "Carrefour",
+    "careers": "https://recrute.carrefour.fr/",
+    "smart": {
+      "company": "Carrefour"
+    }
+  },
+  {
+    "name": "Auchan",
+    "careers": "https://auchan-recrute.fr/",
+    "smart": {
+      "company": "AuchanRetail"
+    }
+  },
+  {
+    "name": "Decathlon",
+    "careers": "https://recrutement.decathlon.fr/",
+    "smart": {
+      "company": "Decathlon"
+    }
+  },
+  {
+    "name": "Leroy Merlin",
+    "careers": "https://recrutement.leroymerlin.fr/",
+    "smart": {
+      "company": "LeroyMerlin"
+    }
+  },
+  {
+    "name": "Fnac Darty",
+    "careers": "https://groupe-fnac.com/carrieres/",
+    "smart": {
+      "company": "FnacDarty"
+    }
+  },
+  {
+    "name": "Capgemini",
+    "careers": "https://www.capgemini.com/careers/",
+    "smart": {
+      "company": "Capgemini"
+    }
+  },
+  {
+    "name": "Atos",
+    "careers": "https://atos.net/en/careers",
+    "smart": {
+      "company": "Atos"
+    }
+  },
+  {
+    "name": "Sopra Steria",
+    "careers": "https://www.soprasteria.com/careers",
+    "smart": {
+      "company": "SopraSteria"
+    }
+  },
+  {
+    "name": "Wavestone",
+    "careers": "https://www.wavestone.com/en/careers/",
+    "smart": {
+      "company": "Wavestone"
+    }
+  },
+  {
+    "name": "Mazars",
+    "careers": "https://www.mazars.com/Home/Careers",
+    "smart": {
+      "company": "Mazars"
+    }
+  },
+  {
+    "name": "Deloitte",
+    "careers": "https://www2.deloitte.com/fr/fr/pages/carrieres/topics/recrutement-deloitte.html",
+    "smart": {
+      "company": "Deloitte"
+    }
+  },
+  {
+    "name": "KPMG",
+    "careers": "https://home.kpmg/fr/fr/home/carrieres.html",
+    "smart": {
+      "company": "KPMG"
+    }
+  },
+  {
+    "name": "EY",
+    "careers": "https://www.ey.com/fr_fr/careers",
+    "smart": {
+      "company": "EY"
+    }
+  },
+  {
+    "name": "PwC",
+    "careers": "https://www.pwc.fr/fr/carrieres.html",
+    "smart": {
+      "company": "pwc"
+    }
+  }
 ]
