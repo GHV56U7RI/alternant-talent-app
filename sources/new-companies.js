@@ -265,5 +265,23 @@ export const NEW_COMPANIES = [
     "smart": {
       "company": "Ubisoft2"
     }
+  },
+  {
+    "name": "Chanel",
+    "careers": "https://cc.wd3.myworkdayjobs.com/ChanelCareers",
+    "workday": {
+      "host": "cc.wd3.myworkdayjobs.com",
+      "tenant": "cc",
+      "site": "ChanelCareers"
+    }
+  },
+  {
+    "name": "Sanofi",
+    "careers": "https://sanofi.wd3.myworkdayjobs.com/SanofiCareers",
+    "workday": {
+      "host": "sanofi.wd3.myworkdayjobs.com",
+      "tenant": "sanofi",
+      "site": "SanofiCareers"
+    }
   }
 ];
