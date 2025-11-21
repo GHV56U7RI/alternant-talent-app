@@ -6,7 +6,7 @@
   { "name": "TheFork", "careers": "https://careers.thefork.com", "greenhouse": { "board": "thefork" } },
   { "name": "Artefact", "careers": "https://www.artefact.com/careers", "greenhouse": { "board": "artefact" } },
   { "name": "Valtech", "careers": "https://www.valtech.com/careers", "greenhouse": { "board": "valtech" } },
-  { "name": "Contentsquare", "careers": "https://contentsquare.com/careers", "greenhouse": { "board": "contentsquare" } },
+  { "name": "Contentsquare", "careers": "https://contentsquare.com/careers", "lever": { "company": "contentsquare" } },
   { "name": "Mirakl", "careers": "https://www.mirakl.com/careers", "greenhouse": { "board": "mirakl" } },
   { "name": "Back Market", "careers": "https://www.backmarket.com/careers", "greenhouse": { "board": "backmarket" } },
   { "name": "BlaBlaCar", "careers": "https://blog.blablacar.com/about-us/careers", "smart": { "company": "BlaBlaCar" } },
