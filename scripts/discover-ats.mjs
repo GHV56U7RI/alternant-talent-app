@@ -14,7 +14,7 @@ async function discover() {
     return;
   }
 
-  // Liste des entreprises qui posaient problème
+  // Liste des entreprises à vérifier
   const targets = [
     "Back Market", "Aircall", "Alan", "PayFit", "OpenClassrooms",
     "Thales", "Sanofi", "Danone", "Pernod Ricard", "PwC",
@@ -28,50 +28,56 @@ async function discover() {
 
     console.log(`\n🔎 Analyse de ${company.name}...`);
 
-    // Tentative 1: Analyse de la page carrière (déjà fait, mais on garde pour référence)
-    // On passe direct au Brute Force sur les API pour gagner du temps
-
     const slug = slugify(company.name);
-    const candidates = [slug, slug.replace(/-/g, ''), slug + 'hq', slug + 'jobs'];
+    const slugNoDash = slug.replace(/-/g, '');
+    const candidates = [slug, slugNoDash, slug + 'hq', slug + 'jobs', slugNoDash + 'jobs'];
 
     let found = null;
 
-    // Test LEVER
-    for (const id of candidates) {
-      if (found) break;
-      const url = `https://api.lever.co/v0/postings/${id}?mode=json`;
-      if (await checkUrl(url)) {
-        console.log(`   ✅ Lever trouvé: "${id}"`);
-        found = { type: 'lever', id };
-      }
-    }
-
-    // Test GREENHOUSE
+    // 1. Test ASHBY (API check strict)
     if (!found) {
       for (const id of candidates) {
         if (found) break;
-        const url = `https://boards-api.greenhouse.io/v1/boards/${id}/jobs`;
-        if (await checkUrl(url)) {
+        // Ashby API check
+        if (await checkAshbyApi(id)) {
+          console.log(`   ✅ Ashby trouvé: "${id}"`);
+          found = { type: 'ashby', id };
+        }
+      }
+    }
+
+    // 2. Test LEVER
+    if (!found) {
+      for (const id of candidates) {
+        if (found) break;
+        if (await checkUrl(`https://api.lever.co/v0/postings/${id}?mode=json`)) {
+          console.log(`   ✅ Lever trouvé: "${id}"`);
+          found = { type: 'lever', id };
+        }
+      }
+    }
+
+    // 3. Test GREENHOUSE
+    if (!found) {
+      for (const id of candidates) {
+        if (found) break;
+        if (await checkUrl(`https://boards-api.greenhouse.io/v1/boards/${id}/jobs`)) {
           console.log(`   ✅ Greenhouse trouvé: "${id}"`);
           found = { type: 'greenhouse', id };
         }
       }
     }
 
-    // Test SMARTRECRUITERS
+    // 4. Test SMARTRECRUITERS
     if (!found) {
       for (const id of candidates) {
         if (found) break;
-        const url = `https://api.smartrecruiters.com/v1/companies/${id}/postings`;
-        if (await checkUrl(url)) {
+        if (await checkUrl(`https://api.smartrecruiters.com/v1/companies/${id}/postings`)) {
           console.log(`   ✅ SmartRecruiters trouvé: "${id}"`);
           found = { type: 'smart', id };
         }
       }
     }
-
-    // Test WELCOME TO THE JUNGLE (API cachée via Algolia souvent, plus dur à tester simple fetch)
-    // On skip WTTJ pour ce script simple
 
     if (found) {
       results.push({ name: company.name, ...found });
@@ -80,12 +86,7 @@ async function discover() {
     }
   }
 
-  // Affiche le JSON à copier
   if (results.length > 0) {
-    console.log("\n\n📋 COPIEZ CECI DANS companies-large.json (ou je le ferai auto):");
-    console.log(JSON.stringify(results, null, 2));
-
-    // Mise à jour automatique
     console.log("\n💾 Mise à jour automatique du fichier...");
     let updatedCount = 0;
     for (const res of results) {
@@ -96,10 +97,12 @@ async function discover() {
         delete companies[idx].lever;
         delete companies[idx].smart;
         delete companies[idx].workday;
+        delete companies[idx].ashby;
 
         if (res.type === 'lever') companies[idx].lever = { company: res.id };
         if (res.type === 'greenhouse') companies[idx].greenhouse = { board: res.id };
         if (res.type === 'smart') companies[idx].smart = { company: res.id };
+        if (res.type === 'ashby') companies[idx].ashby = { company: res.id };
         updatedCount++;
       }
     }
@@ -109,22 +112,41 @@ async function discover() {
   }
 }
 
+async function checkAshbyApi(id) {
+  try {
+    const url = `https://api.ashbyhq.com/posting-api/job-board/${id}`;
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    // Il faut qu'il y ait des jobs ou au moins que la structure soit valide
+    return Array.isArray(data.jobs);
+  } catch {
+    return false;
+  }
+}
+
 async function checkUrl(url) {
   try {
     const controller = new AbortController();
     setTimeout(() => controller.abort(), 3000);
     const res = await fetch(url, {
       method: 'HEAD',
-      signal: controller.signal
+      signal: controller.signal,
+      headers: { 'User-Agent': 'Mozilla/5.0' }
     });
+
     if (res.ok) return true;
-    // SmartRecruiters retourne 200 même si vide ? Non, 404 si company existe pas.
-    // Lever retourne 404 si company existe pas.
-    // Greenhouse retourne 404.
-
-    // Par sécurité on tente un GET léger
-    if (res.status === 405 || res.status === 404) return false; // Method not allowed often means endpoint exists but HEAD rejected? No for these APIs.
-
+    if (res.status === 405) {
+         const res2 = await fetch(url, {
+            method: 'GET',
+            signal: controller.signal,
+            headers: { 'Range': 'bytes=0-100' }
+         });
+         return res2.ok;
+    }
     return false;
   } catch {
     return false;

@@ -299,6 +299,12 @@ async function fetchCompanyJobs(company, options, providerStatus) {
       run: () => fetchWorkdayJobs(company, options)
     });
   }
+  if (company.ashby?.company) {
+    collectors.push({
+      provider: 'ashby',
+      run: () => fetchAshbyJobs(company, options)
+    });
+  }
 
   if (!collectors.length) {
     console.warn(`[Direct Careers] ${company.name}: aucun ATS supporté configuré`);
@@ -365,6 +371,56 @@ async function fetchSmartRecruitersJobs(company, options) {
       });
     })
     .filter((job) => shouldKeepJob(job, options));
+}
+
+async function fetchAshbyJobs(company, options) {
+  // https://api.ashbyhq.com/posting-api/job-board/backmarket
+  const url = `https://api.ashbyhq.com/posting-api/job-board/${company.ashby.company}`;
+
+  // On essaie d'abord en GET (plus standard pour les boards publics)
+  let response = await fetch(url, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' }
+  });
+
+  // Si échec (404, 405, 401...), on tente POST (certains tenants l'exigent)
+  if (!response.ok) {
+     const resPost = await fetch(url, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' }
+     });
+     if (resPost.ok) {
+        response = resPost;
+     }
+  }
+
+  if (!response.ok) {
+    // Silencieux si 404/401 car config peut être mauvaise
+    if (response.status === 404 || response.status === 401) return [];
+    throw new Error(`Ashby HTTP ${response.status}`);
+  }
+
+  const data = await response.json();
+  const list = data.jobs || [];
+
+  return list.map(job => {
+      const location = job.location || job.address?.city || '';
+      const tags = [job.employmentType, ...(job.tags || [])];
+
+      return normalizeJob({
+        provider: 'ashby',
+        rawId: job.id,
+        company,
+        title: job.title,
+        location,
+        raw_url: job.applyUrl || job.jobUrl || company.careers,
+        raw_apply_url: job.applyUrl,
+        url_candidates: [{ url: job.applyUrl, source: 'ashby' }],
+        posted: job.publishedAt,
+        tags,
+        description: job.descriptionHtml || ''
+      });
+  }).filter(job => shouldKeepJob(job, options));
 }
 
 async function fetchLeverJobs(company, options) {
