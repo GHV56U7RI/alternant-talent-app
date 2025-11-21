@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 
 async function discover() {
-  console.log("🔍 Découverte AVANCÉE des IDs ATS...");
+  console.log("🔍 Découverte MASSIVE des IDs ATS (Batch)...");
 
   const jsonPath = path.resolve('sources/companies-large.json');
   let companies = [];
@@ -14,91 +14,58 @@ async function discover() {
     return;
   }
 
-  // Liste des entreprises à vérifier
-  const targets = [
-    "Back Market", "Aircall", "Alan", "PayFit", "OpenClassrooms",
-    "Thales", "Sanofi", "Danone", "Pernod Ricard", "PwC",
-    "Swile", "Ledger", "Voodoo", "Malt"
-  ];
+  // Filtrer ceux qui n'ont PAS de provider configuré
+  const targets = companies.filter(c =>
+    !c.greenhouse && !c.lever && !c.smart && !c.workday && !c.ashby
+  );
 
-  const results = [];
+  console.log(`📋 ${targets.length} entreprises sans configuration à analyser.`);
 
-  for (const company of companies) {
-    if (!targets.includes(company.name)) continue;
+  // Traitement par batch pour éviter de surcharger le réseau
+  const BATCH_SIZE = 10;
+  let updatedCount = 0;
 
-    console.log(`\n🔎 Analyse de ${company.name}...`);
+  for (let i = 0; i < targets.length; i += BATCH_SIZE) {
+    const batch = targets.slice(i, i + BATCH_SIZE);
+    console.log(`\n🔄 Traitement du lot ${i + 1}-${Math.min(i + BATCH_SIZE, targets.length)}...`);
 
-    const slug = slugify(company.name);
-    const slugNoDash = slug.replace(/-/g, '');
-    const candidates = [slug, slugNoDash, slug + 'hq', slug + 'jobs', slugNoDash + 'jobs'];
+    const promises = batch.map(async (company) => {
+      const slug = slugify(company.name);
+      const slugNoDash = slug.replace(/-/g, '');
+      const candidates = [slug, slugNoDash, slug + 'hq', slug + 'jobs', slugNoDash + 'jobs'];
 
-    let found = null;
-
-    // 1. Test ASHBY (API check strict)
-    if (!found) {
+      // 1. Test ASHBY
       for (const id of candidates) {
-        if (found) break;
-        // Ashby API check
-        if (await checkAshbyApi(id)) {
-          console.log(`   ✅ Ashby trouvé: "${id}"`);
-          found = { type: 'ashby', id };
-        }
+        if (await checkAshbyApi(id)) return { name: company.name, type: 'ashby', id };
       }
-    }
 
-    // 2. Test LEVER
-    if (!found) {
+      // 2. Test LEVER
       for (const id of candidates) {
-        if (found) break;
-        if (await checkUrl(`https://api.lever.co/v0/postings/${id}?mode=json`)) {
-          console.log(`   ✅ Lever trouvé: "${id}"`);
-          found = { type: 'lever', id };
-        }
+        if (await checkUrl(`https://api.lever.co/v0/postings/${id}?mode=json`)) return { name: company.name, type: 'lever', id };
       }
-    }
 
-    // 3. Test GREENHOUSE
-    if (!found) {
+      // 3. Test GREENHOUSE
       for (const id of candidates) {
-        if (found) break;
-        if (await checkUrl(`https://boards-api.greenhouse.io/v1/boards/${id}/jobs`)) {
-          console.log(`   ✅ Greenhouse trouvé: "${id}"`);
-          found = { type: 'greenhouse', id };
-        }
+        if (await checkUrl(`https://boards-api.greenhouse.io/v1/boards/${id}/jobs`)) return { name: company.name, type: 'greenhouse', id };
       }
-    }
 
-    // 4. Test SMARTRECRUITERS
-    if (!found) {
+      // 4. Test SMARTRECRUITERS
       for (const id of candidates) {
-        if (found) break;
-        if (await checkUrl(`https://api.smartrecruiters.com/v1/companies/${id}/postings`)) {
-          console.log(`   ✅ SmartRecruiters trouvé: "${id}"`);
-          found = { type: 'smart', id };
-        }
+        if (await checkUrl(`https://api.smartrecruiters.com/v1/companies/${id}/postings`)) return { name: company.name, type: 'smart', id };
       }
-    }
 
-    if (found) {
-      results.push({ name: company.name, ...found });
-    } else {
-      console.log(`   ❌ Aucun ATS standard trouvé pour "${slug}"`);
-    }
-  }
+      return null;
+    });
 
-  if (results.length > 0) {
-    console.log("\n💾 Mise à jour automatique du fichier...");
-    let updatedCount = 0;
+    const results = await Promise.all(promises);
+
+    // Appliquer les résultats
     for (const res of results) {
+      if (!res) continue;
+
+      console.log(`   ✅ ${res.name} -> ${res.type}: ${res.id}`);
       const idx = companies.findIndex(c => c.name === res.name);
       if (idx !== -1) {
-        // Reset providers
-        delete companies[idx].greenhouse;
-        delete companies[idx].lever;
-        delete companies[idx].smart;
-        delete companies[idx].workday;
-        delete companies[idx].ashby;
-
         if (res.type === 'lever') companies[idx].lever = { company: res.id };
         if (res.type === 'greenhouse') companies[idx].greenhouse = { board: res.id };
         if (res.type === 'smart') companies[idx].smart = { company: res.id };
@@ -107,9 +74,11 @@ async function discover() {
       }
     }
 
+    // Sauvegarde intermédiaire
     await fs.writeFile(jsonPath, JSON.stringify(companies, null, 2));
-    console.log(`✅ ${updatedCount} entreprises mises à jour !`);
   }
+
+  console.log(`\n✅ Terminé ! ${updatedCount} nouvelles configurations trouvées.`);
 }
 
 async function checkAshbyApi(id) {
@@ -121,7 +90,6 @@ async function checkAshbyApi(id) {
     });
     if (!res.ok) return false;
     const data = await res.json();
-    // Il faut qu'il y ait des jobs ou au moins que la structure soit valide
     return Array.isArray(data.jobs);
   } catch {
     return false;
@@ -131,7 +99,7 @@ async function checkAshbyApi(id) {
 async function checkUrl(url) {
   try {
     const controller = new AbortController();
-    setTimeout(() => controller.abort(), 3000);
+    setTimeout(() => controller.abort(), 2000); // Timeout court
     const res = await fetch(url, {
       method: 'HEAD',
       signal: controller.signal,
