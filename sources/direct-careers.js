@@ -16,55 +16,15 @@ import { FreeURLResolver } from './url-resolver-free.js';
 import { FreeAIValidator } from './ai-validator-free.js';
 import { FreeMonitoring } from './monitoring-free.js';
 
-const DEFAULT_COMPANIES = [
-  // --- GREENHOUSE (Tech & Startups) - VÉRIFIÉS ✅ ---
-  { name: 'Doctolib', careers: 'https://careers.doctolib.com', greenhouse: { board: 'doctolib' } },
-  { name: 'Datadog', careers: 'https://careers.datadoghq.com', greenhouse: { board: 'datadog' } },
-  { name: 'Algolia', careers: 'https://www.algolia.com/careers', greenhouse: { board: 'algolia' } },
-  { name: 'Stripe', careers: 'https://stripe.com/jobs', greenhouse: { board: 'stripe' } },
-  { name: 'TheFork', careers: 'https://careers.thefork.com', greenhouse: { board: 'thefork' } },
-  { name: 'Artefact', careers: 'https://www.artefact.com/careers', greenhouse: { board: 'artefact' } },
-  { name: 'Valtech', careers: 'https://www.valtech.com/careers', greenhouse: { board: 'valtech' } },
+import { NEW_COMPANIES } from './new-companies.js';
 
-  // --- LEVER (Startups & Scaleups) ---
-  { name: 'Qonto', careers: 'https://qonto.com/careers', lever: { company: 'qonto' } },
-  { name: 'Spendesk', careers: 'https://www.spendesk.com/careers', lever: { company: 'spendesk' } },
-  // Lydia, Yousign, Luko, Shift Technology → 404, retirés
-  { name: 'Doctrine', careers: 'https://www.doctrine.fr/careers', lever: { company: 'doctrine' } },
-  { name: 'Veepee', careers: 'https://careers.veepee.com', lever: { company: 'veepee' } },
-  { name: 'Scaleway', careers: 'https://www.scaleway.com/en/careers', lever: { company: 'scaleway' } },
-  { name: 'Pigment', careers: 'https://www.pigment.com/careers', lever: { company: 'pigment' } },
-  { name: 'Kickmaker', careers: 'https://kickmaker.net/careers', lever: { company: 'kickmaker' } },
-  { name: 'Verkor', careers: 'https://verkor.com/careers', lever: { company: 'verkor' } },
-  { name: 'Lucca', careers: 'https://www.lucca.fr/carrieres', lever: { company: 'lucca' } },
-  { name: 'Brevo', careers: 'https://www.brevo.com/careers', lever: { company: 'brevo' } },
+// COMMENT AJOUTER UNE NOUVELLE ENTREPRISE:
+// 1. Greenhouse: Tester avec curl "https://boards-api.greenhouse.io/v1/boards/BOARD_ID/jobs"
+// 2. Lever: Tester avec curl "https://api.lever.co/v0/postings/COMPANY_ID?mode=json"
+// 3. SmartRecruiters: Tester avec curl "https://api.smartrecruiters.com/v1/companies/COMPANY_ID/postings"
+// 4. Ajouter dans sources/new-companies.js avec le bon format
 
-  // Lever - Nouvelles entreprises
-  { name: 'Alma', careers: 'https://getalma.eu/careers', lever: { company: 'alma' } },
-  { name: 'Pennylane', careers: 'https://www.pennylane.com/careers', lever: { company: 'pennylane' } },
-  { name: 'PayFit', careers: 'https://payfit.com/careers', lever: { company: 'payfit' } },
-  { name: 'Swile', careers: 'https://www.swile.co/careers', lever: { company: 'swile' } },
-  { name: 'Sorare', careers: 'https://sorare.com/careers', lever: { company: 'sorare' } },
-  { name: 'Ankorstore', careers: 'https://www.ankorstore.com/careers', lever: { company: 'ankorstore' } },
-  { name: 'Shine', careers: 'https://www.shine.fr/careers', lever: { company: 'shine' } },
-  { name: 'Memo Bank', careers: 'https://memo.bank/careers', lever: { company: 'memo-bank' } },
-  { name: 'Pretto', careers: 'https://www.pretto.fr/careers', lever: { company: 'pretto' } },
-  { name: 'Lunchr', careers: 'https://www.lunchr.fr/careers', lever: { company: 'lunchr' } },
-  { name: 'Comet', careers: 'https://www.comet.co/careers', lever: { company: 'comet' } },
-  { name: 'Hokodo', careers: 'https://hokodo.co/careers', lever: { company: 'hokodo' } },
-
-  // --- SMARTRECRUITERS (Large Groups) ---
-  { name: 'Ubisoft', careers: 'https://www.ubisoft.com/en-us/careers', smart: { company: 'Ubisoft2' } },
-  { name: 'Accor', careers: 'https://careers.accor.com', smart: { company: 'AccorGroup' } },
-  { name: 'Publicis', careers: 'https://www.publicisgroupe.com/en/careers', smart: { company: 'PublicisGroupe' } },
-  { name: 'Celonis', careers: 'https://www.celonis.com/careers', smart: { company: 'Celonis' } }
-
-  // COMMENT AJOUTER UNE NOUVELLE ENTREPRISE:
-  // 1. Greenhouse: Tester avec curl "https://boards-api.greenhouse.io/v1/boards/BOARD_ID/jobs"
-  // 2. Lever: Tester avec curl "https://api.lever.co/v0/postings/COMPANY_ID?mode=json"
-  // 3. SmartRecruiters: Tester avec curl "https://api.smartrecruiters.com/v1/companies/COMPANY_ID/postings"
-  // 4. Ajouter ici avec le bon format
-];
+const DEFAULT_COMPANIES = NEW_COMPANIES;
 
 const ALTERNANCE_REGEX = /\b(alternance|alternant|apprentissage|apprentice|apprenticeship|work[-\s]?study|coop|co-op)\b/i;
 const FR_KEYWORDS = [
