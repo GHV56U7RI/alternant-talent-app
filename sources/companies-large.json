@@ -1,0 +1,1365 @@
+[
+  {
+    "name": "Doctolib",
+    "greenhouse": {
+      "board": "doctolib"
+    }
+  },
+  {
+    "name": "Datadog",
+    "careers": "https://careers.datadoghq.com",
+    "greenhouse": {
+      "board": "datadog"
+    }
+  },
+  {
+    "name": "Back Market",
+    "ashby": {
+      "company": "backmarket"
+    }
+  },
+  {
+    "name": "Aircall",
+    "ashby": {
+      "company": "aircall"
+    }
+  },
+  {
+    "name": "Alan",
+    "ashby": {
+      "company": "alan"
+    }
+  },
+  {
+    "name": "PayFit",
+    "ashby": {
+      "company": "payfit"
+    }
+  },
+  {
+    "name": "Swile",
+    "ashby": {
+      "company": "swile"
+    }
+  },
+  {
+    "name": "Ledger",
+    "ashby": {
+      "company": "ledger"
+    }
+  },
+  {
+    "name": "Voodoo",
+    "ashby": {
+      "company": "voodoo"
+    }
+  },
+  {
+    "name": "Malt",
+    "ashby": {
+      "company": "malt"
+    }
+  },
+  {
+    "name": "OpenClassrooms",
+    "ashby": {
+      "company": "openclassrooms"
+    }
+  },
+  {
+    "name": "Thales",
+    "smart": {
+      "company": "thales"
+    }
+  },
+  {
+    "name": "Sanofi",
+    "smart": {
+      "company": "sanofi"
+    }
+  },
+  {
+    "name": "Danone",
+    "smart": {
+      "company": "danone"
+    }
+  },
+  {
+    "name": "Pernod Ricard",
+    "smart": {
+      "company": "pernod-ricard"
+    }
+  },
+  {
+    "name": "PwC",
+    "smart": {
+      "company": "pwc"
+    }
+  },
+  {
+    "name": "360Learning",
+    "lever": {
+      "company": "360learning"
+    }
+  },
+  {
+    "name": "AB Tasty",
+    "smart": {
+      "company": "ab-tasty"
+    }
+  },
+  {
+    "name": "Agicap",
+    "lever": {
+      "company": "agicap"
+    }
+  },
+  {
+    "name": "Akers",
+    "smart": {
+      "company": "akers"
+    }
+  },
+  {
+    "name": "Alma",
+    "greenhouse": {
+      "board": "alma"
+    }
+  },
+  {
+    "name": "Ankorstore",
+    "smart": {
+      "company": "ankorstore"
+    }
+  },
+  {
+    "name": "Believe",
+    "smart": {
+      "company": "believe"
+    }
+  },
+  {
+    "name": "Bioserenity",
+    "smart": {
+      "company": "bioserenity"
+    }
+  },
+  {
+    "name": "BlaBlaCar",
+    "lever": {
+      "company": "blablacar"
+    }
+  },
+  {
+    "name": "Brut",
+    "smart": {
+      "company": "brut"
+    }
+  },
+  {
+    "name": "Contentsquare",
+    "lever": {
+      "company": "contentsquare"
+    }
+  },
+  {
+    "name": "Deezer",
+    "smart": {
+      "company": "deezer"
+    }
+  },
+  {
+    "name": "DentalMonitoring",
+    "smart": {
+      "company": "dentalmonitoring"
+    }
+  },
+  {
+    "name": "Devialet",
+    "smart": {
+      "company": "devialet"
+    }
+  },
+  {
+    "name": "Exotec",
+    "smart": {
+      "company": "exotec"
+    }
+  },
+  {
+    "name": "Ivalua",
+    "greenhouse": {
+      "board": "ivalua"
+    }
+  },
+  {
+    "name": "JobTeaser",
+    "smart": {
+      "company": "jobteaser"
+    }
+  },
+  {
+    "name": "LumApps",
+    "smart": {
+      "company": "lumapps"
+    }
+  },
+  {
+    "name": "Lydia",
+    "smart": {
+      "company": "lydia"
+    }
+  },
+  {
+    "name": "ManoMano",
+    "smart": {
+      "company": "manomano"
+    }
+  },
+  {
+    "name": "Meero",
+    "smart": {
+      "company": "meero"
+    }
+  },
+  {
+    "name": "Mirakl",
+    "greenhouse": {
+      "board": "mirakl"
+    }
+  },
+  {
+    "name": "Qonto",
+    "smart": {
+      "company": "qonto"
+    }
+  },
+  {
+    "name": "Shift Technology",
+    "greenhouse": {
+      "board": "shifttechnology"
+    }
+  },
+  {
+    "name": "Sorare",
+    "smart": {
+      "company": "sorare"
+    }
+  },
+  {
+    "name": "Spendesk",
+    "smart": {
+      "company": "spendesk"
+    }
+  },
+  {
+    "name": "Veepee",
+    "smart": {
+      "company": "veepee"
+    }
+  },
+  {
+    "name": "Vestiaire Collective",
+    "smart": {
+      "company": "vestiaire-collective"
+    }
+  },
+  {
+    "name": "Withings",
+    "smart": {
+      "company": "withings"
+    }
+  },
+  {
+    "name": "Ynsect",
+    "smart": {
+      "company": "ynsect"
+    }
+  },
+  {
+    "name": "Younited",
+    "smart": {
+      "company": "younited"
+    }
+  },
+  {
+    "name": "Akeneo",
+    "smart": {
+      "company": "akeneo"
+    }
+  },
+  {
+    "name": "Anywhere365",
+    "smart": {
+      "company": "anywhere365"
+    }
+  },
+  {
+    "name": "Batch",
+    "smart": {
+      "company": "batch"
+    }
+  },
+  {
+    "name": "Botify",
+    "smart": {
+      "company": "botify"
+    }
+  },
+  {
+    "name": "Brevo",
+    "smart": {
+      "company": "brevo"
+    }
+  },
+  {
+    "name": "Cafeyn",
+    "smart": {
+      "company": "cafeyn"
+    }
+  },
+  {
+    "name": "Campings.com",
+    "smart": {
+      "company": "campingscom"
+    }
+  },
+  {
+    "name": "Certideal",
+    "smart": {
+      "company": "certideal"
+    }
+  },
+  {
+    "name": "Cityscoot",
+    "smart": {
+      "company": "cityscoot"
+    }
+  },
+  {
+    "name": "Cooptalis",
+    "smart": {
+      "company": "cooptalis"
+    }
+  },
+  {
+    "name": "Crosscall",
+    "smart": {
+      "company": "crosscall"
+    }
+  },
+  {
+    "name": "CyberVadis",
+    "smart": {
+      "company": "cybervadis"
+    }
+  },
+  {
+    "name": "Deepki",
+    "smart": {
+      "company": "deepki"
+    }
+  },
+  {
+    "name": "Didomi",
+    "lever": {
+      "company": "didomi"
+    }
+  },
+  {
+    "name": "D-Edge",
+    "smart": {
+      "company": "d-edge"
+    }
+  },
+  {
+    "name": "Ekwateur",
+    "smart": {
+      "company": "ekwateur"
+    }
+  },
+  {
+    "name": "Entech",
+    "smart": {
+      "company": "entech"
+    }
+  },
+  {
+    "name": "Eovolt",
+    "smart": {
+      "company": "eovolt"
+    }
+  },
+  {
+    "name": "Evaluate",
+    "smart": {
+      "company": "evaluate"
+    }
+  },
+  {
+    "name": "Finalcad",
+    "smart": {
+      "company": "finalcad"
+    }
+  },
+  {
+    "name": "Fretlink",
+    "smart": {
+      "company": "fretlink"
+    }
+  },
+  {
+    "name": "Gojob",
+    "lever": {
+      "company": "gojob"
+    }
+  },
+  {
+    "name": "Happytal",
+    "smart": {
+      "company": "happytal"
+    }
+  },
+  {
+    "name": "Heetch",
+    "lever": {
+      "company": "heetch"
+    }
+  },
+  {
+    "name": "Hivency",
+    "smart": {
+      "company": "hivency"
+    }
+  },
+  {
+    "name": "HomeExchange",
+    "smart": {
+      "company": "homeexchange"
+    }
+  },
+  {
+    "name": "Ibanfirst",
+    "greenhouse": {
+      "board": "ibanfirst"
+    }
+  },
+  {
+    "name": "ImCheck Therapeutics",
+    "smart": {
+      "company": "imcheck-therapeutics"
+    }
+  },
+  {
+    "name": "Incepto",
+    "smart": {
+      "company": "incepto"
+    }
+  },
+  {
+    "name": "Inotrem",
+    "smart": {
+      "company": "inotrem"
+    }
+  },
+  {
+    "name": "Insect",
+    "smart": {
+      "company": "insect"
+    }
+  },
+  {
+    "name": "Invivox",
+    "smart": {
+      "company": "invivox"
+    }
+  },
+  {
+    "name": "Joone",
+    "smart": {
+      "company": "joone"
+    }
+  },
+  {
+    "name": "Kineis",
+    "smart": {
+      "company": "kineis"
+    }
+  },
+  {
+    "name": "Klaxoon",
+    "greenhouse": {
+      "board": "klaxoon"
+    }
+  },
+  {
+    "name": "Koober",
+    "smart": {
+      "company": "koober"
+    }
+  },
+  {
+    "name": "La Ruche qui dit Oui",
+    "smart": {
+      "company": "la-ruche-qui-dit-oui"
+    }
+  },
+  {
+    "name": "Le Collectionist",
+    "smart": {
+      "company": "le-collectionist"
+    }
+  },
+  {
+    "name": "Le Slip Français",
+    "smart": {
+      "company": "le-slip-francais"
+    }
+  },
+  {
+    "name": "L'Exception",
+    "smart": {
+      "company": "lexception"
+    }
+  },
+  {
+    "name": "Luko",
+    "smart": {
+      "company": "luko"
+    }
+  },
+  {
+    "name": "Lunchr",
+    "smart": {
+      "company": "lunchr"
+    }
+  },
+  {
+    "name": "Madbox",
+    "smart": {
+      "company": "madbox"
+    }
+  },
+  {
+    "name": "Majelan",
+    "smart": {
+      "company": "majelan"
+    }
+  },
+  {
+    "name": "Medadom",
+    "smart": {
+      "company": "medadom"
+    }
+  },
+  {
+    "name": "Microphyt",
+    "smart": {
+      "company": "microphyt"
+    }
+  },
+  {
+    "name": "MisterTemp",
+    "smart": {
+      "company": "mistertemp"
+    }
+  },
+  {
+    "name": "Molotov",
+    "smart": {
+      "company": "molotov"
+    }
+  },
+  {
+    "name": "MWM",
+    "smart": {
+      "company": "mwm"
+    }
+  },
+  {
+    "name": "MyLittleParis",
+    "smart": {
+      "company": "mylittleparis"
+    }
+  },
+  {
+    "name": "Nabla",
+    "smart": {
+      "company": "nabla"
+    }
+  },
+  {
+    "name": "Netatmo",
+    "smart": {
+      "company": "netatmo"
+    }
+  },
+  {
+    "name": "October",
+    "smart": {
+      "company": "october"
+    }
+  },
+  {
+    "name": "OpenAirlines",
+    "smart": {
+      "company": "openairlines"
+    }
+  },
+  {
+    "name": "Ornikar",
+    "smart": {
+      "company": "ornikar"
+    }
+  },
+  {
+    "name": "Papernest",
+    "smart": {
+      "company": "papernest"
+    }
+  },
+  {
+    "name": "Partoo",
+    "lever": {
+      "company": "partoo"
+    }
+  },
+  {
+    "name": "Phenix",
+    "smart": {
+      "company": "phenix"
+    }
+  },
+  {
+    "name": "Platform.sh",
+    "greenhouse": {
+      "board": "platformsh"
+    }
+  },
+  {
+    "name": "PlayPlay",
+    "lever": {
+      "company": "playplay"
+    }
+  },
+  {
+    "name": "Polene",
+    "smart": {
+      "company": "polene"
+    }
+  },
+  {
+    "name": "Pretto",
+    "smart": {
+      "company": "pretto"
+    }
+  },
+  {
+    "name": "Respire",
+    "smart": {
+      "company": "respire"
+    }
+  },
+  {
+    "name": "Scaleway",
+    "lever": {
+      "company": "scaleway"
+    }
+  },
+  {
+    "name": "Selency",
+    "smart": {
+      "company": "selency"
+    }
+  },
+  {
+    "name": "Shadow",
+    "lever": {
+      "company": "shadow"
+    }
+  },
+  {
+    "name": "Singulart",
+    "smart": {
+      "company": "singulart"
+    }
+  },
+  {
+    "name": "Skello",
+    "lever": {
+      "company": "skello"
+    }
+  },
+  {
+    "name": "Skeepers",
+    "smart": {
+      "company": "skeepers"
+    }
+  },
+  {
+    "name": "SmallPDF",
+    "smart": {
+      "company": "smallpdf"
+    }
+  },
+  {
+    "name": "Sparkup",
+    "smart": {
+      "company": "sparkup"
+    }
+  },
+  {
+    "name": "Strapi",
+    "lever": {
+      "company": "strapi"
+    }
+  },
+  {
+    "name": "Sunday",
+    "smart": {
+      "company": "sunday"
+    }
+  },
+  {
+    "name": "Superprof",
+    "smart": {
+      "company": "superprof"
+    }
+  },
+  {
+    "name": "Sweep",
+    "smart": {
+      "company": "sweep"
+    }
+  },
+  {
+    "name": "Talent.io",
+    "smart": {
+      "company": "talentio"
+    }
+  },
+  {
+    "name": "Teads",
+    "greenhouse": {
+      "board": "teads"
+    }
+  },
+  {
+    "name": "Technis",
+    "smart": {
+      "company": "technis"
+    }
+  },
+  {
+    "name": "Theodo",
+    "lever": {
+      "company": "theodo"
+    }
+  },
+  {
+    "name": "Tissium",
+    "smart": {
+      "company": "tissium"
+    }
+  },
+  {
+    "name": "Trusk",
+    "smart": {
+      "company": "trusk"
+    }
+  },
+  {
+    "name": "Umi",
+    "smart": {
+      "company": "umi"
+    }
+  },
+  {
+    "name": "Vadesecure",
+    "smart": {
+      "company": "vadesecure"
+    }
+  },
+  {
+    "name": "Virtuo",
+    "smart": {
+      "company": "virtuo"
+    }
+  },
+  {
+    "name": "Waga Energy",
+    "smart": {
+      "company": "waga-energy"
+    }
+  },
+  {
+    "name": "Wandercraft",
+    "smart": {
+      "company": "wandercraft"
+    }
+  },
+  {
+    "name": "Welcome to the Jungle",
+    "greenhouse": {
+      "board": "welcometothejungle"
+    }
+  },
+  {
+    "name": "Wemanity",
+    "smart": {
+      "company": "wemanity"
+    }
+  },
+  {
+    "name": "Woodeum",
+    "smart": {
+      "company": "woodeum"
+    }
+  },
+  {
+    "name": "Yseop",
+    "smart": {
+      "company": "yseop"
+    }
+  },
+  {
+    "name": "Zefir",
+    "smart": {
+      "company": "zefir"
+    }
+  },
+  {
+    "name": "Air Liquide",
+    "smart": {
+      "company": "air-liquide"
+    }
+  },
+  {
+    "name": "Airbus",
+    "smart": {
+      "company": "airbus"
+    }
+  },
+  {
+    "name": "Alstom",
+    "smart": {
+      "company": "alstom"
+    }
+  },
+  {
+    "name": "ArcelorMittal",
+    "smart": {
+      "company": "arcelormittal"
+    }
+  },
+  {
+    "name": "AXA",
+    "smart": {
+      "company": "axa"
+    }
+  },
+  {
+    "name": "BNP Paribas",
+    "smart": {
+      "company": "bnp-paribas"
+    }
+  },
+  {
+    "name": "Bouygues",
+    "smart": {
+      "company": "bouygues"
+    }
+  },
+  {
+    "name": "Capgemini",
+    "smart": {
+      "company": "capgemini"
+    }
+  },
+  {
+    "name": "Carrefour",
+    "smart": {
+      "company": "carrefour"
+    }
+  },
+  {
+    "name": "Credit Agricole",
+    "smart": {
+      "company": "credit-agricole"
+    }
+  },
+  {
+    "name": "Dassault Systemes",
+    "smart": {
+      "company": "dassault-systemes"
+    }
+  },
+  {
+    "name": "Edenred",
+    "smart": {
+      "company": "edenred"
+    }
+  },
+  {
+    "name": "Engie",
+    "smart": {
+      "company": "engie"
+    }
+  },
+  {
+    "name": "EssilorLuxottica",
+    "smart": {
+      "company": "essilorluxottica"
+    }
+  },
+  {
+    "name": "Eurofins Scientific",
+    "smart": {
+      "company": "eurofins-scientific"
+    }
+  },
+  {
+    "name": "Hermes",
+    "smart": {
+      "company": "hermes"
+    }
+  },
+  {
+    "name": "Kering",
+    "smart": {
+      "company": "kering"
+    }
+  },
+  {
+    "name": "Legrand",
+    "smart": {
+      "company": "legrand"
+    }
+  },
+  {
+    "name": "L'Oreal",
+    "smart": {
+      "company": "loreal"
+    }
+  },
+  {
+    "name": "LVMH",
+    "smart": {
+      "company": "lvmh"
+    }
+  },
+  {
+    "name": "Michelin",
+    "smart": {
+      "company": "michelin"
+    }
+  },
+  {
+    "name": "Orange",
+    "smart": {
+      "company": "orange"
+    }
+  },
+  {
+    "name": "Publicis",
+    "smart": {
+      "company": "publicis"
+    }
+  },
+  {
+    "name": "Renault",
+    "smart": {
+      "company": "renault"
+    }
+  },
+  {
+    "name": "Safran",
+    "smart": {
+      "company": "safran"
+    }
+  },
+  {
+    "name": "Saint-Gobain",
+    "smart": {
+      "company": "saint-gobain"
+    }
+  },
+  {
+    "name": "Schneider Electric",
+    "smart": {
+      "company": "schneider-electric"
+    }
+  },
+  {
+    "name": "Societe Generale",
+    "smart": {
+      "company": "societe-generale"
+    }
+  },
+  {
+    "name": "Stellantis",
+    "smart": {
+      "company": "stellantis"
+    }
+  },
+  {
+    "name": "STMicroelectronics",
+    "smart": {
+      "company": "stmicroelectronics"
+    }
+  },
+  {
+    "name": "Teleperformance",
+    "smart": {
+      "company": "teleperformance"
+    }
+  },
+  {
+    "name": "TotalEnergies",
+    "smart": {
+      "company": "totalenergies"
+    }
+  },
+  {
+    "name": "Unibail-Rodamco-Westfield",
+    "smart": {
+      "company": "unibail-rodamco-westfield"
+    }
+  },
+  {
+    "name": "Veolia",
+    "smart": {
+      "company": "veolia"
+    }
+  },
+  {
+    "name": "Vinci",
+    "smart": {
+      "company": "vinci"
+    }
+  },
+  {
+    "name": "Vivendi",
+    "smart": {
+      "company": "vivendi"
+    }
+  },
+  {
+    "name": "Worldline",
+    "smart": {
+      "company": "worldline"
+    }
+  },
+  {
+    "name": "Google",
+    "smart": {
+      "company": "google"
+    }
+  },
+  {
+    "name": "Meta",
+    "smart": {
+      "company": "meta"
+    }
+  },
+  {
+    "name": "Amazon",
+    "smart": {
+      "company": "amazon"
+    }
+  },
+  {
+    "name": "Microsoft",
+    "smart": {
+      "company": "microsoft"
+    }
+  },
+  {
+    "name": "Apple",
+    "smart": {
+      "company": "apple"
+    }
+  },
+  {
+    "name": "Netflix",
+    "lever": {
+      "company": "netflix"
+    }
+  },
+  {
+    "name": "Spotify",
+    "lever": {
+      "company": "spotify"
+    }
+  },
+  {
+    "name": "Salesforce",
+    "smart": {
+      "company": "salesforce"
+    }
+  },
+  {
+    "name": "Oracle",
+    "smart": {
+      "company": "oracle"
+    }
+  },
+  {
+    "name": "SAP",
+    "smart": {
+      "company": "sap"
+    }
+  },
+  {
+    "name": "Adobe",
+    "smart": {
+      "company": "adobe"
+    }
+  },
+  {
+    "name": "Uber",
+    "smart": {
+      "company": "uber"
+    }
+  },
+  {
+    "name": "Airbnb",
+    "greenhouse": {
+      "board": "airbnb"
+    }
+  },
+  {
+    "name": "Stripe",
+    "greenhouse": {
+      "board": "stripe"
+    }
+  },
+  {
+    "name": "Shopify",
+    "smart": {
+      "company": "shopify"
+    }
+  },
+  {
+    "name": "HubSpot",
+    "greenhouse": {
+      "board": "hubspot"
+    }
+  },
+  {
+    "name": "Slack",
+    "smart": {
+      "company": "slack"
+    }
+  },
+  {
+    "name": "Twilio",
+    "greenhouse": {
+      "board": "twilio"
+    }
+  },
+  {
+    "name": "Snowflake",
+    "smart": {
+      "company": "snowflake"
+    }
+  },
+  {
+    "name": "Palantir",
+    "smart": {
+      "company": "palantir"
+    }
+  },
+  {
+    "name": "Accenture",
+    "smart": {
+      "company": "accenture"
+    }
+  },
+  {
+    "name": "Deloitte",
+    "smart": {
+      "company": "deloitte"
+    }
+  },
+  {
+    "name": "EY",
+    "smart": {
+      "company": "ey"
+    }
+  },
+  {
+    "name": "KPMG",
+    "lever": {
+      "company": "kpmg"
+    }
+  },
+  {
+    "name": "McKinsey",
+    "smart": {
+      "company": "mckinsey"
+    }
+  },
+  {
+    "name": "BCG",
+    "greenhouse": {
+      "board": "bcg"
+    }
+  },
+  {
+    "name": "Bain",
+    "smart": {
+      "company": "bain"
+    }
+  },
+  {
+    "name": "Wavestone",
+    "smart": {
+      "company": "wavestone"
+    }
+  },
+  {
+    "name": "Sopra Steria",
+    "smart": {
+      "company": "sopra-steria"
+    }
+  },
+  {
+    "name": "Atos",
+    "smart": {
+      "company": "atos"
+    }
+  },
+  {
+    "name": "CGI",
+    "smart": {
+      "company": "cgi"
+    }
+  },
+  {
+    "name": "Talan",
+    "smart": {
+      "company": "talan"
+    }
+  },
+  {
+    "name": "Devoteam",
+    "smart": {
+      "company": "devoteam"
+    }
+  },
+  {
+    "name": "Decathlon",
+    "smart": {
+      "company": "decathlon"
+    }
+  },
+  {
+    "name": "Leroy Merlin",
+    "smart": {
+      "company": "leroy-merlin"
+    }
+  },
+  {
+    "name": "Auchan",
+    "smart": {
+      "company": "auchan"
+    }
+  },
+  {
+    "name": "Fnac Darty",
+    "smart": {
+      "company": "fnac-darty"
+    }
+  },
+  {
+    "name": "Sephora",
+    "smart": {
+      "company": "sephora"
+    }
+  },
+  {
+    "name": "Galeries Lafayette",
+    "smart": {
+      "company": "galeries-lafayette"
+    }
+  },
+  {
+    "name": "Printemps",
+    "smart": {
+      "company": "printemps"
+    }
+  },
+  {
+    "name": "La Redoute",
+    "smart": {
+      "company": "la-redoute"
+    }
+  },
+  {
+    "name": "Cdiscount",
+    "smart": {
+      "company": "cdiscount"
+    }
+  },
+  {
+    "name": "Showroomprive",
+    "smart": {
+      "company": "showroomprive"
+    }
+  },
+  {
+    "name": "SNCF",
+    "smart": {
+      "company": "sncf"
+    }
+  },
+  {
+    "name": "RATP",
+    "smart": {
+      "company": "ratp"
+    }
+  },
+  {
+    "name": "Air France",
+    "smart": {
+      "company": "air-france"
+    }
+  },
+  {
+    "name": "Valeo",
+    "smart": {
+      "company": "valeo"
+    }
+  },
+  {
+    "name": "Faurecia",
+    "smart": {
+      "company": "faurecia"
+    }
+  },
+  {
+    "name": "Plastic Omnium",
+    "smart": {
+      "company": "plastic-omnium"
+    }
+  },
+  {
+    "name": "Arkema",
+    "smart": {
+      "company": "arkema"
+    }
+  },
+  {
+    "name": "Solvay",
+    "smart": {
+      "company": "solvay"
+    }
+  },
+  {
+    "name": "TechnipFMC",
+    "smart": {
+      "company": "technipfmc"
+    }
+  }
+]
