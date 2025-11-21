@@ -40,18 +40,8 @@ const DEFAULT_COMPANIES = [
   { name: 'Brevo', careers: 'https://www.brevo.com/careers', lever: { company: 'brevo' } },
 
   // Lever - Nouvelles entreprises
-  { name: 'Alma', careers: 'https://getalma.eu/careers', lever: { company: 'alma' } },
   { name: 'Pennylane', careers: 'https://www.pennylane.com/careers', lever: { company: 'pennylane' } },
-  { name: 'PayFit', careers: 'https://payfit.com/careers', lever: { company: 'payfit' } },
   { name: 'Swile', careers: 'https://www.swile.co/careers', lever: { company: 'swile' } },
-  { name: 'Sorare', careers: 'https://sorare.com/careers', lever: { company: 'sorare' } },
-  { name: 'Ankorstore', careers: 'https://www.ankorstore.com/careers', lever: { company: 'ankorstore' } },
-  { name: 'Shine', careers: 'https://www.shine.fr/careers', lever: { company: 'shine' } },
-  { name: 'Memo Bank', careers: 'https://memo.bank/careers', lever: { company: 'memo-bank' } },
-  { name: 'Pretto', careers: 'https://www.pretto.fr/careers', lever: { company: 'pretto' } },
-  { name: 'Lunchr', careers: 'https://www.lunchr.fr/careers', lever: { company: 'lunchr' } },
-  { name: 'Comet', careers: 'https://www.comet.co/careers', lever: { company: 'comet' } },
-  { name: 'Hokodo', careers: 'https://hokodo.co/careers', lever: { company: 'hokodo' } },
 
   // --- SMARTRECRUITERS (Large Groups) ---
   { name: 'Ubisoft', careers: 'https://www.ubisoft.com/en-us/careers', smart: { company: 'Ubisoft2' } },
