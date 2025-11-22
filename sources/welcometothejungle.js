@@ -189,8 +189,7 @@ async function fetchAlgoliaJobs({ appId, apiKey, indexName }, companySlug, optio
       const title = (job.name || '').toUpperCase();
       const isApprenticeship = type === 'APPRENTICESHIP' ||
                                type === 'PROFESSIONALIZATION' ||
-                               type === 'INTERNSHIP' ||
-                               /ALTERNANCE|APPRENTISSAGE|CONTRAT PRO|STAGE/.test(title);
+                               /ALTERNANCE|APPRENTISSAGE|CONTRAT PRO/.test(title);
 
       if (!isApprenticeship && !options.includeAll) return null;
 
