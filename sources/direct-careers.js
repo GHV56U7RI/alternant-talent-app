@@ -15,8 +15,12 @@
 import { FreeURLResolver } from './url-resolver-free.js';
 import { FreeAIValidator } from './ai-validator-free.js';
 import { FreeMonitoring } from './monitoring-free.js';
+import { fetchWTTJCompanyJobs } from './welcometothejungle.js';
 
 const DEFAULT_COMPANIES = [
+  // --- RETAIL / GRANDE DISTRIBUTION ---
+  { name: 'Auchan', careers: 'https://www.auchan-recrute.fr/jobs/', wttj: { slug: 'auchan' } },
+
   // --- GREENHOUSE (Tech & Startups) - VÉRIFIÉS ✅ ---
   { name: 'Doctolib', careers: 'https://careers.doctolib.com', greenhouse: { board: 'doctolib' } },
   { name: 'Datadog', careers: 'https://careers.datadoghq.com', greenhouse: { board: 'datadog' } },
@@ -217,7 +221,17 @@ export async function fetchDirectCareersJobs({ query = 'alternance', location = 
   }
 
   uniqueJobs = chooseBestCandidates(uniqueJobs, urlStats);
-  await probeJobUrls(uniqueJobs, urlStats);
+
+  // Skip probing for trusted API sources to avoid blocking
+  const jobsToProbe = uniqueJobs.filter(j => j.source !== 'welcometothejungle');
+  const jobsTrusted = uniqueJobs.filter(j => j.source === 'welcometothejungle');
+
+  await probeJobUrls(jobsToProbe, urlStats);
+
+  // Mark trusted jobs as healthy
+  jobsTrusted.forEach(j => {
+    j.url_health = { status: 200, isBroken: false };
+  });
 
   const beforeFilter = uniqueJobs.length;
   uniqueJobs = uniqueJobs.filter((job) => !job.__discarded && !job.url_health?.isBroken && job.apply_url && looksLikeJobDetail(job.apply_url));
@@ -326,6 +340,12 @@ async function fetchCompanyJobs(company, options, providerStatus) {
       run: () => fetchWorkdayJobs(company, options)
     });
   }
+  if (company.wttj?.slug) {
+    collectors.push({
+      provider: 'welcometothejungle',
+      run: () => fetchWTTJCompanyJobs(company.wttj.slug, options)
+    });
+  }
 
   if (!collectors.length) {
     console.warn(`[Direct Careers] ${company.name}: aucun ATS supporté configuré`);
@@ -343,6 +363,12 @@ async function fetchCompanyJobs(company, options, providerStatus) {
       if (dataset?.length) {
         providerStatus[collector.provider].success = true;
         providerStatus[collector.provider].count += dataset.length;
+        // Enrichissement des jobs WTTJ avec les infos de l'entreprise si manquantes
+        if (collector.provider === 'welcometothejungle') {
+          dataset.forEach(job => {
+            if (!job.company_careers) job.company_careers = company.careers;
+          });
+        }
       }
       jobs.push(...dataset);
     } catch (error) {
