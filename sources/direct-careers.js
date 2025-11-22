@@ -19,7 +19,15 @@ import { fetchWTTJCompanyJobs } from './welcometothejungle.js';
 
 const DEFAULT_COMPANIES = [
   // --- RETAIL / GRANDE DISTRIBUTION ---
-  { name: 'Auchan', careers: 'https://www.auchan-recrute.fr/jobs/', wttj: { slug: 'auchan' } },
+  {
+    name: 'Auchan',
+    careers: 'https://www.auchan-recrute.fr/jobs/',
+    wttj: { slug: 'auchan' },
+    meteojob: {
+      baseUrl: 'https://www.auchan-recrute.fr',
+      filterParams: '?facetContract=APPRENTICE'
+    }
+  },
 
   // --- GREENHOUSE (Tech & Startups) - VÉRIFIÉS ✅ ---
   { name: 'Doctolib', careers: 'https://careers.doctolib.com', greenhouse: { board: 'doctolib' } },
@@ -223,8 +231,11 @@ export async function fetchDirectCareersJobs({ query = 'alternance', location = 
   uniqueJobs = chooseBestCandidates(uniqueJobs, urlStats);
 
   // Skip probing for trusted API sources to avoid blocking
-  const jobsToProbe = uniqueJobs.filter(j => j.source !== 'welcometothejungle');
-  const jobsTrusted = uniqueJobs.filter(j => j.source === 'welcometothejungle');
+  // Note: Les jobs normalisés par fetchMeteojobStateJobs ont source='direct-careers' mais id='meteojob:...'
+  const isTrustedJob = (j) => j.source === 'welcometothejungle' || (j.id && j.id.startsWith('meteojob:'));
+
+  const jobsToProbe = uniqueJobs.filter(j => !isTrustedJob(j));
+  const jobsTrusted = uniqueJobs.filter(j => isTrustedJob(j));
 
   await probeJobUrls(jobsToProbe, urlStats);
 
@@ -344,6 +355,12 @@ async function fetchCompanyJobs(company, options, providerStatus) {
     collectors.push({
       provider: 'welcometothejungle',
       run: () => fetchWTTJCompanyJobs(company.wttj.slug, options)
+    });
+  }
+  if (company.meteojob?.baseUrl) {
+    collectors.push({
+      provider: 'meteojob',
+      run: () => fetchMeteojobStateJobs(company, options)
     });
   }
 
@@ -513,6 +530,84 @@ async function fetchWorkdayJobs(company, options) {
       });
     })
     .filter((job) => shouldKeepJob(job, options));
+}
+
+async function fetchMeteojobStateJobs(company, options) {
+  const baseUrl = company.meteojob.baseUrl;
+  const filterParams = company.meteojob.filterParams || '';
+  // On essaie d'augmenter la limite pour tout récupérer d'un coup
+  const url = `${baseUrl}/jobs${filterParams}&limit=100`;
+
+  console.log(`[MeteojobState] Fetching ${url}...`);
+
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Meteojob HTTP ${response.status}`);
+  }
+
+  const html = await response.text();
+  const match = html.match(/<script id="fibonacci-state" type="application\/json">(.*?)<\/script>/);
+
+  if (!match) {
+    console.warn('[MeteojobState] No fibonacci-state found');
+    return [];
+  }
+
+  let state;
+  try {
+    // Décoder les entités HTML si nécessaire (ex: &q; -> ")
+    const rawJson = match[1].replace(/&q;/g, '"').replace(/&l;/g, '<').replace(/&g;/g, '>').replace(/&a;/g, '&').replace(/&s;/g, "'");
+    state = JSON.parse(rawJson);
+  } catch (e) {
+    console.warn('[MeteojobState] Error parsing state JSON:', e.message);
+    return [];
+  }
+
+  // Extraction des offres depuis le state
+  let jobs = state.jobsearch?.search?.results?.list;
+
+  if (!Array.isArray(jobs)) {
+    // Fallback pour Auchan (clé app:search:offers)
+    const searchKey = Object.keys(state).find(k => k.includes('search:offers'));
+    if (searchKey && state[searchKey]?.content) {
+         jobs = state[searchKey].content;
+    }
+  }
+
+  if (!Array.isArray(jobs)) {
+    console.warn('[MeteojobState] No jobs list found in state');
+    return [];
+  }
+
+  console.log(`[MeteojobState] Found ${jobs.length} jobs in initial state`);
+
+  return jobs.map(job => {
+    // Reconstruction de l'URL de l'offre
+    // Format souvent : /offre-emploi/slug/id
+    const slug = slugify(job.title || 'offre');
+    const offerId = job.id;
+    const detailUrl = `${baseUrl}/offre-emploi/${slug}/${offerId}`;
+
+    return normalizeJob({
+      provider: 'meteojob',
+      rawId: job.id,
+      company,
+      title: job.title,
+      location: job.location?.label || job.location?.city || 'France',
+      raw_url: detailUrl,
+      raw_apply_url: detailUrl, // Souvent redirection interne
+      url_candidates: [{ url: detailUrl, source: 'meteojob_state' }],
+      posted: job.publicationDate,
+      tags: ['alternance', ...(job.contractType ? [job.contractType.label || job.contractType.name] : [])],
+      description: job.description || ''
+    });
+  }).filter(job => shouldKeepJob(job, options));
 }
 
 function normalizeJob({ provider, rawId, company, title, location, raw_url, raw_apply_url, url_candidates = [], posted, tags = [], description = '' }) {
@@ -986,8 +1081,14 @@ function looksLikeJobDetail(url) {
     if (isTrusted) return true;
 
     const last = segments[segments.length - 1];
-    if (last.length <= 5) return false;
     const lower = last.toLowerCase();
+
+    // Exception pour les IDs numériques courts (ex: Meteojob)
+    if (/^\d+$/.test(last)) return true;
+    // Exception pour les chemins connus
+    if (segments.includes('offre-emploi') || segments.includes('job')) return true;
+
+    if (last.length <= 5) return false;
     if (/\d/.test(last) || last.includes('-')) return true;
     if (JOB_DETAIL_HINTS.some((hint) => lower.includes(hint))) return true;
     return segments.length >= 3;
