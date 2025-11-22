@@ -57,7 +57,10 @@ const DEFAULT_COMPANIES = [
   { name: 'Ubisoft', careers: 'https://www.ubisoft.com/en-us/careers', smart: { company: 'Ubisoft2' } },
   { name: 'Accor', careers: 'https://careers.accor.com', smart: { company: 'AccorGroup' } },
   { name: 'Publicis', careers: 'https://www.publicisgroupe.com/en/careers', smart: { company: 'PublicisGroupe' } },
-  { name: 'Celonis', careers: 'https://www.celonis.com/careers', smart: { company: 'Celonis' } }
+  { name: 'Celonis', careers: 'https://www.celonis.com/careers', smart: { company: 'Celonis' } },
+
+  // --- METEOJOB / FIBONACCI (Retail & Services) ---
+  { name: 'Auchan', careers: 'https://www.auchan-recrute.fr/jobs', meteojob: { url: 'https://www.auchan-recrute.fr/jobs' } }
 
   // COMMENT AJOUTER UNE NOUVELLE ENTREPRISE:
   // 1. Greenhouse: Tester avec curl "https://boards-api.greenhouse.io/v1/boards/BOARD_ID/jobs"
@@ -326,6 +329,12 @@ async function fetchCompanyJobs(company, options, providerStatus) {
       run: () => fetchWorkdayJobs(company, options)
     });
   }
+  if (company.meteojob?.url) {
+    collectors.push({
+      provider: 'meteojob',
+      run: () => fetchMeteojobJobs(company, options)
+    });
+  }
 
   if (!collectors.length) {
     console.warn(`[Direct Careers] ${company.name}: aucun ATS supporté configuré`);
@@ -487,6 +496,84 @@ async function fetchWorkdayJobs(company, options) {
       });
     })
     .filter((job) => shouldKeepJob(job, options));
+}
+
+async function fetchMeteojobJobs(company, options) {
+  const url = company.meteojob.url;
+  const response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+  if (!response.ok) {
+    throw new Error(`Meteojob HTTP ${response.status}`);
+  }
+  const html = await response.text();
+
+  // Extract JSON from <script id="fibonacci-state" type="application/json">
+  const match = html.match(/<script id="fibonacci-state" type="application\/json">([\s\S]*?)<\/script>/);
+  if (!match) {
+    console.warn(`[Meteojob] No fibonacci-state found for ${company.name}`);
+    return [];
+  }
+
+  let data;
+  try {
+    // Decode HTML entities specific to Meteojob/Fibonacci
+    const jsonText = match[1]
+      .replace(/&q;/g, '"')
+      .replace(/&l;/g, '<')
+      .replace(/&g;/g, '>')
+      .replace(/&s;/g, "'")
+      .replace(/&a;/g, '&');
+
+    // Fix potentially invalid JSON from raw HTML decoding
+    // Sometimes &q; replacements might interfere if already present or similar issues
+    // But the main issue might be control characters or unescaped content.
+    // The regex based replacement is naive but worked in the test script.
+
+    data = JSON.parse(jsonText);
+  } catch (e) {
+    console.error(`[Meteojob] JSON parse error for ${company.name}:`, e.message);
+    return [];
+  }
+
+  const offers = data['app:search:offers']?.content || [];
+
+  return offers.map(offer => {
+    const tags = [];
+    if (offer.contractTypes) tags.push(...offer.contractTypes);
+    if (offer.jobType) tags.push(...offer.jobType);
+
+    // Special mapping for Meteojob/Fibonacci tags
+    if (tags.includes('APPRENTICE')) tags.push('apprenticeship', 'alternance');
+    if (tags.includes('TRAINING')) tags.push('internship');
+
+    // Try to find the best URL
+    let applyUrl = offer.url?.redirect || null;
+    // Fix base URL for jobUrl construction (if url is not the base)
+    const baseUrl = new URL(url).origin;
+    let jobUrl = offer.url?.jobOffer ? new URL(offer.url.jobOffer, baseUrl).toString() : url;
+
+    // Extract location
+    let location = offer.locality || '';
+    if (!location && offer.locations && offer.locations.length > 0) {
+      location = offer.locations[0].name;
+    }
+
+    return normalizeJob({
+      provider: 'meteojob',
+      rawId: offer.id,
+      company,
+      title: offer.title,
+      location: location,
+      raw_url: jobUrl,
+      raw_apply_url: applyUrl,
+      url_candidates: [
+        { url: applyUrl, source: 'meteojob_redirect' },
+        { url: jobUrl, source: 'meteojob_internal' }
+      ].filter(c => c.url),
+      posted: offer.publicationDate,
+      tags,
+      description: offer.description || ''
+    });
+  }).filter(job => shouldKeepJob(job, options));
 }
 
 function normalizeJob({ provider, rawId, company, title, location, raw_url, raw_apply_url, url_candidates = [], posted, tags = [], description = '' }) {
