@@ -47,3 +47,4 @@ Retourne des offres d'alternance. Paramètres de requête :
 - `limit` : nombre maximum de résultats (≤50).
 - `offset` : décalage de pagination.
 - `world` : si `1`, désactive le filtre France/DOM-TOM.
+[Scraping Strategies](docs/SCRAPING_STRATEGIES.md)
